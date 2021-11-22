@@ -1,0 +1,7 @@
+command;line;goal
+aocposet;mydata.cxt myresult.xml -a HERMES;compute aoc-poset with Hermes algorithm from mydata.cxt and store concept order in myresult.xml
+aocposet;mydata.slf myresult.json -a CERES -g mygraphic.dot;compute aoc-poset with Ceres algorithm from mydata.slf, store concept order in myresult.json and in graphiz dot file mygraphic.dot
+aocposet;my.data -i CXT -g mygraphic.dot -d FULL;compute aoc-poset from my.data written in CXT format, just store result for graphviz with FULL display mode
+convert;ord6magic04.cxt ord6magic04.csv -s SEMICOLON;"convert file ""ord6magic04.cxt"" in CXT format to file ""ord6magic04.csv""  in CSV format with a semicolon "";"" as separator"
+convert;mycsv.tab -i CSV -s TAB myslf.txt -o SLF;"convert from file ""mycsv.tab"" written in CSV format with tab as separator to file ""myslf.txt"" in SLF format"
+convert;mydata.cex -o XML;"convert file ""mydata.cex"" (ConExp format) to standard output in XML(Galicia v3) format"
