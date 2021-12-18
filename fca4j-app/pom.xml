@@ -5,11 +5,12 @@
 	<parent>
 		<groupId>fr.lirmm.fca4j</groupId>
 		<artifactId>fca4j-parent</artifactId>
-		<version>0.4.1</version>
+		<version>0.0.1</version>
 	</parent>
 	<artifactId>fca4j-app</artifactId>
 	<name>fca4j-app</name>
 	<description>FCA4J command line interface</description>
+		<version>0.4.2</version>
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
