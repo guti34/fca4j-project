@@ -159,6 +159,7 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 			list.get(numattr).add(num_implication);
 		}
 		computeIntExt.notify(newImplication);
+		System.out.println(newImplication);
 		return num_implication;
 	}
 

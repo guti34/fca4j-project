@@ -21,7 +21,6 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
     private Chrono chrono = null; // eventually a chrono to store execution time 
     private HashSet<Integer> visited = new HashSet<>();
     protected ISetFactory factory;
-//    protected IntArrayFactory intArrayFactory = new IntArrayFactory();
     private int minSetSize;
 
     public AOC_poset_Hermes(IBinaryContext bc, Chrono chrono) {

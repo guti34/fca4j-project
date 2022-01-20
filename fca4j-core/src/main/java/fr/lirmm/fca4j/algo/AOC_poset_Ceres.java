@@ -60,7 +60,7 @@ public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
 
         classifyIdentifier = ran.nextInt();
         LinkedList<Integer> fifoQueue = new LinkedList<>(); // File accueillant des noeuds potentiellement parent de N
-        ISet potentialUpperCover = factory.createSet(); // un ensemble de parents de N
+        ISet potentialUpperCover = factory.createSet(binCtx.getAttributeCount()+binCtx.getObjectCount()); // un ensemble de parents de N
         fifoQueue.add(theGSH.getTop()); // Q recoit top en initialisation
         int nextCpt;
         while (!fifoQueue.isEmpty()) {
@@ -118,7 +118,7 @@ public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
                 // potentialObjectCptGenerator genere donc un nouveau concept objet
 
                 // Creation d'un nouveau noeud
-                ISet LP = factory.createSet(0);
+                ISet LP = factory.createSet(binCtx.getObjectCount());
                 LP.add(potentialObjectCptGenerator); // Son extension contient l'objet en question, e
                 // L'Intension simplifie est forcement vide puisque ce concept est obligatoirement un concept objet !
                 PreConcept theNexCpt = new PreConcept(LP, theAssocitedIntent);
@@ -195,17 +195,17 @@ public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
         }
         ISet ext = factory.createSet(binCtx.getObjectCount());
         ext.fill(binCtx.getObjectCount());
-        ISet reducedExtent = factory.createSet(0);
+        ISet reducedExtent = factory.createSet(binCtx.getObjectCount());
         for (int i = 0; i < binCtx.getObjectCount(); i++) {
             if (binCtx.getIntent(i).cardinality() == 0) {
                 reducedExtent.add(i);
             }
         }
-        int topInit = theGSH.addConcept(ext, factory.createSet(0), reducedExtent, factory.createSet(0));
+        int topInit = theGSH.addConcept(ext, factory.createSet(binCtx.getAttributeCount()), reducedExtent, factory.createSet(binCtx.getAttributeCount()));
         PreConcept[] preCptTab = new PreConcept[binCtx.getAttributeCount()];
         PreConcept aCpt = null;
         for (int i = 0; i < binCtx.getAttributeCount(); i++) {
-            ISet preCptInt = factory.createSet(0);
+            ISet preCptInt = factory.createSet(binCtx.getAttributeCount());
             preCptInt.add(i);
             ISet preCptExt = factory.clone(binCtx.getExtent(i));
             aCpt = new PreConcept(preCptExt, preCptInt);
@@ -228,7 +228,7 @@ public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
         int startIndex = 0; // inclu dans la section
         int endIndex = 1; // exclu de la section
 
-        ISet allCoveredIntent = factory.createSet(0);
+        ISet allCoveredIntent = factory.createSet(binCtx.getAttributeCount());
         while (startIndex < preCptTab.length) {
             sizeToDo = preCptTab[startIndex].getExtent().cardinality();
 
@@ -314,7 +314,7 @@ public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
         ISet extent, intent, rextent, rintent;
 
         PreConcept(ISet extent, ISet intent) {
-            this(extent, intent, factory.createSet(0), factory.createSet(0));
+            this(extent, intent, factory.createSet(binCtx.getObjectCount()), factory.createSet(binCtx.getAttributeCount()));
         }
 
         PreConcept(ISet extent, ISet intent, ISet rextent, ISet rintent) {

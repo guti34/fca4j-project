@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.TreeSet;
 
 import fr.lirmm.fca4j.iset.AbstractSetContext;
+import fr.lirmm.fca4j.iset.gpu.GPUSetFactory;
 import fr.lirmm.fca4j.iset.roaringbitmap.RoaringBitMapFactory;
 import fr.lirmm.fca4j.iset.std.ArrayListSetFactory;
 import fr.lirmm.fca4j.iset.std.BitSetFactory;
@@ -16,6 +17,7 @@ public class SetContextLight extends AbstractSetContext{
 
 	public SetContextLight() {
 		registerFactory(new BitSetFactory());
+		registerFactory(new GPUSetFactory());
 		registerFactory(new RoaringBitMapFactory());
 		registerFactory(new SparseBitSetFactory());
 		registerFactory(new JavaCollectionSetFactory<>(() -> new HashSet<>(),false));

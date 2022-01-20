@@ -36,25 +36,53 @@ public class ClosureDirect implements ClosureStrategy {
         return extent;
     }
    
-public ISet computeExtent(ISet attributes) {
-        ISet extent = factory.createSet(matrix.getObjectCount());
-        if(matrix.getAttributeCount()<matrix.getObjectCount())
-        {
-        extent.fill(matrix.getObjectCount());
-        for (Iterator<Integer> it = attributes.iterator(); it.hasNext();) {
-            extent.retainAll(matrix.getExtent(it.next()));
-        }
-        }
-        else{
-            for(int numobj=0;numobj<matrix.getObjectCount();numobj++)
-            {
-                if(matrix.getIntent(numobj).containsAll(attributes))
-                    extent.add(numobj);
-            }
-        }
-        return extent;
-    }
+ public ISet computeExtent(ISet attributes) {
+     ISet extent = factory.createSet(matrix.getObjectCount());
+     if(matrix.getAttributeCount()<matrix.getObjectCount())
+     {
+     extent.fill(matrix.getObjectCount());
+     for (Iterator<Integer> it = attributes.iterator(); it.hasNext();) {
+         extent.retainAll(matrix.getExtent(it.next()));
+     }
+     }
+     else{
+         for(int numobj=0;numobj<matrix.getObjectCount();numobj++)
+         {
+             if(matrix.getIntent(numobj).containsAll(attributes))
+                 extent.add(numobj);
+         }
+     }
+     return extent;
+ }
+ public ISet computeExtent2(ISet attributes) {
+     ISet extent = factory.createSet(matrix.getObjectCount());
+     extent.fill(matrix.getObjectCount());
+     for (Iterator<Integer> it = attributes.iterator(); it.hasNext();) {
+         extent.retainAll(matrix.getExtent(it.next()));
+     }
+     return extent;
+ }
+public ISet computeIntent2(ISet extent) {
+     ISet intent = factory.createSet(matrix.getAttributeCount());
+     if(!extent.isEmpty()) {
+     intent.fill(matrix.getAttributeCount());
+     for (Iterator<Integer> it = extent.iterator(); it.hasNext();) {
+         intent.retainAll(matrix.getIntent(it.next()));
+     }                
+     }
+      return intent;
+ }
+ public ISet computeIntent3(ISet extent) {
+     ISet intent = factory.createSet(matrix.getAttributeCount());
+     for(int numattr=0;numattr<matrix.getAttributeCount();numattr++)
+     {
+         if(matrix.getExtent(numattr).containsAll(extent))
+             intent.add(numattr);
+     }            
+      return intent;
+ }
 
+ 
     public ISet computeIntent(ISet extent) {
         ISet intent = factory.createSet(matrix.getAttributeCount());
         if(extent.cardinality()<matrix.getAttributeCount()){

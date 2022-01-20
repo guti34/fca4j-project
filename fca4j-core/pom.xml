@@ -17,6 +17,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
+	
 		<dependency>
 			<groupId>fr.lirmm.fca4j</groupId>
 			<artifactId>fca4j-iset</artifactId>

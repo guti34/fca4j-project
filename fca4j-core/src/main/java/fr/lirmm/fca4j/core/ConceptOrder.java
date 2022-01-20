@@ -150,7 +150,7 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
     }
 
     public int addConcept(ISet extent, ISet intent) {
-        return addConcept(extent, intent, factory.createSet(), factory.createSet());
+        return addConcept(extent, intent, factory.createSet(context.getObjectCount()), factory.createSet(context.getAttributeCount()));
     }
 
     public int addConcept(ISet extent, ISet intent, ISet rextent, ISet rintent) {
@@ -271,7 +271,7 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      */
 
     public ISet getAllChildren(int concept) {
-        ISet children = factory.createSet();
+        ISet children = factory.createSet(context.getObjectCount()+context.getAttributeCount());
         populateChildren(concept, children);
         return children;
     }
@@ -288,7 +288,7 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      * relation is reflexive so the current concept is included in its parents
      */
     public ISet getAllParents(int concept) {
-        ISet parents = factory.createSet();
+        ISet parents = factory.createSet(context.getObjectCount()+context.getAttributeCount());
         populateParents(concept, parents);
         return parents;
     }
@@ -336,7 +336,7 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
 
     public ISet getUpperCover(int concept) {
         Set<DefaultEdge> itEdges = hierarchy.outgoingEdgesOf(concept);
-        ISet set = factory.createSet();
+        ISet set = factory.createSet(context.getAttributeCount()+context.getObjectCount());
         for (DefaultEdge edge : itEdges) {
             set.add(hierarchy.getEdgeTarget(edge));
         }

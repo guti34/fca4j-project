@@ -104,22 +104,22 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
                 gsh = new ConceptOrder("AOCposetWithAres", matrix, getDescription());
                 ISet extent = factory.createSet(matrix.getObjectCount());
                 extent.fill(matrix.getObjectCount());
-                ISet rextent = factory.createSet();
+                ISet rextent = factory.createSet(matrix.getObjectCount());
                 rextent.addAll(extent);
-                gsh.addConcept(extent, factory.createSet(), rextent, factory.createSet());
+                gsh.addConcept(extent, factory.createSet(matrix.getAttributeCount()), rextent, factory.createSet(matrix.getAttributeCount()));
                 ISet intent = factory.createSet(matrix.getAttributeCount());
                 intent.fill(matrix.getAttributeCount());
                 gsh = compute(intent);
             } else {
                 int max_attr = -1;
-                ISet intent = factory.createSet();
+                ISet intent = factory.createSet(matrix.getAttributeCount());
                 for (Iterator<Integer> it = gsh.getMinimals().iterator(); it.hasNext();) {
                     intent.addAll(gsh.getConceptIntent(it.next()));
                 }
                 for (Iterator<Integer> it = intent.iterator(); it.hasNext();) {
                     max_attr = it.next();
                 }
-                ISet intentToCompute = factory.createSet();
+                ISet intentToCompute = factory.createSet(matrix.getAttributeCount());
                 for (int numattr = max_attr + 1; numattr < matrix.getAttributeCount(); numattr++) {
                     intentToCompute.add(numattr);
                 }
@@ -131,10 +131,10 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
     }
 
     private class AAresStep {
-
-        ISet subConceptsOfA =factory.createSet();
-        ISet nonIntroducingConcepts = factory.createSet();
-        ISet doNotCheck = factory.createSet();
+    	int maxNbConcepts=matrix.getAttributeCount()+matrix.getObjectCount();
+        ISet subConceptsOfA =factory.createSet(maxNbConcepts);
+        ISet nonIntroducingConcepts = factory.createSet(maxNbConcepts);
+        ISet doNotCheck = factory.createSet(maxNbConcepts);
         ISet extentOfA;
         boolean isCADefined = false;
         int ca = -1;
@@ -233,7 +233,7 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
                     extentOfA.removeAll(cReducedExtent);
                 } else if (ra.cardinality() == 0) {//case 3 c superconcept of g(a) 
                     if (!isCADefined) {
-                        ca = gsh.addConcept(factory.createSet(), factory.createSet());
+                        ca = gsh.addConcept(factory.createSet(matrix.getObjectCount()), factory.createSet(matrix.getAttributeCount()));
                         conceptsToAdd.add(ca);
                         isCADefined = true;
                         //ca.getBitIntent().set(context.getAttributes().indexOf(a));
@@ -267,13 +267,13 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
                     }
                     doNotCheck.addAll(gsh.getAllParents(c));
                 } else if (ec.cardinality() != 0 && hasAllOConcepts()) {//case 4 c and g(a) not comparable
-                    ISet extsC2 = factory.createSet();
+                    ISet extsC2 = factory.createSet(matrix.getAttributeCount()+matrix.getObjectCount());
                     extsC2.addAll(ec);//TODO is a copy necessary ?
                     ISet extsC = gsh.getConceptReducedExtent(c);
 //                    extsC.addAll(c.getReducedExtent());
                     extsC.addAll(cReducedExtent);
 // bug rextent fix
-                    int c2 = gsh.addConcept(factory.clone(cc), factory.createSet(), extsC2, factory.createSet());
+                    int c2 = gsh.addConcept(factory.clone(cc), factory.createSet(matrix.getObjectCount()), extsC2, factory.createSet(matrix.getAttributeCount()));
                     conceptsToAdd.add(c2);
                     // bug rextent fix
                     //TODO
