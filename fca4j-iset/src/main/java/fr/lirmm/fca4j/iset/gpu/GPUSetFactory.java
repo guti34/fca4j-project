@@ -52,6 +52,7 @@ public class GPUSetFactory extends AbstractSetFactory {
 	protected cl_kernel kernelCLEAR;
 	protected cl_kernel kernelEQUALS;
 	protected cl_kernel kernelCOMPUTE_INTENT;
+	protected cl_kernel kernelEXOFLACK;
 
 	public GPUSetFactory() {
 		// The platform, device type and device number
@@ -110,73 +111,95 @@ public class GPUSetFactory extends AbstractSetFactory {
 		kernelCLEAR = clCreateKernel(program, "clear", null);
 		kernelFILL = clCreateKernel(program, "fill", null);
 		kernelEQUALS = clCreateKernel(program, "equals", null);
-		kernelCOMPUTE_INTENT=clCreateKernel(program, "computeIntent", null);
+		kernelCOMPUTE_INTENT = clCreateKernel(program, "computeIntent", null);
+		kernelEXOFLACK = clCreateKernel(program, "extensionOfLack", null);
 	}
-	public cl_mem createBufferMatrix(List<ISet> intents,int nbAttr) {
+
+	public cl_mem createBufferMatrix(List<ISet> intents, int nbAttr) {
 		// populate matrix
-		int[][] matrix=new int[intents.size()][nbAttr];
-		for(int numobj=0;numobj<intents.size();numobj++) {
-			ISet intent=intents.get(numobj);
-			for(Iterator<Integer>it=intent.iterator();it.hasNext();) {
-				int numattr=it.next();
-				matrix[numobj][numattr]=1;
+		int[][] matrix = new int[intents.size()][nbAttr];
+		for (int numobj = 0; numobj < intents.size(); numobj++) {
+			ISet intent = intents.get(numobj);
+			for (Iterator<Integer> it = intent.iterator(); it.hasNext();) {
+				int numattr = it.next();
+				matrix[numobj][numattr] = 1;
 			}
 		}
-		int matrix_size=intents.size()*nbAttr;
-		cl_mem mem_data = clCreateBuffer(context, CL_MEM_READ_ONLY, Sizeof.cl_int * matrix_size,null, null);
-	       // Write the source array into the buffer
-        writeBuffer2D(mem_data, matrix);
+		int matrix_size = intents.size() * nbAttr;
+		cl_mem mem_data = clCreateBuffer(context, CL_MEM_READ_ONLY , Sizeof.cl_int * matrix_size,
+				null, null);
+		// Write the source array into the buffer
+		writeBuffer2D(mem_data, matrix);
 		return mem_data;
 	}
-	public ISet computeIntent(cl_mem mem_data,int nbObj,int nbAttr,ISet extent) {
-		if(!(extent.getFactory().equals(this)))
-		{
-			extent=createSet(extent.toBitSet(),nbObj);
-		}
-		SetWithGPUBoolArray result=(SetWithGPUBoolArray)createSet(nbAttr);
-		result.fill(nbAttr);
+
+	public ISet extensionOfLack(cl_mem mem_data, int nbObj, int nbAttr, ISet extent, ISet zeros) {
+		SetWithGPUBoolArray result = (SetWithGPUBoolArray) createSet(nbAttr);
+//		SetWithGPUBoolArray work = (SetWithGPUBoolArray) createSet(nbAttr);
+		clSetKernelArg(kernelEXOFLACK, 0, Sizeof.cl_mem, Pointer.to(mem_data));
+		clSetKernelArg(kernelEXOFLACK, 1, Sizeof.cl_mem, Pointer.to(((SetWithGPUBoolArray) extent).mem_array));
+		clSetKernelArg(kernelEXOFLACK, 2, Sizeof.cl_mem, Pointer.to(((SetWithGPUBoolArray) zeros).mem_array));
+//		clSetKernelArg(kernelEXOFLACK, 3, Sizeof.cl_mem, Pointer.to(((SetWithGPUBoolArray) work).mem_array));
+		clSetKernelArg(kernelEXOFLACK, 3, Sizeof.cl_int * nbAttr, null);
+		// arg4 change
 		
+		clSetKernelArg(kernelEXOFLACK, 5, Sizeof.cl_int, Pointer.to(new int[] { nbAttr }));
+		clSetKernelArg(kernelEXOFLACK, 6, Sizeof.cl_mem, Pointer.to(result.mem_array));
+		for (int numattr = 0; numattr < nbAttr; numattr++) {
+			// Execute the kernel
+			clSetKernelArg(kernelEXOFLACK, 4, Sizeof.cl_int, Pointer.to(new int[] {numattr}));
+			try {
+			clEnqueueNDRangeKernel(commandQueue, kernelEXOFLACK, 2, null, new long[] { nbObj, nbAttr }, null, 0, null,
+					null);
+			}catch(Exception e) {
+				System.out.println("attr="+numattr);
+				throw e;
+			}
+		}
+		// Read the buffer back to the array
+		clEnqueueReadBuffer(commandQueue, result.mem_array, CL_TRUE, 0, nbAttr * Sizeof.cl_int,
+				Pointer.to(result.array), 0, null, null);
+		result.gpuDirty = false;
+		result.hostDirty = false;
+		return result;
+	}
+
+	public ISet computeIntent(cl_mem mem_data, int nbObj, int nbAttr, ISet extent, ISet result) {
+		// set args
 		clSetKernelArg(kernelCOMPUTE_INTENT, 0, Sizeof.cl_mem, Pointer.to(mem_data));
 		clSetKernelArg(kernelCOMPUTE_INTENT, 1, Sizeof.cl_mem, Pointer.to(((SetWithGPUBoolArray)extent).mem_array));
 		clSetKernelArg(kernelCOMPUTE_INTENT, 2, Sizeof.cl_int, Pointer.to(new int[] { nbAttr }));
-		clSetKernelArg(kernelCOMPUTE_INTENT, 3, Sizeof.cl_mem, Pointer.to(result.mem_array));
+		clSetKernelArg(kernelCOMPUTE_INTENT, 3, Sizeof.cl_mem, Pointer.to(((SetWithGPUBoolArray)result).mem_array));
 
 		// Execute the kernel
-		clEnqueueNDRangeKernel(commandQueue, kernelCOMPUTE_INTENT, 2, null, new long[]{nbObj,nbAttr},null, 0, null, null);
-	       // Read the buffer back to the array
-		clEnqueueReadBuffer(commandQueue, result.mem_array, CL_TRUE, 0, nbAttr * Sizeof.cl_int, Pointer.to(result.array), 0,
-				null, null); 
-		result.gpuDirty=false;
-		result.hostDirty=false;
+		clEnqueueNDRangeKernel(commandQueue, kernelCOMPUTE_INTENT, 2, null, new long[] { nbObj, nbAttr }, null, 0, null,
+				null);
+		// Read the buffer back to the array
+		clEnqueueReadBuffer(commandQueue, ((SetWithGPUBoolArray)result).mem_array, CL_TRUE, 0, nbAttr * Sizeof.cl_int,
+				Pointer.to(((SetWithGPUBoolArray)result).array), 0, null, null);
+		((SetWithGPUBoolArray)result).gpuDirty = false;
+		((SetWithGPUBoolArray)result).hostDirty = false;
 //		System.out.println(result);
 		return result;
 	}
-	   private void writeBuffer2D(cl_mem buffer, int array[][])
-	    {
-	        long byteOffset = 0;
-	        for (int r=0; r<array.length; r++)
-	        {
-	            int bytes = array[r].length * Sizeof.cl_int;
-	            clEnqueueWriteBuffer(
-	                commandQueue, buffer, CL_TRUE, byteOffset, bytes,
-	                Pointer.to(array[r]), 0, null, null);
-	            byteOffset += bytes; 
-	        }
-	    }
 
-	    private void readBuffer2D(cl_mem buffer, int array[][])
-	    {
-	        long byteOffset = 0;
-	        for (int r=0; r<array.length; r++)
-	        {
-	            int bytes = array[r].length * Sizeof.cl_int;
-	            clEnqueueReadBuffer(
-	                commandQueue, buffer, CL_TRUE, byteOffset, bytes,
-	                Pointer.to(array[r]), 0, null, null);
-	            byteOffset += bytes; 
-	        }
-	    }
-	    
+	private void writeBuffer2D(cl_mem buffer, int array[][]) {
+		long byteOffset = 0;
+		for (int r = 0; r < array.length; r++) {
+			int bytes = array[r].length * Sizeof.cl_int;
+			clEnqueueWriteBuffer(commandQueue, buffer, CL_TRUE, byteOffset, bytes, Pointer.to(array[r]), 0, null, null);
+			byteOffset += bytes;
+		}
+	}
+
+	private void readBuffer2D(cl_mem buffer, int array[][]) {
+		long byteOffset = 0;
+		for (int r = 0; r < array.length; r++) {
+			int bytes = array[r].length * Sizeof.cl_int;
+			clEnqueueReadBuffer(commandQueue, buffer, CL_TRUE, byteOffset, bytes, Pointer.to(array[r]), 0, null, null);
+			byteOffset += bytes;
+		}
+	}
 
 	@Override
 	public ISet createSet() {
@@ -210,7 +233,7 @@ public class GPUSetFactory extends AbstractSetFactory {
 
 	@Override
 	public String name() {
-		return "BOOL_ARRAY_GPU";
+		return "OPENCL_GPU";
 	}
 
 	@Override
@@ -227,16 +250,16 @@ public class GPUSetFactory extends AbstractSetFactory {
 		String path = "/gpu_program.cl";
 		String program = null;
 		try {
-			    InputStream inputStream= getClass().getResourceAsStream(path);		   
-			    StringBuilder textBuilder = new StringBuilder();
-			    try (Reader reader = new BufferedReader(new InputStreamReader
-			      (inputStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
-			        int c = 0;
-			        while ((c = reader.read()) != -1) {
-			            textBuilder.append((char) c);
-			        }
-			    }
-			    program=textBuilder.toString();	
+			InputStream inputStream = getClass().getResourceAsStream(path);
+			StringBuilder textBuilder = new StringBuilder();
+			try (Reader reader = new BufferedReader(
+					new InputStreamReader(inputStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
+				int c = 0;
+				while ((c = reader.read()) != -1) {
+					textBuilder.append((char) c);
+				}
+			}
+			program = textBuilder.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -257,6 +280,7 @@ public class GPUSetFactory extends AbstractSetFactory {
 		clReleaseKernel(kernelCLEAR);
 		clReleaseKernel(kernelEQUALS);
 		clReleaseKernel(kernelCOMPUTE_INTENT);
+		clReleaseKernel(kernelEXOFLACK);
 		clReleaseProgram(program);
 		clReleaseCommandQueue(commandQueue);
 		clReleaseContext(context);
@@ -272,7 +296,7 @@ public class GPUSetFactory extends AbstractSetFactory {
 
 		private int localWorkSize = 128;
 		private int numWorkGroups = 64;
-		private boolean gpuDirty = false;
+		private boolean gpuDirty = true;
 		private boolean hostDirty = false;
 		private int[] array;
 		private int outputArray[] = new int[numWorkGroups];
@@ -300,12 +324,14 @@ public class GPUSetFactory extends AbstractSetFactory {
 			}
 			initBuffers();
 		}
+
 		private void initBuffers() {
 			mem_array = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, Sizeof.cl_int * array.length,
 					Pointer.to(array), null);
-			mem_output = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_int * numWorkGroups, 
+			mem_output = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_int * numWorkGroups,
 					Pointer.to(outputArray), null);
 		}
+
 		public boolean getHostDirty() {
 			return hostDirty;
 		}
@@ -358,18 +384,19 @@ public class GPUSetFactory extends AbstractSetFactory {
 		public int capacity() {
 			return array.length;
 		}
+
 		@Override
 		public void fill(int size) {
 			if (gpuDirty)
 				syncGPU();
 			clSetKernelArg(kernelFILL, 0, Sizeof.cl_mem, Pointer.to(mem_array));
-			clSetKernelArg(kernelFILL, 1, Sizeof.cl_int, Pointer.to(new int[] {size}));
+			clSetKernelArg(kernelFILL, 1, Sizeof.cl_int, Pointer.to(new int[] { size }));
 			// Set the work-item dimensions
 			long global_work_size[] = new long[] { array.length };
 
 			// Execute the kernel
 			clEnqueueNDRangeKernel(commandQueue, kernelFILL, 1, null, global_work_size, null, 0, null, null);
-			hostDirty=true;
+			hostDirty = true;
 		}
 
 		@Override
@@ -377,13 +404,13 @@ public class GPUSetFactory extends AbstractSetFactory {
 			if (gpuDirty)
 				syncGPU();
 			clSetKernelArg(kernelCLEAR, 0, Sizeof.cl_mem, Pointer.to(mem_array));
-			clSetKernelArg(kernelCLEAR, 1, Sizeof.cl_int, Pointer.to(new int[] {size}));
+			clSetKernelArg(kernelCLEAR, 1, Sizeof.cl_int, Pointer.to(new int[] { size }));
 			// Set the work-item dimensions
 			long global_work_size[] = new long[] { array.length };
 
 			// Execute the kernel
 			clEnqueueNDRangeKernel(commandQueue, kernelCLEAR, 1, null, global_work_size, null, 0, null, null);
-			hostDirty=true;
+			hostDirty = true;
 		}
 
 		@Override
@@ -537,14 +564,14 @@ public class GPUSetFactory extends AbstractSetFactory {
 				syncGPU();
 
 			reduce1(kernelCARD, mem_array, array.length, mem_output, numWorkGroups, localWorkSize);
-			clEnqueueReadBuffer(commandQueue, mem_output, CL_TRUE, 0, outputArray.length * Sizeof.cl_int, Pointer.to(outputArray), 0,
-					null, null);
-			int result=reduceHost(outputArray);
+			clEnqueueReadBuffer(commandQueue, mem_output, CL_TRUE, 0, outputArray.length * Sizeof.cl_int,
+					Pointer.to(outputArray), 0, null, null);
+			int result = reduceHost(outputArray);
 			return result;
 		}
 
 		@Override
-			public boolean containsAll(ISet another) {
+		public boolean containsAll(ISet another) {
 			if (gpuDirty)
 				syncGPU();
 			if (((SetWithGPUBoolArray) another).gpuDirty)
@@ -552,10 +579,10 @@ public class GPUSetFactory extends AbstractSetFactory {
 			reduce2(kernelCONTAINS, mem_array, ((SetWithGPUBoolArray) another).mem_array, array.length, mem_output,
 					numWorkGroups, localWorkSize);
 
-			clEnqueueReadBuffer(commandQueue, mem_output, CL_TRUE, 0, outputArray.length * Sizeof.cl_int, Pointer.to(outputArray), 0,
-					null, null);
-			int result=reduceHost(outputArray);
-			return result==0;
+			clEnqueueReadBuffer(commandQueue, mem_output, CL_TRUE, 0, outputArray.length * Sizeof.cl_int,
+					Pointer.to(outputArray), 0, null, null);
+			int result = reduceHost(outputArray);
+			return result == 0;
 		}
 
 		public boolean containsAll2(ISet anotherSet) {
@@ -617,24 +644,17 @@ public class GPUSetFactory extends AbstractSetFactory {
 		private int reduceHost(int tab[]) {
 //	    	System.out.println("reduceHost "+toString(tab));
 //        	System.out.println("array="+this);
-			int sum = 0;			
+			int sum = 0;
 			for (int i = 0; i < tab.length; i++)
 				sum += tab[i];
 			return sum;
 		}
 
-/*		public String toString(int[] tab) {
-			String s = null;
-			for (int i = 0; i < tab.length; i++) {
-				if (s == null) {
-					s = "[" + tab[i];
-				} else {
-					s += "," + tab[i];
-				}
-			}
-			return s == null ? "[]" : s + "]";
-		}
-*/
+		/*
+		 * public String toString(int[] tab) { String s = null; for (int i = 0; i <
+		 * tab.length; i++) { if (s == null) { s = "[" + tab[i]; } else { s += "," +
+		 * tab[i]; } } return s == null ? "[]" : s + "]"; }
+		 */
 		@Override
 		public int hashCode() {
 			return array.hashCode();
@@ -649,11 +669,12 @@ public class GPUSetFactory extends AbstractSetFactory {
 			reduce2(kernelEQUALS, mem_array, ((SetWithGPUBoolArray) other).mem_array, array.length, mem_output,
 					numWorkGroups, localWorkSize);
 
-			clEnqueueReadBuffer(commandQueue, mem_output, CL_TRUE, 0, outputArray.length * Sizeof.cl_int, Pointer.to(outputArray), 0,
-					null, null);
-			int result=reduceHost(outputArray);
-			return result==0;
+			clEnqueueReadBuffer(commandQueue, mem_output, CL_TRUE, 0, outputArray.length * Sizeof.cl_int,
+					Pointer.to(outputArray), 0, null, null);
+			int result = reduceHost(outputArray);
+			return result == 0;
 		}
+
 		public boolean equals2(Object other) {
 			return containsAll((ISet) other) && ((ISet) other).containsAll(this);
 //			SetWithGPUBoolArray other2=(SetWithGPUBoolArray)other;

@@ -138,22 +138,35 @@ __kernel void cardinality(__global const int* buffer,__local int* scratch,__cons
 	        result[get_group_id(0)] = scratch[0];
 	    }
 	}
+__kernel void extensionOfLack(__global const int* matrix,__global const int* extent,__global const int* zeros,__local int* work,__const int numattr2,__const int nbattr,__global int* result) 
+	{			
+		    int numobj = get_global_id(0);
+		    int numattr = get_global_id(1);
+		    work[numattr]=1;
+
+		    barrier(CLK_LOCAL_MEM_FENCE);
+		    
+		    int val=matrix[numattr+nbattr*numobj];
+		    int ext=extent[numobj];
+		    int val2=matrix[numattr2+nbattr*numobj];
+		    if(ext!=0 && val2!=0){
+		     	if(val==0) work[numattr]=0;
+		     }
+		    
+			barrier(CLK_LOCAL_MEM_FENCE);
+			if(zeros[numattr]!=0 && work[numattr]!=0)
+					result[numattr2]=1;			
+	}       
 __kernel void computeIntent(__global const int* matrix,__global const int* extent,__const int nbattr,__global int* result) 
 	{
 		    int numobj = get_global_id(0);
 		    int numattr = get_global_id(1);
+			result[numattr]=1;
+			barrier(CLK_LOCAL_MEM_FENCE);			
 		    int val=matrix[numattr+nbattr*numobj];
 		    int ext=extent[numobj];
 		    if(ext!=0 && val==0)
-		    result[numattr]=0;
-	}           
-__kernel void loseFrequency(__global const int* matrix,__global const int* extent,__const int nbattr,__const int effectiveTeta,__global int* result) 
-	{
-		    int numobj = get_global_id(0);
-		    int numattr = get_global_id(1);
-		    int val=matrix[numattr+nbattr*numobj];
-		    int ext=extent[numobj];
-		    if(ext!=0 && val==0)
-		    result[numattr]=0;
-	}           
+		    	result[numattr]=0;
+	}       
+	    
 	
