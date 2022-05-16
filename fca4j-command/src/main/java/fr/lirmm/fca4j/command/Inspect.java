@@ -56,7 +56,7 @@ public class Inspect extends Command {
     System.out.println("incidence: "+ctx.getIncidence());
     System.out.println("density: " + ctx.getDensity());
     System.out.println("data complexity: " + Math.round(ctx.getDataComplexity()));
-    System.out.println("sch�tt number: " + Math.round(ctx.getSchuttNumber()));
+    System.out.println("schutt number: " + Math.round(ctx.getSchuttNumber()));
 	return ctx;	
 	}
 

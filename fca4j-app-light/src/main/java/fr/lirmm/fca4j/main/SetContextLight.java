@@ -17,7 +17,7 @@ public class SetContextLight extends AbstractSetContext{
 
 	public SetContextLight() {
 		registerFactory(new BitSetFactory());
-		registerFactory(new GPUSetFactory());
+//		registerFactory(new GPUSetFactory());
 		registerFactory(new RoaringBitMapFactory());
 		registerFactory(new SparseBitSetFactory());
 		registerFactory(new JavaCollectionSetFactory<>(() -> new HashSet<>(),false));
