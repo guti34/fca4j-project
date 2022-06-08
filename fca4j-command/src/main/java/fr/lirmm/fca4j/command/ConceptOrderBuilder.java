@@ -51,8 +51,10 @@ public abstract class ConceptOrderBuilder extends Command {
 				throw new Exception("the specified graphviz file path is not writable !");
 			try{
 				if(line.hasOption("d"))
-					displayMode=DisplayMode.valueOf(line.getOptionValue("f"));
-			}catch(Exception e){}
+					displayMode=DisplayMode.valueOf(line.getOptionValue("d").toUpperCase());
+			}catch(Exception e){
+				throw new Exception("display mode option not recognized: " + line.getOptionValue("d"));
+			}
 		} else
 			dotFile = null;
 	}
@@ -60,7 +62,7 @@ public abstract class ConceptOrderBuilder extends Command {
 	protected void checkOutputFormat(CommandLine line, String outFileName) throws Exception {
 		if (line.hasOption("o")) {
 			try {
-				outputFormat = ConceptOrderFormat.valueOf(line.getOptionValue("o"));
+				outputFormat = ConceptOrderFormat.valueOf(line.getOptionValue("o").toUpperCase());
 			} catch (Exception e) {
 				throw new Exception("output format option not recognized: " + line.getOptionValue("o"));
 			}
