@@ -51,7 +51,7 @@ public class MyCSVReader {
         for (int numline = inclAttrNames ? 1 : 0; numline < lines.size(); numline++) {
             String[] record = lines.get(numline);
             // values representing true and false must be determined
-            if (trueValue == null && falseValue == null) {
+            if (trueValue == null && falseValue == null && record.length>1) {
                 String[] values = findValues(record, inclObjNames);
                 if (values.length > 2) {
                     throw new IOException("Record error line: " + numline);
@@ -64,7 +64,7 @@ public class MyCSVReader {
                         falseValue = detectFalseValue(val);
                     }
                 }
-                if (trueValue == null && falseValue == null) {
+                if (trueValue == null && falseValue == null ) {
                     throw new IOException("true/false values can't be recognized numline="+numline);
                 }
             }

@@ -75,6 +75,9 @@ public class FamilyCommand extends Command {
 
 	@Override
 	public void checkOptions(CommandLine line) throws Exception {
+		// factory
+		checkImplementation(line);
+		// action
 		if (line.hasOption("a")) {
 			try {
 				action = FamilyAction.valueOf(line.getOptionValue("a"));
@@ -175,6 +178,7 @@ public class FamilyCommand extends Command {
 				throw new Exception("context file to import must be specified");
 			}
 			IBinaryContext ctx = readContext(ctxFormat, ctxFile);
+			ctx.setName(ctxName);
 			if (relationConcerned) {
 				if(family.getFormalContext(source)==null)
 					throw new Exception("source "+source+" is not found");
