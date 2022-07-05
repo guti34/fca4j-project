@@ -12,9 +12,17 @@
 <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <junit-jupiter.version>5.5.2</junit-jupiter.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 </properties>
   <dependencies>
+        <!-- junit 5 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
   	<dependency>
   		<groupId>fr.lirmm.fca4j</groupId>
   		<artifactId>fca4j-iset</artifactId>

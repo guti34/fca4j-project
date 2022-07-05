@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.TreeSet;
 
 import fr.lirmm.fca4j.iset.AbstractSetContext;
-import fr.lirmm.fca4j.iset.gpu.GPUSetFactory;
 import fr.lirmm.fca4j.iset.roaringbitmap.RoaringBitMapFactory;
 import fr.lirmm.fca4j.iset.std.ArrayListSetFactory;
 import fr.lirmm.fca4j.iset.std.BitSetFactory;
