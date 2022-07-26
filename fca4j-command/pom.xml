@@ -8,7 +8,6 @@
   <artifactId>fca4j-command</artifactId>
   <name>fca4j-command</name>
   <description>Commands for line interface</description>
-  <version>0.0.1</version>
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>

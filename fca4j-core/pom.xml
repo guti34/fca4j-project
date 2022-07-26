@@ -10,7 +10,6 @@
 	<artifactId>fca4j-core</artifactId>
 	<name>fca4j-core</name>
 	<description>fca4j core library</description>
-	<version>0.0.1</version>
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>

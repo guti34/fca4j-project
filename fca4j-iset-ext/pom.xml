@@ -8,7 +8,6 @@
   <artifactId>fca4j-iset-ext</artifactId>
   <name>fca4j-iset-ext</name>
   <description>extension for fca4j-iset library</description>
-	<version>0.0.1</version>
 <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>

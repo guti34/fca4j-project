@@ -1,4 +1,3 @@
-/*
 BSD 3-Clause License
 
 Copyright (c) 2022 LIRMM
@@ -27,26 +26,4 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-package fr.lirmm.fca4j.core.operator;
 
-import fr.lirmm.fca4j.core.IBinaryContext;
-import fr.lirmm.fca4j.iset.ISet;
-
-
-public class MyForAllExistentialScaling extends AbstractScalingOperator{
-	
-	@Override
-	public boolean scale(int e, ISet c, IBinaryContext context) {
-		if (c.isEmpty())
-			return false;
-		ISet inter=context.getIntent(e).newIntersect(c);
-		return inter.equals(context.getIntent(e));
-	}
-
-	@Override
-	public String getName() {
-		return "existForall";
-	}
-    
-}

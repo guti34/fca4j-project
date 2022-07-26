@@ -8,7 +8,6 @@
   <artifactId>fca4j-io</artifactId>
   <name>fca4j-io</name>
   <description>I/O for formal context and relational contexts family</description>
-	<version>0.0.1</version>
 <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
