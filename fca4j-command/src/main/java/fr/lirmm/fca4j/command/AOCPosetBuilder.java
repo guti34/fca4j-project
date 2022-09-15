@@ -63,7 +63,7 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 	protected AlgoAOCPoset algo;
 
 	enum AlgoAOCPoset {
-		ARES, CERES, PLUTON, ATHENA, HERMES
+		ARES, CERES, PLUTON, /*ATHENA,*/ HERMES
 	};
 
 	public AOCPosetBuilder(ISetContext setContext) {
@@ -146,9 +146,9 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		Chrono chrono = new Chrono("aocposet");
 		AbstractAlgo<ConceptOrder> aoc_algo;
 		switch (algo) {
-		case ATHENA:
-			aoc_algo = new AOC_poset_Athena(ctx, chrono);
-			break;
+//		case ATHENA:
+//			aoc_algo = new AOC_poset_Athena(ctx, chrono);
+//			break;
 		case HERMES:
 			aoc_algo = new AOC_poset_Hermes(ctx, chrono);
 			break;

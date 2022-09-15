@@ -44,6 +44,7 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
+
 public class AOC_poset_Athena implements AbstractAlgo<ConceptOrder> {
 
 	private final static int[] MARK=new int[] {-1,-1};
@@ -137,6 +138,11 @@ public class AOC_poset_Athena implements AbstractAlgo<ConceptOrder> {
 		
 		if (chrono != null) {
 			chrono.stop("concept");
+			chrono.start("transitive reduction");
+		}
+//		gsh.reduce();
+		if (chrono != null) {
+			chrono.stop("transitive reduction");
 			chrono.start("completion");
 		}
 		ISet minimals=gsh.getMinimals();
@@ -188,19 +194,30 @@ public class AOC_poset_Athena implements AbstractAlgo<ConceptOrder> {
 		}
 		LinkedList<int[]> result=new LinkedList<>();
 		// build attributes hierarchy
-		for(int numAttr1=0;numAttr1<ctx.getAttributeCount();numAttr1++)
+		for(int numAttr1=ctx.getAttributeCount()-1;numAttr1>=0;numAttr1--)
 		{
-			for(int numAttr2=0;numAttr2<numAttr1;numAttr2++)
+			boolean to_ignore[]=new boolean[ctx.getAttributeCount()];			
+			for(int numAttr2=numAttr1-1;numAttr2>=0;numAttr2--)
 			{
-				if(ctx.getExtent(numAttr2).containsAll(ctx.getExtent(numAttr1))) {
-					ISet inter=attributeHierarchyExtents[numAttr2].newIntersect(ctx.getExtent(numAttr1));
-					if(!inter.isEmpty())
+				if(!to_ignore[numAttr2]) {
+					if(ctx.getExtent(numAttr2).containsAll(ctx.getExtent(numAttr1))) 
+					{
+						attributeHierarchyExtents[numAttr2].removeAll(ctx.getExtent(numAttr1));						
+						for(int numAttr3=numAttr2-1;numAttr3>=0;numAttr3--)
 						{
-						result.add(new int[] {numAttr1,numAttr2});
-						attributeHierarchyExtents[numAttr2].removeAll(ctx.getExtent(numAttr1));
+							if(!to_ignore[numAttr3] && ctx.getExtent(numAttr3).containsAll(ctx.getExtent(numAttr2)))
+							{
+								to_ignore[numAttr3]=true;
+							}
 						}
+					}
+					else to_ignore[numAttr2]=true;
 				}
 			}
+				for(int attr=0;attr<numAttr1;attr++)
+				{
+					if(!to_ignore[attr]) result.add(new int[] {numAttr1,attr});
+				}
 		}
 		// end of attribute graph
 		// build sewing intents
@@ -226,22 +243,33 @@ public class AOC_poset_Athena implements AbstractAlgo<ConceptOrder> {
 		result.add(MARK);
 //		// build object hierarchy
 		ISet[] objectHierarchyIntents=new ISet[ctx.getObjectCount()];
-		for(int numobj=0;numobj<ctx.getObjectCount();numobj++)
-		{
-			objectHierarchyIntents[numobj]=ctx.getIntent(numobj).clone();
+		for (int numobj = 0; numobj < ctx.getObjectCount(); numobj++) {
+			objectHierarchyIntents[numobj] = ctx.getIntent(numobj).clone();
 		}
-		for(int numObj1=0;numObj1<ctx.getObjectCount();numObj1++)
+		for(int numObj1=ctx.getObjectCount()-1;numObj1>=0;numObj1--)
 		{
-			for(int numObj2=0;numObj2<numObj1;numObj2++)
+			boolean to_ignore[]=new boolean[ctx.getObjectCount()];			
+			for(int numObj2=numObj1-1;numObj2>=0;numObj2--)
 			{
-				if(ctx.getIntent(numObj2).containsAll(ctx.getIntent(numObj1))) {
-					if(!objectHierarchyIntents[numObj2].newIntersect(ctx.getIntent(numObj1)).isEmpty())
+				if(!to_ignore[numObj2]) {
+					if(ctx.getIntent(numObj2).containsAll(ctx.getIntent(numObj1))) 
+					{
+						objectHierarchyIntents[numObj2].removeAll(ctx.getIntent(numObj1));						
+						for(int numObj3=numObj2-1;numObj3>=0;numObj3--)
 						{
-						result.add(new int[] {numObj2,numObj1});
-						objectHierarchyIntents[numObj2].removeAll(ctx.getIntent(numObj1));
+							if(!to_ignore[numObj3] && ctx.getIntent(numObj3).containsAll(ctx.getIntent(numObj2)))
+							{
+								to_ignore[numObj3]=true;
+							}
 						}
+					}
+					else to_ignore[numObj2]=true;
 				}
 			}
+				for(int obj=0;obj<numObj1;obj++)
+				{
+					if(!to_ignore[obj]) result.add(new int[] {obj,numObj1});
+				}
 		}
 		// end of object hierarchy
 		result.add(MARK);

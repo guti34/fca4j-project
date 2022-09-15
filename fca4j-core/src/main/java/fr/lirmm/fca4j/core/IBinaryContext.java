@@ -30,6 +30,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package fr.lirmm.fca4j.core;
 
+import java.util.List;
+
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 
@@ -62,8 +64,12 @@ public interface IBinaryContext extends Cloneable {
     public void set(int numObject, int numAttribute, boolean value);
 
     public ISet getExtent(int numAttribute);
+    
+    public List<ISet> getExtents();
 
     public ISet getIntent(int numObject);
+    
+    public List<ISet> getIntents();
 
     public void setExtent(int numAttribute, ISet extent);
 

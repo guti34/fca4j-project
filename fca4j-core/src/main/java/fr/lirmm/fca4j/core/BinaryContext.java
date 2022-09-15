@@ -32,6 +32,7 @@ package fr.lirmm.fca4j.core;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
@@ -342,6 +343,16 @@ public class BinaryContext implements IBinaryContext, Cloneable {
 	@Override
 	public ISetFactory getFactory() {
 		return factory;
+	}
+
+	@Override
+	public List<ISet> getExtents() {
+		return columns;
+	}
+
+	@Override
+	public List<ISet> getIntents() {
+		return rows;
 	}
 
 }
