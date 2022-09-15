@@ -6,12 +6,12 @@
   <packaging>pom</packaging>
   <name>FCA4J</name>
   <description>a Java toolkit for formal concept analysis purposes</description>
-   <licenses>
+  <licenses>
         <license>
             <name>BSD-3-Clause</name>
             <url>https://opensource.org/licenses/BSD-3-Clause</url>
         </license>
-    </licenses>
+  </licenses>
   <modules>
   	<module>fca4j-core</module>
   	<module>fca4j-iset</module>
