@@ -39,6 +39,7 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
 /**
+ * The Class ClosureDirect.
  *
  * @author agutierr
  */
@@ -47,11 +48,25 @@ public class ClosureDirect implements ClosureStrategy {
     protected IBinaryContext matrix;
     protected ISetFactory factory;
 
+    /**
+     * Instantiates a new closure direct.
+     *
+     * @param matrix the matrix
+     */
     public ClosureDirect(IBinaryContext matrix) {
         this.matrix = matrix;
         this.factory = matrix.getFactory();
     }
 
+ /**
+  * Closure.
+  *
+  * @param fermeture the fermeture
+  * @param attrSet the attr set
+  * @param lastAttrSet the last attr set
+  * @param lastExtent the last extent
+  * @return the i set
+  */
  @Override
     public ISet closure(ISet fermeture, ISet attrSet,ISet lastAttrSet,ISet lastExtent) {
         ISet extent = computeExtent(attrSet);
@@ -61,6 +76,12 @@ public class ClosureDirect implements ClosureStrategy {
         return extent;
     }
    
+ /**
+  * Compute extent.
+  *
+  * @param attributes the attributes
+  * @return the i set
+  */
  public ISet computeExtent(ISet attributes) {
      ISet extent = factory.createSet(matrix.getObjectCount());
      if(matrix.getAttributeCount()<matrix.getObjectCount())
@@ -79,6 +100,13 @@ public class ClosureDirect implements ClosureStrategy {
      }
      return extent;
  }
+ 
+ /**
+  * Compute extent 2.
+  *
+  * @param attributes the attributes
+  * @return the i set
+  */
  public ISet computeExtent2(ISet attributes) {
      ISet extent = factory.createSet(matrix.getObjectCount());
      extent.fill(matrix.getObjectCount());
@@ -87,6 +115,13 @@ public class ClosureDirect implements ClosureStrategy {
      }
      return extent;
  }
+
+/**
+ * Compute intent 2.
+ *
+ * @param extent the extent
+ * @return the i set
+ */
 public ISet computeIntent2(ISet extent) {
      ISet intent = factory.createSet(matrix.getAttributeCount());
      if(!extent.isEmpty()) {
@@ -97,6 +132,13 @@ public ISet computeIntent2(ISet extent) {
      }
       return intent;
  }
+ 
+ /**
+  * Compute intent 3.
+  *
+  * @param extent the extent
+  * @return the i set
+  */
  public ISet computeIntent3(ISet extent) {
      ISet intent = factory.createSet(matrix.getAttributeCount());
      for(int numattr=0;numattr<matrix.getAttributeCount();numattr++)
@@ -108,6 +150,12 @@ public ISet computeIntent2(ISet extent) {
  }
 
  
+    /**
+     * Compute intent.
+     *
+     * @param extent the extent
+     * @return the i set
+     */
     public ISet computeIntent(ISet extent) {
         ISet intent = factory.createSet(matrix.getAttributeCount());
         if(extent.cardinality()<matrix.getAttributeCount()){
@@ -127,30 +175,58 @@ public ISet computeIntent2(ISet extent) {
     }
 
 
+    /**
+     * Inits the.
+     *
+     * @param chrono the chrono
+     */
     @Override
     public void init(Chrono chrono) {
     }
 
+    /**
+     * Name.
+     *
+     * @return the string
+     */
     @Override
     public String name() {
         return "Direct";
     }
 
+    /**
+     * Notify.
+     *
+     * @param implication the implication
+     */
     @Override
     public void notify(Implication implication) {
     }
 
+	/**
+	 * Threshold.
+	 *
+	 * @return the int
+	 */
 	@Override
 	public int threshold() {
 		return 0;
 	}
 
+	/**
+	 * Sets the context.
+	 *
+	 * @param ctx the new context
+	 */
 	@Override
 	public void setContext(IBinaryContext ctx) {
 		matrix=ctx;
 		
 	}
 
+	/**
+	 * Shutdown.
+	 */
 	@Override
 	public void shutdown() {
 		

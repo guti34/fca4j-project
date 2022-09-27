@@ -44,14 +44,36 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetFactory;
 
 /**
+ * The Class MyCSVReader.
  *
  * @author agutierr
  */
 public class MyCSVReader {
 
+    /**
+     * Read.
+     *
+     * @param file the file
+     * @param separator the separator
+     * @param factory the factory
+     * @return the i binary context
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public static IBinaryContext read(File file, char separator, ISetFactory factory) throws IOException {
     	return read(file,separator,true,true,factory);
     }
+    
+    /**
+     * Read.
+     *
+     * @param file the file
+     * @param separator the separator
+     * @param inclAttrNames the incl attr names
+     * @param inclObjNames the incl obj names
+     * @param factory the factory
+     * @return the i binary context
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public static IBinaryContext read(File file, char separator, boolean inclAttrNames, boolean inclObjNames,ISetFactory factory) throws IOException {
          BufferedReader buff = new BufferedReader(new FileReader(file));
          CSVReader csvReader = new CSVReader(buff, separator);
@@ -118,6 +140,13 @@ public class MyCSVReader {
         return matrix;
     }
 
+    /**
+     * Find values.
+     *
+     * @param record the record
+     * @param inclObjName the incl obj name
+     * @return the string[]
+     */
     private static String[] findValues(String[] record, boolean inclObjName) {
         HashSet<String> values = new HashSet<>();
         for (int numcol = inclObjName ? 1 : 0; numcol < record.length; numcol++) {
@@ -126,6 +155,12 @@ public class MyCSVReader {
         return values.toArray(new String[values.size()]);
     }
 
+    /**
+     * Detect true value.
+     *
+     * @param val the val
+     * @return the string
+     */
     private static String detectTrueValue(String val) {
         switch (val.toLowerCase()) {
             case "x":
@@ -141,6 +176,12 @@ public class MyCSVReader {
         return null;
     }
 
+    /**
+     * Detect false value.
+     *
+     * @param val the val
+     * @return the string
+     */
     private static String detectFalseValue(String val) {
         switch (val.toLowerCase()) {
             case "":

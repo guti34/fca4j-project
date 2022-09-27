@@ -39,6 +39,7 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
 /**
+ * The Class ClosureWithHistory.
  *
  * @author agutierr
  */
@@ -48,11 +49,25 @@ public class ClosureWithHistory implements ClosureStrategy {
 	protected IBinaryContext matrix;
 	protected ISetFactory factory;
 	
+	/**
+	 * Instantiates a new closure with history.
+	 *
+	 * @param matrix the matrix
+	 */
 	public ClosureWithHistory(IBinaryContext matrix) {
 		this.matrix = matrix;
 		this.factory = matrix.getFactory();
 	}
 
+	/**
+	 * Closure.
+	 *
+	 * @param fermeture the fermeture
+	 * @param attrSet the attr set
+	 * @param lastAttrSet the last attr set
+	 * @param lastExtent the last extent
+	 * @return the i set
+	 */
 	@Override
 	public ISet closure(ISet fermeture, ISet attrSet,ISet lastAttrSet,ISet lastExtent) {
 		ISet extent;
@@ -76,6 +91,12 @@ public class ClosureWithHistory implements ClosureStrategy {
 	}
 
 
+	/**
+	 * Compute intent.
+	 *
+	 * @param extent the extent
+	 * @return the i set
+	 */
 	public ISet computeIntent(ISet extent) {
 		ISet intent = factory.createSet(matrix.getAttributeCount());
 		if (extent.cardinality() < matrix.getAttributeCount()) {
@@ -92,30 +113,58 @@ public class ClosureWithHistory implements ClosureStrategy {
 		return intent;
 	}
 
+	/**
+	 * Inits the.
+	 *
+	 * @param chrono the chrono
+	 */
 	@Override
 	public void init(Chrono chrono) {
 	}
 
+	/**
+	 * Name.
+	 *
+	 * @return the string
+	 */
 	@Override
 	public String name() {
 		return "WithHistory";
 	}
 
+	/**
+	 * Notify.
+	 *
+	 * @param implication the implication
+	 */
 	@Override
 	public void notify(Implication implication) {
 	}
 
+	/**
+	 * Threshold.
+	 *
+	 * @return the int
+	 */
 	@Override
 	public int threshold() {
 		return 0;
 	}
 
+	/**
+	 * Sets the context.
+	 *
+	 * @param ctx the new context
+	 */
 	@Override
 	public void setContext(IBinaryContext ctx) {
 		matrix = ctx;
 
 	}
 
+	/**
+	 * Shutdown.
+	 */
 	@Override
 	public void shutdown() {
 

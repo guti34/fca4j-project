@@ -40,13 +40,31 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.iset.std.BitSetFactory;
 
+/**
+ * The Class CXTReader.
+ */
 public class CXTReader {
 
-	   public static IBinaryContext read(File file) throws IOException {
+	   /**
+   	 * Read.
+   	 *
+   	 * @param file the file
+   	 * @return the i binary context
+   	 * @throws IOException Signals that an I/O exception has occurred.
+   	 */
+   	public static IBinaryContext read(File file) throws IOException {
 	        return read(file, new BitSetFactory());
 	    }
 
-	    public static IBinaryContext read(File file, ISetFactory factory) throws IOException {
+	    /**
+    	 * Read.
+    	 *
+    	 * @param file the file
+    	 * @param factory the factory
+    	 * @return the i binary context
+    	 * @throws IOException Signals that an I/O exception has occurred.
+    	 */
+    	public static IBinaryContext read(File file, ISetFactory factory) throws IOException {
 	            BufferedReader buff = new BufferedReader(new FileReader(file));
 	            try{
 	            int nbObj = 0;

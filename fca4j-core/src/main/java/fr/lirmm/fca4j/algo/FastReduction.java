@@ -40,6 +40,9 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
+/**
+ * The Class FastReduction.
+ */
 public class FastReduction implements AbstractAlgo<IBinaryContext> {
 
 	private IBinaryContext context = null;
@@ -47,6 +50,12 @@ public class FastReduction implements AbstractAlgo<IBinaryContext> {
 	private ISetFactory factory;
 	private Chrono chrono = null; // eventually a chrono to store execution time
 
+	/**
+	 * Instantiates a new fast reduction.
+	 *
+	 * @param binCtx the bin ctx
+	 * @param chrono the chrono
+	 */
 	public FastReduction(IBinaryContext binCtx, Chrono chrono) {
 		super();
 		this.context = binCtx;
@@ -54,10 +63,18 @@ public class FastReduction implements AbstractAlgo<IBinaryContext> {
 		this.chrono = chrono;
 	}
 
+	/**
+	 * Instantiates a new fast reduction.
+	 *
+	 * @param binCtx the bin ctx
+	 */
 	public FastReduction(IBinaryContext binCtx) {
 		this(binCtx, null);
 	}
 
+	/**
+	 * Run.
+	 */
 	@Override
 	public void run() {
 		if (context.getAttributeCount() == 0) {
@@ -92,6 +109,12 @@ public class FastReduction implements AbstractAlgo<IBinaryContext> {
 		}
 	}
 
+	/**
+	 * Compute irreductible intent.
+	 *
+	 * @param myContext the my context
+	 * @return the i set
+	 */
 	public static ISet computeIrreductibleIntent(IBinaryContext myContext) {
 		ISet attrs = myContext.getFactory().createSet();
 		for (int numattr = 0; numattr < myContext.getAttributeCount(); numattr++) {
@@ -102,16 +125,34 @@ public class FastReduction implements AbstractAlgo<IBinaryContext> {
 		return attrs;
 	}
 
+	/**
+	 * Compute irreductible extent.
+	 *
+	 * @param myContext the my context
+	 * @return the i set
+	 */
 	public static ISet computeIrreductibleExtent(IBinaryContext myContext) {
 		IBinaryContext context2 = ((IBinaryContext) myContext.clone()).transpose();
 		return computeIrreductibleIntent(context2);
 	}
 
+	/**
+	 * Compute irreductible extent 4 not clarified context.
+	 *
+	 * @param myContext the my context
+	 * @return the list
+	 */
 	public static List<ISet> computeIrreductibleExtent4notClarifiedContext(IBinaryContext myContext) {
 		IBinaryContext context2 = ((IBinaryContext) myContext.clone()).transpose();
 		return computeIrreductibleIntent4notClarifiedContext(context2);
 	}
 
+	/**
+	 * Compute irreductible intent 4 not clarified context.
+	 *
+	 * @param myContext the my context
+	 * @return the list
+	 */
 	public static List<ISet> computeIrreductibleIntent4notClarifiedContext(IBinaryContext myContext) {
 		Clarification algoClarification = new Clarification(myContext, myContext.getName(), true, true,true);
 		List<ISet> classes = algoClarification.getAttributesByEquivClasses(myContext);
@@ -132,6 +173,13 @@ public class FastReduction implements AbstractAlgo<IBinaryContext> {
 		return res;
 	}
 
+	/**
+	 * Fermeture.
+	 *
+	 * @param myContext the my context
+	 * @param numAttr the num attr
+	 * @return the i set
+	 */
 	protected static ISet fermeture(IBinaryContext myContext, int numAttr) {
 		ISet fermeture = myContext.getFactory().createSet();
 		ISet extent = myContext.getExtent(numAttr);
@@ -145,10 +193,25 @@ public class FastReduction implements AbstractAlgo<IBinaryContext> {
 		return fermeture;
 	}
 
+	/**
+	 * Checks if is irreductible.
+	 *
+	 * @param myContext the my context
+	 * @param numAttr the num attr
+	 * @return true, if is irreductible
+	 */
 	protected static boolean isIrreductible(IBinaryContext myContext, int numAttr) {
 		return isIrreductible(myContext, numAttr, null);
 	}
 
+	/**
+	 * Checks if is irreductible.
+	 *
+	 * @param myContext the my context
+	 * @param numAttr the num attr
+	 * @param attr2ignore the attr 2 ignore
+	 * @return true, if is irreductible
+	 */
 	protected static boolean isIrreductible(IBinaryContext myContext, int numAttr, ISet attr2ignore) {
 		ISet fermeture = fermeture(myContext, numAttr);
 		fermeture.remove(numAttr);
@@ -173,11 +236,21 @@ public class FastReduction implements AbstractAlgo<IBinaryContext> {
 		return !res.isEmpty();
 	}
 
+	/**
+	 * Gets the description.
+	 *
+	 * @return the description
+	 */
 	@Override
 	public String getDescription() {
 		return "F_Reduction";
 	}
 
+	/**
+	 * Gets the result.
+	 *
+	 * @return the result
+	 */
 	@Override
 	public IBinaryContext getResult() {
 		return result;

@@ -36,11 +36,18 @@ import java.util.List;
 import fr.lirmm.fca4j.core.ConceptOrder;
 
 /**
+ * The Class AlgoUtilities.
  *
  * @author agutierr
  */
 public class AlgoUtilities {
 
+    /**
+     * build new concept order with only attribute concepts
+     *
+     * @param co the concept order
+     * @return the new concept order
+     */
     public static final ConceptOrder toAttributeConceptOrder(ConceptOrder co) {
         ConceptOrder co2 = co.clone();
         List<Integer> toRemove = new ArrayList<>();
@@ -57,6 +64,13 @@ public class AlgoUtilities {
         
         return co2;
     }
+    
+    /**
+     * build new concept order with only object concepts
+     *
+     * @param co the concept order
+     * @return the new concept order
+     */
     public static final ConceptOrder toObjectConceptOrder(ConceptOrder co) {
         ConceptOrder co2 = co.clone();
         List<Integer> toRemove = new ArrayList<>();

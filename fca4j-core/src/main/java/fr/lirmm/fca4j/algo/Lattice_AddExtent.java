@@ -39,6 +39,9 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
+/**
+ * The Class Lattice_AddExtent.
+ */
 public class Lattice_AddExtent implements AbstractAlgo<ConceptOrder> {
 
     private IBinaryContext matrix;    
@@ -46,6 +49,12 @@ public class Lattice_AddExtent implements AbstractAlgo<ConceptOrder> {
     protected ISetFactory factory;
     private Chrono chrono = null; // eventually a chrono to store execution time 
     
+    /**
+     * Instantiates a new lattice add extent.
+     *
+     * @param matrix the matrix
+     * @param chrono the chrono
+     */
     public Lattice_AddExtent(IBinaryContext matrix, Chrono chrono) {
         super();
         this.matrix = matrix;
@@ -53,10 +62,23 @@ public class Lattice_AddExtent implements AbstractAlgo<ConceptOrder> {
         this.chrono = chrono;
     }
 
+    /**
+     * Instantiates a new lattice add extent.
+     *
+     * @param matrix the matrix
+     */
     public Lattice_AddExtent(IBinaryContext matrix) {
         this(matrix, null);
     }
 
+    /**
+     * Adds the extent.
+     *
+     * @param extent the extent
+     * @param generator the generator
+     * @return the int
+     * @throws Exception the exception
+     */
     protected int addExtent(ISet extent, int generator) throws Exception{
         generator = getSmallestContainingConcept(extent, generator);
         if (extent.equals(order.getConceptExtent(generator))) {//containsAll(generator.getExtent()) && generator.getExtent().containsAll(extent) ) {
@@ -115,16 +137,29 @@ public class Lattice_AddExtent implements AbstractAlgo<ConceptOrder> {
         return generator;
     }
     
+    /**
+     * Gets the description.
+     *
+     * @return the description
+     */
     @Override
     public String getDescription() {
         return "AddExtent";
     }
 
+    /**
+     * Gets the result.
+     *
+     * @return the result
+     */
     @Override
     public ConceptOrder getResult() {
         return order;
     }
 
+    /**
+     * Run.
+     */
     @Override
     public void run() {
         try {

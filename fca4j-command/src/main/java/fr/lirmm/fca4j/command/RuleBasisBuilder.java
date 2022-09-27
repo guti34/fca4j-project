@@ -57,37 +57,99 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
 
+/**
+ * The Class RuleBasisBuilder.
+ */
 public class RuleBasisBuilder extends Command {
+	
+	/** The Constant DEFAULT_THRESHOLD. */
 	public final static int DEFAULT_THRESHOLD=50;
+	
+	/** The output file. */
 	protected File outputFile;
+	
+	/** The input file. */
 	protected File inputFile;
+	
+	/** The report file. */
 	protected File reportFile;
+	
+	/** if report exist. */
 	protected boolean reportExist=false;
+	
+	/** The result folder. */
 	protected File resultFolder;
+	
+	/** The binary context. */
 	protected IBinaryContext ctx;
+	
+	/** The closure type. */
 	protected ClosureType closureType;
+	
+	/** The pool mode. */
 	protected PoolMode poolMode;
+	
+	/** The algorithm. */
 	protected AlgoRuleBasis algo;
+	
+	/** for sorted print. */
 	protected boolean sortedPrint = true;
+	
+	/** The input format. */
 	protected ContextFormat inputFormat;
+	
+	/** The threshold. */
 	protected int threshold=DEFAULT_THRESHOLD;
+	
+	/** with clarification. */
 	protected boolean withClarification=false;
+	
+	/**
+	 * The Enum ClosureType.
+	 */
 	public enum ClosureType {
-		BASIC, WITH_HISTORY
+		
+		 /** The basic closure. */
+		 BASIC, 
+		 /** The closure using history. */
+		 WITH_HISTORY
 	};
 
+	/**
+	 * The Enum PoolMode.
+	 */
 	public enum PoolMode {
-		MONO, FORKJOINPOOL//, EXECUTOR_SERVICE
+		
+	 /** The mono thred mode. */
+	 MONO, 
+	 /** The forkjoinpool mode. */
+	 FORKJOINPOOL
+	 //, EXECUTOR_SERVICE
 	};
 
+	/**
+	 * The Enum AlgoRuleBasis.
+	 */
 	public enum AlgoRuleBasis {
-		LINCBO, LINCBOPRUNING
+		
+		 /** The lincbo algorithm. */
+		 LINCBO, 
+		 /** The lincbopruning algorithm. */
+		 LINCBOPRUNING
 	};
 
+	/**
+	 * Instantiates a new rule basis builder.
+	 *
+	 * @param setContext the set context
+	 */
 	public RuleBasisBuilder(ISetContext setContext) {
 		super("rulebasis", "compute the canonical basis of implications (Duquenne-Guigues)",setContext);
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		options.addOption(
@@ -130,6 +192,12 @@ public class RuleBasisBuilder extends Command {
 		declareCommon();
 	}
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	public void checkOptions(CommandLine line) throws Exception {
 		withClarification=line.hasOption("clarify");
 		List<String> args = line.getArgList();
@@ -237,6 +305,11 @@ public class RuleBasisBuilder extends Command {
 		checkVerbose(line);
 	}
 
+	/**
+	 * Select closure strategy.
+	 *
+	 * @return the closure strategy
+	 */
 	private ClosureStrategy selectClosureStrategy() {
 
 		// choose Closure strategy
@@ -256,6 +329,13 @@ public class RuleBasisBuilder extends Command {
 		}
 	}
 
+    /**
+     * Prints by support.
+     *
+     * @param folder the folder
+     * @param implications the implications
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     private void printBySupport(File folder,List<Implication> implications) throws IOException {
         TreeMap<Integer, List<Implication>> map = new TreeMap<>();
 
@@ -278,6 +358,13 @@ public class RuleBasisBuilder extends Command {
             sb.append(String.format("support %d: %d rules\n", support, map.get(support).size()));
         }
     }
+	
+	/**
+	 * Prints the implications.
+	 *
+	 * @param printWriter the print writer
+	 * @param implications the implications
+	 */
 	private void printImplications(PrintWriter printWriter, List<Implication> implications) {
 		for (Implication implication : implications) {
 			printWriter.printf("<%d> %s => %s\n", implication.getSupport().cardinality(), displayAttrs(implication.getPremise()),
@@ -286,6 +373,12 @@ public class RuleBasisBuilder extends Command {
 
 	}
 
+	/**
+	 * Prints sorted implications.
+	 *
+	 * @param printWriter the print writer
+	 * @param implications the implications
+	 */
 	private void printSortedImplications(PrintWriter printWriter, List<Implication> implications) {
 		TreeMap<Integer, List<Implication>> map = new TreeMap<>();
 
@@ -303,6 +396,12 @@ public class RuleBasisBuilder extends Command {
 		}
 	}
 
+	/**
+	 * Display attributes.
+	 *
+	 * @param set the set
+	 * @return the string
+	 */
 	private String displayAttrs(ISet set) {
 		StringBuilder sb = new StringBuilder();
 		for (Iterator<Integer> it = set.iterator(); it.hasNext();) {
@@ -313,6 +412,16 @@ public class RuleBasisBuilder extends Command {
 		}
 		return sb.toString();
 	}
+	
+	/**
+	 * Prints the report.
+	 *
+	 * @param implications the implications
+	 * @param algo the algorithm
+	 * @param closureStrategy the closure strategy
+	 * @param chrono the chrono
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	private void printReport(List<Implication> implications,AlgoRuleBasis algo,ClosureStrategy closureStrategy,Chrono chrono) throws IOException{
 		CSVWriter writer=new CSVWriter(new FileWriter(reportFile,reportExist),separator);
 		ArrayList<String> keys=new ArrayList<>();
@@ -384,6 +493,13 @@ public class RuleBasisBuilder extends Command {
 		writer.flush();
 		writer.close();
 	}
+	
+	/**
+	 * Exec.
+	 *
+	 * @return the resulting object
+	 * @throws Exception the exception
+	 */
 	@Override
 	public Object exec() throws Exception {
 		ctx = readContext(inputFormat, inputFile);

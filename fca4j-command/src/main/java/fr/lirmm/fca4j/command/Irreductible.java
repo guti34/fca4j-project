@@ -45,21 +45,48 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
 
+/**
+ * The Class Irreductible.
+ */
 public class Irreductible extends Command {
+	
+	/** The output file. */
 	protected File outputFile;
+	
+	/** The input file. */
 	protected File inputFile;
+	
+	/** The context. */
 	private IBinaryContext ctx;
+	
+	/** The input format. */
 	protected ContextFormat inputFormat;
+	
+	/** The output format. */
 	protected ContextFormat outputFormat;
+	
+	/** The with attributes. */
 	boolean withAttr = false;
+	
+	/** The with objects. */
 	boolean withObj = false;
+	
+	/** if context is not clarified. */
 	boolean unclarified = false;
 
+	/**
+	 * Instantiates a new irreducible command.
+	 *
+	 * @param setContext the set context
+	 */
 	public Irreductible(ISetContext setContext) {
 		super("irreducible",
 				"list irreducible objets (-lobj option) or attributes (-lattr option). Use -u option to operate by class on unclarified context",setContext);
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		options.addOption(Option.builder("lattr").desc("for attributes").build());
@@ -72,6 +99,12 @@ public class Irreductible extends Command {
 		declareCommon();
 	}
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	@Override
 	public void checkOptions(CommandLine line) throws Exception {
 		// input file
@@ -117,6 +150,12 @@ public class Irreductible extends Command {
 		checkVerbose(line);
 	}
 
+	/**
+	 * Exec.
+	 *
+	 * @return the resulting object
+	 * @throws Exception the exception
+	 */
 	@Override
 	public Object exec() throws Exception {
 		BufferedWriter writer;

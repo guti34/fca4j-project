@@ -35,17 +35,31 @@ import fr.lirmm.fca4j.iset.ISet;
 
 
 /**
+ * The Class MyContainsExistNScaling.
  *
  * @author agutierr
  */
 public class MyContainsExistNScaling extends AbstractScalingOperator{
 	private float x;
 	
+	/**
+	 * Instantiates a new my contains exist N scaling.
+	 *
+	 * @param parameter the parameter
+	 */
 	public MyContainsExistNScaling(float parameter) {
 		super();
 		x=parameter;
 	}
 
+    /**
+     * Scale.
+     *
+     * @param e the e
+     * @param c the c
+     * @param context the context
+     * @return true, if successful
+     */
     @Override
     public boolean scale(int e, ISet c, IBinaryContext context) {
 		int maxLinks=c.cardinality();
@@ -55,6 +69,11 @@ public class MyContainsExistNScaling extends AbstractScalingOperator{
 		return context.getIntent(e).newIntersect(c).cardinality()<=threshold;
     }
 
+    /**
+     * Gets the name.
+     *
+     * @return the name
+     */
     @Override
     public String getName() {
     	if(Math.ceil(x)==x)

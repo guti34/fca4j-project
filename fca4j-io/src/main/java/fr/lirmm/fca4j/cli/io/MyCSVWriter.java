@@ -37,15 +37,35 @@ import au.com.bytecode.opencsv.CSVWriter;
 import fr.lirmm.fca4j.core.IBinaryContext;
 
 /**
+ * The Class MyCSVWriter.
  *
  * @author agutierr
  */
 public class MyCSVWriter {
 
 
+    /**
+     * Write context.
+     *
+     * @param writer the writer
+     * @param context the context
+     * @param sep the sep
+     * @throws Exception the exception
+     */
     public static void writeContext(BufferedWriter writer, IBinaryContext context,char sep) throws Exception {
     	writeContext(writer,context,sep,true,true);
     }
+        
+        /**
+         * Write context.
+         *
+         * @param writer the writer
+         * @param context the context
+         * @param sep the sep
+         * @param includeAttrNames the include attr names
+         * @param includeObjNames the include obj names
+         * @throws Exception the exception
+         */
         public static void writeContext(BufferedWriter writer, IBinaryContext context,char sep,boolean includeAttrNames,boolean includeObjNames) throws Exception {
     	CSVWriter csvWriter = new CSVWriter(writer, sep, CSVWriter.DEFAULT_QUOTE_CHARACTER, CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
         if (includeAttrNames) {

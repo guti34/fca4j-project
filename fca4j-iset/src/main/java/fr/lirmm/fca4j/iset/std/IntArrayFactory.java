@@ -38,62 +38,146 @@ import fr.lirmm.fca4j.iset.AbstractSetFactory.AbstractOrderedSet;
 import fr.lirmm.fca4j.iset.ISet;
 
 /**
+ * A factory for creating sets based on ordered arrays of int.
  *
  * @author agutierr
  */
 public class IntArrayFactory extends AbstractSetFactory {
+    
+    /**
+     * Instantiates a new int array factory.
+     */
     public IntArrayFactory() {
     }
 
+    /**
+     * Creates a new IntArray object.
+     *
+     * @return the i set
+     */
     @Override
     public ISet createSet(){
         throw new UnsupportedOperationException("this kind of set has a fixed size");
     }
 
+    /**
+     * Creates a new IntArray object.
+     *
+     * @param bitset the bitset
+     * @return the i set
+     */
     @Override
     public ISet createSet(BitSet bitset) {
         return new SetWithIntArray(bitset);
     }
+    
+    /**
+     * Creates a new IntArray object.
+     *
+     * @param bs the bs
+     * @param size the size
+     * @return the i set
+     */
     @Override
     public ISet createSet(BitSet bs,int size) {
         return new SetWithIntArray(bs,size);
     }
 
+    /**
+     * Creates a new IntArray object.
+     *
+     * @param maxSize the max size
+     * @return the i set
+     */
     @Override
     public ISet createSet(int maxSize) {
         return new SetWithIntArray(maxSize);
     }
 
+	/**
+	 * Ordered.
+	 *
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean ordered() {
 		return true;
 	}
+	
+	/**
+	 * Fixed size.
+	 *
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean fixedSize() {
 		return true;
 	}
+	
+	/**
+	 * Name.
+	 *
+	 * @return the string
+	 */
 	@Override
 	public String name() {
 		return "INT_ARRAY";
 	}
+    
+    /**
+     * Clone.
+     *
+     * @param to_clone the to clone
+     * @return the i set
+     */
     @Override
     public ISet clone(ISet to_clone) {
         FixedIntArray bs = ((SetWithIntArray) to_clone).fiArray.clone();
         return new SetWithIntArray(bs);
         
     }
+    
+    /**
+     * The Class SetWithIntArray.
+     */
     class SetWithIntArray extends AbstractOrderedSet{
+        
+        /** The fi array. */
         FixedIntArray fiArray;
+        
+        /**
+         * Instantiates a new sets the with int array.
+         *
+         * @param maxSize the max size
+         */
         SetWithIntArray(int maxSize) {
             fiArray = new FixedIntArray(maxSize);
         }
+        
+        /**
+         * Instantiates a new sets the with int array.
+         *
+         * @param fiArray the fi array
+         */
         SetWithIntArray(FixedIntArray fiArray) {
             this.fiArray = fiArray;
         }
 
+        /**
+         * Instantiates a new sets the with int array.
+         *
+         * @param bitSet the bit set
+         */
         SetWithIntArray(BitSet bitSet) {
             this(bitSet,bitSet.cardinality());
         }
+        
+        /**
+         * Instantiates a new sets the with int array.
+         *
+         * @param bitSet the bit set
+         * @param size the size
+         */
         SetWithIntArray(BitSet bitSet,int size) {
             fiArray = new FixedIntArray(size);
             for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i + 1)) {
@@ -105,6 +189,13 @@ public class IntArrayFactory extends AbstractSetFactory {
                 if(a[i]!=b[i]) return false;
             return true;
         }
+        
+        /**
+         * Equals.
+         *
+         * @param other the other
+         * @return true, if successful
+         */
         @Override
         public boolean equals(Object other) {
             try{
@@ -115,21 +206,43 @@ public class IntArrayFactory extends AbstractSetFactory {
             }
         }
 
+        /**
+         * Adds the.
+         *
+         * @param num the num
+         */
         @Override
         public void add(int num) {
            fiArray.add(num);
         }
 
+        /**
+         * Adds the all.
+         *
+         * @param anotherSet the another set
+         */
         @Override
         public void addAll(ISet anotherSet) {
             fiArray.addAll(((SetWithIntArray)anotherSet).fiArray);
         }
 
+        /**
+         * Contains.
+         *
+         * @param num the num
+         * @return true, if successful
+         */
         @Override
         public boolean contains(int num) {
             return fiArray.contains(num);
         }
 
+        /**
+         * Contains all.
+         *
+         * @param anotherSet the another set
+         * @return true, if successful
+         */
         @Override
          public boolean containsAll(ISet anotherSet) {
             FixedIntArray fiArray2=((SetWithIntArray)anotherSet).fiArray;
@@ -142,47 +255,95 @@ public class IntArrayFactory extends AbstractSetFactory {
             }
             return true;
         }
+       
+       /**
+        * Contains all 2.
+        *
+        * @param anotherSet the another set
+        * @return true, if successful
+        */
        public boolean containsAll2(ISet anotherSet) {
             FixedIntArray fiArray2=((SetWithIntArray)anotherSet).fiArray;
             boolean ret=fiArray2.isSubsetOf(fiArray);
             return ret;
         }
 
+        /**
+         * Capacity.
+         *
+         * @return the int
+         */
         @Override
         public int capacity() {
             return fiArray.array.length;
         }
 
+        /**
+         * Cardinality.
+         *
+         * @return the int
+         */
         @Override
         public int cardinality() {
             return fiArray.getCount();
         }
 
+        /**
+         * Fill.
+         *
+         * @param size the size
+         */
         @Override
         public void fill(int size) {
             fiArray.fill(size);
         }
 
+        /**
+         * Clear.
+         *
+         * @param size the size
+         */
         @Override
         public void clear(int size) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        /**
+         * Removes the all.
+         *
+         * @param anotherSet the another set
+         */
         @Override
         public void removeAll(ISet anotherSet) {
             fiArray.clear();
         }
 
+        /**
+         * Iterator.
+         *
+         * @return the iterator
+         */
         @Override
         public Iterator<Integer> iterator() {
             return fiArray.iterator();
         }
 
+        /**
+         * Checks if is empty.
+         *
+         * @return true, if is empty
+         */
         @Override
         public boolean isEmpty() {
             return fiArray.getCount()==0;
         }
 
+        /**
+         * New intersect.
+         *
+         * @param anotherSet the another set
+         * @return the i set
+         */
         @Override
         public ISet newIntersect(ISet anotherSet) {
             FixedIntArray clone=fiArray.clone();
@@ -190,6 +351,12 @@ public class IntArrayFactory extends AbstractSetFactory {
             return new SetWithIntArray(clone);
         }
 
+        /**
+         * New difference.
+         *
+         * @param anotherSet the another set
+         * @return the i set
+         */
         @Override
         public ISet newDifference(ISet anotherSet) {
             FixedIntArray clone=fiArray.clone();
@@ -197,24 +364,51 @@ public class IntArrayFactory extends AbstractSetFactory {
             return new SetWithIntArray(clone);
         }
 
+        /**
+         * Removes the.
+         *
+         * @param num the num
+         */
         @Override
         public void remove(int num) {
             fiArray.remove(num);
         }
 
+        /**
+         * Retain all.
+         *
+         * @param anotherSet the another set
+         */
         @Override
         public void retainAll(ISet anotherSet) {
             fiArray.and(((SetWithIntArray) anotherSet).fiArray);            
         }
+        
+        /**
+         * Hash code.
+         *
+         * @return the int
+         */
         @Override
         public int hashCode() {
             return fiArray.array.hashCode();
         }
 
+        /**
+         * First.
+         *
+         * @return the int
+         */
         @Override
         public int first() {
             return fiArray.first();
         }
+        
+        /**
+         * Last.
+         *
+         * @return the int
+         */
         @Override
         public int last() {
             return fiArray.last();

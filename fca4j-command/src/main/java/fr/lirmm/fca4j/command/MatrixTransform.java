@@ -42,21 +42,49 @@ import org.apache.commons.cli.Option;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetContext;
 
+/**
+ * The Class MatrixTransform.
+ */
 public abstract class MatrixTransform extends Command {
+	
+	/** The output file. */
 	protected File outputFile;
+	
+	/** The input file. */
 	protected File inputFile;
+	
+	/** The context. */
 	private IBinaryContext ctx;
+	
+	/** The input format. */
 	protected ContextFormat inputFormat;
+	
+	/** The output format. */
 	protected ContextFormat outputFormat;
 
+	/**
+	 * Instantiates a new matrix transform.
+	 *
+	 * @param name the context name
+	 * @param desc the description
+	 * @param setContext the set context
+	 */
 	MatrixTransform(String name, String desc,ISetContext setContext) {
 		super(name, desc,setContext);
 	}
 
+	/**
+	 * Gets the context.
+	 *
+	 * @return the context
+	 */
 	IBinaryContext getContext() {
 		return ctx;
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		declareContextFormat("i","INPUT-FORMAT");
@@ -68,8 +96,20 @@ public abstract class MatrixTransform extends Command {
 		declareCommon();
 	}
 
+	/**
+	 * Transform.
+	 *
+	 * @return the binary context
+	 * @throws Exception the exception
+	 */
 	abstract protected IBinaryContext transform() throws Exception;
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	@Override
 	public void checkOptions(CommandLine line) throws Exception {
 		// input file
@@ -110,6 +150,12 @@ public abstract class MatrixTransform extends Command {
 		checkVerbose(line);
 	}
 
+	/**
+	 * Exec.
+	 *
+	 * @return the resulting object
+	 * @throws Exception the exception
+	 */
 	@Override
 	public Object exec() throws Exception {
 		BufferedWriter writer;

@@ -35,12 +35,20 @@ import java.io.BufferedWriter;
 import fr.lirmm.fca4j.core.IBinaryContext;
 
 /**
+ * The Class CXTWriter.
  *
  * @author agutierr
  */
 public class CXTWriter {
 
 
+    /**
+     * Write context.
+     *
+     * @param writer the writer
+     * @param context the context
+     * @throws Exception the exception
+     */
     public static void writeContext(BufferedWriter writer, IBinaryContext context) throws Exception {
         writer.write("B\n");
         writer.write(context.getName() + "\n");

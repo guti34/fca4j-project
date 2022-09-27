@@ -40,6 +40,9 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
 
+/**
+ * The Class Lattice_Iceberg.
+ */
 public class Lattice_Iceberg implements AbstractAlgo<ConceptOrder> {
 
     private IBinaryContext matrix;    
@@ -50,6 +53,13 @@ public class Lattice_Iceberg implements AbstractAlgo<ConceptOrder> {
     private int percentage;
     private Integer bottom;
     
+    /**
+     * Instantiates a new lattice iceberg.
+     *
+     * @param matrix the matrix
+     * @param percentage the percentage
+     * @param chrono the chrono
+     */
     public Lattice_Iceberg(IBinaryContext matrix, int percentage, Chrono chrono) {
         super();
         this.matrix = matrix;
@@ -59,12 +69,33 @@ public class Lattice_Iceberg implements AbstractAlgo<ConceptOrder> {
         this.percentage=percentage;
     }
 
+    /**
+     * Instantiates a new lattice iceberg.
+     *
+     * @param matrix the matrix
+     * @param percentage the percentage
+     */
     public Lattice_Iceberg(IBinaryContext matrix, int percentage) {
         this(matrix, percentage,null);
     }
+    
+    /**
+     * Gets the percentage.
+     *
+     * @return the percentage
+     */
     public int getPercentage(){
     	return percentage;
     }
+    
+    /**
+     * Adds the extent.
+     *
+     * @param extent the extent
+     * @param generatorParam the generator param
+     * @return the int
+     * @throws Exception the exception
+     */
     protected int addExtent(ISet extent, int generatorParam) throws Exception{
         int extentCardinality = extent.cardinality();
         if (extentCardinality < icebergThreshold) {
@@ -138,16 +169,29 @@ public class Lattice_Iceberg implements AbstractAlgo<ConceptOrder> {
         return generator;
     }
     
+    /**
+     * Gets the description.
+     *
+     * @return the description
+     */
     @Override
     public String getDescription() {
         return "Iceberg";
     }
 
+    /**
+     * Gets the result.
+     *
+     * @return the result
+     */
     @Override
     public ConceptOrder getResult() {
         return order;
     }
 
+    /**
+     * Run.
+     */
     @Override
     public void run() {
         try {

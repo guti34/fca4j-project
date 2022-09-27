@@ -43,17 +43,33 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
+ * The Class XMLWriter.
  *
  * @author agutierr
  */
 public class XMLWriter {
     
+    /**
+     * Adds the element.
+     *
+     * @param parent the parent
+     * @param tagName the tag name
+     * @return the element
+     */
     protected static Element addElement(Element parent, String tagName) {
         Element elem = parent.getOwnerDocument().createElement(tagName);
         parent.appendChild(elem);
         return elem;
     }
 
+    /**
+     * Write document.
+     *
+     * @param doc the doc
+     * @param writer the writer
+     * @param encoding the encoding
+     * @throws Exception the exception
+     */
     protected static void writeDocument(Document doc, Writer writer, String encoding)
             throws Exception {
         DOMSource domSource = new DOMSource(doc);
@@ -66,7 +82,6 @@ public class XMLWriter {
         transformer.setOutputProperties(p);
         transformer.transform(domSource, result);
         writer.close();
-
     }
 
 }

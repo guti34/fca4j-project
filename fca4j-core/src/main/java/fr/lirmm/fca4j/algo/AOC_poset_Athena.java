@@ -44,6 +44,7 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
+// experimental: DO NOT USE
 
 public class AOC_poset_Athena implements AbstractAlgo<ConceptOrder> {
 

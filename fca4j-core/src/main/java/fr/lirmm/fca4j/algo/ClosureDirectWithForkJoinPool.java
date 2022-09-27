@@ -46,6 +46,7 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
 /**
+ * The Class ClosureDirectWithForkJoinPool.
  *
  * @author agutierr
  */
@@ -56,16 +57,37 @@ public class ClosureDirectWithForkJoinPool implements ClosureStrategy {
     protected ISetFactory factory;
     protected int threshold=DEFAULT_THRESHOLD;
 
+    /**
+     * Instantiates a new closure direct with fork join pool.
+     *
+     * @param matrix the matrix
+     */
     public ClosureDirectWithForkJoinPool(IBinaryContext matrix) {
         this.matrix = matrix;
         this.factory = matrix.getFactory();
     }
+    
+    /**
+     * Instantiates a new closure direct with fork join pool.
+     *
+     * @param matrix the matrix
+     * @param threshold the threshold
+     */
     public ClosureDirectWithForkJoinPool(IBinaryContext matrix,int threshold) {
         this.matrix = matrix;
         this.factory = matrix.getFactory();
         this.threshold=threshold;
     }
 
+    /**
+     * Closure.
+     *
+     * @param fermeture the fermeture
+     * @param attrSet the attr set
+     * @param lastAttrSet the last attr set
+     * @param lastExtent the last extent
+     * @return the i set
+     */
     @Override
     public ISet closure(ISet fermeture, ISet attrSet,ISet lastAttrSet,ISet lastExtent) {
         ISet extent = computeExtent(attrSet);
@@ -75,11 +97,24 @@ public class ClosureDirectWithForkJoinPool implements ClosureStrategy {
         return extent;
     }
 
+    /**
+     * Compute intent.
+     *
+     * @param objects the objects
+     * @return the i set
+     */
     public ISet computeIntent(ISet objects) {
         ComputeTask2 myRecursiveTask;
             myRecursiveTask = new ComputeTask2(objects,0, matrix.getAttributeCount(),false,MODE.CollectWithContainsAll);
         return ForkJoinPool.commonPool().invoke(myRecursiveTask);
     }
+    
+    /**
+     * Compute extent.
+     *
+     * @param attributes the attributes
+     * @return the i set
+     */
     public ISet computeExtent(ISet attributes) {
          ComputeTask2 myRecursiveTask;
         if (matrix.getObjectCount() < attributes.cardinality()) 
@@ -89,18 +124,39 @@ public class ClosureDirectWithForkJoinPool implements ClosureStrategy {
         return ForkJoinPool.commonPool().invoke(myRecursiveTask);
     }
 
+    /**
+     * Inits the.
+     *
+     * @param chrono the chrono
+     */
     @Override
     public void init(Chrono chrono) {
     }
 
+    /**
+     * Name.
+     *
+     * @return the string
+     */
     @Override
     public String name() {
         return "ForkJoinPool Parallelism: "+ ForkJoinPool.commonPool().getParallelism();
     }
 
+    /**
+     * Notify.
+     *
+     * @param implication the implication
+     */
     @Override
     public void notify(Implication implication) {
     }
+	
+	/**
+	 * Threshold.
+	 *
+	 * @return the int
+	 */
 	@Override
 	public int threshold() {
 		return threshold;
@@ -197,15 +253,27 @@ public class ClosureDirectWithForkJoinPool implements ClosureStrategy {
     }
 
 
+    /**
+     * The Enum MODE.
+     */
     enum MODE {
         CollectWithContainsAll, BuiltWithIntersection
     };
 
+	/**
+	 * Sets the context.
+	 *
+	 * @param ctx the new context
+	 */
 	@Override
 	public void setContext(IBinaryContext ctx) {
 		matrix=ctx;
 		
 	}
+	
+	/**
+	 * Shutdown.
+	 */
 	@Override
 	public void shutdown() {
 		

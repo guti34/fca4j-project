@@ -38,21 +38,45 @@ import org.apache.commons.cli.CommandLine;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetContext;
 
+/**
+ * The Class Inspect.
+ */
 public class Inspect extends Command {
+	
+	/** The input file. */
 	protected File inputFile;
+	
+	/** The context. */
 	private IBinaryContext ctx;
+	
+	/** The input format. */
 	protected ContextFormat inputFormat;
 
+	/**
+	 * Instantiates a new inspect.
+	 *
+	 * @param setContext the set context
+	 */
 	public Inspect(ISetContext setContext){
 		super("inspect", "inspect formal context file and display information about size, density etc.",setContext);
 		
 	}
+	
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		declareContextFormat("i","INPUT-FORMAT");	
 		declareCommon();
 	}
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	@Override
 	public void checkOptions(CommandLine line) throws Exception {
 		// input file
@@ -77,6 +101,12 @@ public class Inspect extends Command {
 
 	}
 
+	/**
+	 * Exec.
+	 *
+	 * @return the resulting object
+	 * @throws Exception the exception
+	 */
 	@Override
 	public Object exec() throws Exception {
 		System.out.println(name()+" file " + inputFile.getName() +"\n");

@@ -61,34 +61,112 @@ import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.iset.ISetFactory;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class Command.
+ */
 public abstract class Command {
+	
+	/** The options. */
 	protected Options options = new Options();
+	
+	/** The name. */
 	protected final String name;
+	
+	/** The description. */
 	protected final String description;
+	
+	/** The arg name 1. */
 	protected final String argName1;
+	
+	/** The arg name 2. */
 	protected final String argName2;
+	
+	/** The set context. */
 	protected ISetContext setContext;
+	
+	/** The impl. */
 	protected String impl;
+	
+	/** The factory. */
 	protected ISetFactory factory;
+	
+	/** The separator. */
 	protected char separator=',';
+	
+	/** The verbose. */
 	protected boolean verbose;
+	
+	/** generate attributes names. */
 	protected boolean generateAttrNames=false;
+	
+	/** generate object names. */
 	protected boolean generateObjNames=false;
 
+	/**
+	 * The Enum ContextFormat.
+	 */
 	public enum ContextFormat {
-		CXT, SLF, XML, CEX, CSV,
+		
+		/** The cxt. */
+		CXT, 
+		/** The slf. */
+		SLF, 
+		/** The xml. */
+		XML, 
+		/** The cex. */
+		CEX, 
+		/** The csv. */
+		CSV,
 	};
+	
+	/**
+	 * The Enum FamilyFormat.
+	 */
 	public enum FamilyFormat {
-		RCFT,RCFGZ,RCFAL
+		
+		/** The rcft format. */
+		RCFT,
+		/** The compressed rcft format. */
+		RCFGZ,
+		/** The json format of adjacency list. */
+		RCFAL
 	};
+	
+	/**
+	 * The Enum Separator.
+	 */
 	public enum Separator {
-		COMMA, SEMICOLON, TAB
+		
+		/** The comma. */
+		COMMA, 
+	 /** The semicolon. */
+	 SEMICOLON, 
+	 /** The tab. */
+	 TAB
 	};
 
 
+	/**
+	 * Instantiates a new command.
+	 *
+	 * @param name the command name
+	 * @param description the description
+	 * @param setContext the set context
+	 */
 	Command(String name, String description,ISetContext setContext) {
 		this(name,description,"input","output-file",setContext);
 	}
+		
+		/**
+		 * Instantiates a new command.
+		 *
+		 * @param name the name
+		 * @param description the description
+		 * @param argName1 the arg name 1
+		 * @param argName2 the arg name 2
+		 * @param setContext the set context
+		 */
 		Command(String name, String description, String argName1, String argName2,ISetContext setContext) {
 		this.setContext=setContext;
 		this.impl=setContext.getDefaultImplementation();
@@ -99,29 +177,78 @@ public abstract class Command {
 		this.argName2=argName2;
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	abstract void createOptions();
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the line
+	 * @throws Exception the exception
+	 */
 	public abstract void checkOptions(CommandLine line) throws Exception;
 
+	/**
+	 * Exec.
+	 *
+	 * @return the resulting object
+	 * @throws Exception the exception
+	 */
 	public abstract Object exec() throws Exception;
 
+	/**
+	 * Name.
+	 *
+	 * @return the string
+	 */
 	public String name() {
 		return name;
 	}
 
+	/**
+	 * Description.
+	 *
+	 * @return the string
+	 */
 	public String description() {
 		return description;
 	}
+	
+	/**
+	 * Gets the arg name 1.
+	 *
+	 * @return the arg name 1
+	 */
 	public String getArgName1(){
 		return argName1;
 	}
+	
+	/**
+	 * Gets the arg name 2.
+	 *
+	 * @return the arg name 2
+	 */
 	public String getArgName2(){
 		return argName2;
 	}
-	   private InputStream readExamples() {
+	   
+   	/**
+   	 * Read examples.
+   	 *
+   	 * @return the input stream
+   	 */
+   	private InputStream readExamples() {
 	        String path = "/examples.csv";
 	        return getClass().getResourceAsStream(path);		   
 	   }
+	
+	/**
+	 * Examples.
+	 *
+	 * @return the list of examples
+	 */
 	public List<String[]> examples() {
 		Reader examplesReader;
 		ArrayList<String[]> list=new ArrayList<>();
@@ -144,6 +271,11 @@ public abstract class Command {
 		return list;
 	}
 	
+	/**
+	 * Declare implementation.
+	 *
+	 * @param sorted true if implementation provides sorted sets
+	 */
 	void declareImplementation(boolean sorted) {
 		StringBuilder sb_impl = new StringBuilder();
 		boolean first = true;
@@ -161,6 +293,13 @@ public abstract class Command {
 				.desc("supported implementations are " + sb_impl).hasArg().argName("IMPL").build());
 
 	}
+	
+	/**
+	 * Declare context format.
+	 *
+	 * @param key the key
+	 * @param name the format name
+	 */
 	void declareContextFormat(String key,String name) {
 		// input format
 		options.addOption(Option.builder(key)
@@ -168,6 +307,13 @@ public abstract class Command {
 				.hasArg().argName(name).build());
 
 	}
+	
+	/**
+	 * Declare family format.
+	 *
+	 * @param key the key
+	 * @param name the format name
+	 */
 	void declareFamilyFormat(String key,String name) {
 		// input format
 		options.addOption(Option.builder(key)
@@ -176,6 +322,9 @@ public abstract class Command {
 
 	}
 
+	/**
+	 * Declare common options.
+	 */
 	void declareCommon() {
 		// separator
 		options.addOption(Option.builder("s")
@@ -191,6 +340,14 @@ public abstract class Command {
 				.build());
 	}
 
+	/**
+	 * Read context.
+	 *
+	 * @param iformat the context format
+	 * @param inputFile the input file
+	 * @return the resulting binary context
+	 * @throws Exception the exception
+	 */
 	protected IBinaryContext readContext(ContextFormat iformat, File inputFile) throws Exception {
 		IBinaryContext context;
 		switch (iformat) {
@@ -216,6 +373,12 @@ public abstract class Command {
 		return context;
 	}
 
+	/**
+	 * Suggest context format.
+	 *
+	 * @param filename the filename
+	 * @return the context format
+	 */
 	protected static ContextFormat suggestContextFormat(String filename) {
 		int beginIndex = filename.lastIndexOf('.');
 		if (beginIndex >= 0) {
@@ -234,6 +397,13 @@ public abstract class Command {
 		}
 		return null;
 	}
+	
+	/**
+	 * Suggest family format.
+	 *
+	 * @param filename the filename
+	 * @return the suggested family format
+	 */
 	protected static FamilyFormat suggestFamilyFormat(String filename) {
 		int beginIndex = filename.lastIndexOf('.');
 		if (beginIndex >= 0) {
@@ -253,6 +423,15 @@ public abstract class Command {
 		return null;
 	}
 
+	/**
+	 * Check context format.
+	 *
+	 * @param line the command line
+	 * @param fileName the file name
+	 * @param opt the option to check
+	 * @return the context format
+	 * @throws Exception the exception
+	 */
 	protected ContextFormat checkContextFormat(CommandLine line, String fileName,String opt) throws Exception {
 		ContextFormat ctxFormat=null;
 		if (line.hasOption(opt)) {
@@ -267,6 +446,15 @@ public abstract class Command {
 		return ctxFormat;
 	}
 	
+	/**
+	 * Check family format.
+	 *
+	 * @param line the command line
+	 * @param fileName the file name
+	 * @param opt the option to check
+	 * @return the family format
+	 * @throws Exception the exception
+	 */
 	protected FamilyFormat checkFamilyFormat(CommandLine line, String fileName,String opt) throws Exception {
 		FamilyFormat ctxFormat=null;
 		if (line.hasOption(opt)) {
@@ -281,6 +469,12 @@ public abstract class Command {
 		return ctxFormat;
 	}
 
+	/**
+	 * Check implementation.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	protected void checkImplementation(CommandLine line) throws Exception {
 		// implementation
 		factory = setContext.getDefaultFactory();
@@ -294,9 +488,23 @@ public abstract class Command {
 		}
 
 	}	
+	
+	/**
+	 * Check verbose.
+	 *
+	 * @param line the line
+	 * @throws Exception the exception
+	 */
 	protected void checkVerbose(CommandLine line) throws Exception {
 		verbose=line.hasOption("v");
 	}
+		
+		/**
+		 * Check separator.
+		 *
+		 * @param line the line
+		 * @throws Exception the exception
+		 */
 		protected void checkSeparator(CommandLine line) throws Exception {
 	separator = ',';
 	if (line.hasOption("s")) {
@@ -312,9 +520,24 @@ public abstract class Command {
 		}
 	}
 	}
+	
+	/**
+	 * Gets the options.
+	 *
+	 * @return the options
+	 */
 	public Options getOptions() {
 		return options;
 	}
+	
+	/**
+	 * Write context.
+	 *
+	 * @param tContext the binary context
+	 * @param writer the writer
+	 * @param outputFormat the output format
+	 * @throws Exception the exception
+	 */
 	public void writeContext(IBinaryContext tContext, BufferedWriter writer,ContextFormat outputFormat) throws Exception {
 		// write
 		switch (outputFormat) {
@@ -338,6 +561,15 @@ public abstract class Command {
 		}
 
 	}
+	
+	/**
+	 * Write family.
+	 *
+	 * @param family the family
+	 * @param outputPath the output path
+	 * @param familyFormat the family format
+	 * @throws Exception the exception
+	 */
 	public void writeFamily(RCAFamily family, String outputPath,FamilyFormat familyFormat) throws Exception {
 		// write
 		switch (familyFormat) {

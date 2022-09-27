@@ -50,6 +50,7 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 
 /**
+ * The Class ConceptOrder.
  *
  * @author agutierr
  */
@@ -82,6 +83,13 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      */
     private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
+    /**
+     * Instantiates a new concept order.
+     *
+     * @param id the id
+     * @param context the context
+     * @param algoName the algo name
+     */
     public ConceptOrder(String id, IBinaryContext context, String algoName) {
         this.id = id;
         this.context = context;
@@ -100,6 +108,14 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
          */
     }
 
+    /**
+     * Populate.
+     *
+     * @param concepts the concepts
+     * @param edges the edges
+     * @param bitsets the bitsets
+     * @param buildExtentIntent the build extent intent
+     */
     public void populate(int[] concepts, int[] edges, BitSet[] bitsets, boolean buildExtentIntent) {
         // add vertices to graph, rintent and rextent
         int ex = 0, in = 1;
@@ -159,26 +175,62 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
 
     }
 
+    /**
+     * Gets the id.
+     *
+     * @return the id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Gets the context.
+     *
+     * @return the context
+     */
     public IBinaryContext getContext() {
         return context;
     }
 
+    /**
+     * Adds the property change listener.
+     *
+     * @param l the l
+     */
     public void addPropertyChangeListener(PropertyChangeListener l) {
         pcs.addPropertyChangeListener(l);
     }
 
+    /**
+     * Removes the property change listener.
+     *
+     * @param l the l
+     */
     public void removePropertyChangeListener(PropertyChangeListener l) {
         pcs.removePropertyChangeListener(l);
     }
 
+    /**
+     * Adds the concept.
+     *
+     * @param extent the extent
+     * @param intent the intent
+     * @return the int
+     */
     public int addConcept(ISet extent, ISet intent) {
         return addConcept(extent, intent, factory.createSet(context.getObjectCount()), factory.createSet(context.getAttributeCount()));
     }
 
+    /**
+     * Adds the concept.
+     *
+     * @param extent the extent
+     * @param intent the intent
+     * @param rextent the rextent
+     * @param rintent the rintent
+     * @return the int
+     */
     public int addConcept(ISet extent, ISet intent, ISet rextent, ISet rintent) {
         int numConcept = counter++;
         hierarchy.addVertex(numConcept);
@@ -193,30 +245,71 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
 
     }
 
+    /**
+     * Gets the concept extent.
+     *
+     * @param numConcept the num concept
+     * @return the concept extent
+     */
     public ISet getConceptExtent(int numConcept) {
         return extents.get(numConcept);
     }
 
+    /**
+     * Gets the concept intent.
+     *
+     * @param numConcept the num concept
+     * @return the concept intent
+     */
     public ISet getConceptIntent(int numConcept) {
         return intents.get(numConcept);
     }
 
+    /**
+     * Gets the concept reduced extent.
+     *
+     * @param numConcept the num concept
+     * @return the concept reduced extent
+     */
     public ISet getConceptReducedExtent(int numConcept) {
         return rextents.get(numConcept);
     }
 
+    /**
+     * Sets the reduced extent.
+     *
+     * @param numConcept the num concept
+     * @param rextent the rextent
+     */
     public void setReducedExtent(int numConcept, ISet rextent) {
         rextents.put(numConcept, rextent);
     }
 
+    /**
+     * Gets the concept reduced intent.
+     *
+     * @param numConcept the num concept
+     * @return the concept reduced intent
+     */
     public ISet getConceptReducedIntent(int numConcept) {
         return rintents.get(numConcept);
     }
 
+    /**
+     * Sets the reduced intent.
+     *
+     * @param numConcept the num concept
+     * @param rintent the rintent
+     */
     public void setReducedIntent(int numConcept, ISet rintent) {
         rintents.put(numConcept, rintent);
     }
 
+    /**
+     * Removes the concept.
+     *
+     * @param numConcept the num concept
+     */
     public void removeConcept(int numConcept) {
         extents.remove(numConcept);
         intents.remove(numConcept);
@@ -248,6 +341,12 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         pcs.firePropertyChange("REMOVE_CONCEPT", numConcept, numConcept);
     }
 
+    /**
+     * Adds the precedence connection.
+     *
+     * @param lower the lower
+     * @param greater the greater
+     */
     public void addPrecedenceConnection(int lower, int greater) {
         hierarchy.addEdge(lower, greater);
         maximals.remove(lower);
@@ -255,6 +354,12 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         pcs.firePropertyChange("ADD_EDGE", lower, greater);
     }
 
+    /**
+     * Removes the precedence connection.
+     *
+     * @param lower the lower
+     * @param greater the greater
+     */
     public void removePrecedenceConnection(int lower, int greater) {
         if (hierarchy.removeEdge(lower, greater) != null) {
             if (hierarchy.outDegreeOf(lower) == 0 && !maximals.contains(lower)) {
@@ -269,24 +374,46 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
     }
 
     /**
+     * Gets the top.
      *
+     * @return the top
      */
     public int getTop() {
         return maximals.iterator().next();
     }
 
+    /**
+     * Gets the maximals.
+     *
+     * @return the maximals
+     */
     public ISet getMaximals() {
         return maximals;
     }
 
+    /**
+     * Gets the minimals.
+     *
+     * @return the minimals
+     */
     public ISet getMinimals() {
         return minimals;
     }
 
+    /**
+     * Gets the bottom.
+     *
+     * @return the bottom
+     */
     public int getBottom() {
         return minimals.iterator().next();
     }
 
+    /**
+     * Gets the concepts.
+     *
+     * @return the concepts
+     */
     public Set<Integer> getConcepts() {
         return hierarchy.vertexSet();
     }
@@ -294,6 +421,9 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
     /**
      * returns all the children of the current concept. This relation is
      * reflexive so the current concept is included in its children
+     *
+     * @param concept the concept
+     * @return the all children
      */
 
     public ISet getAllChildren(int concept) {
@@ -312,6 +442,9 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
     /**
      * Computes and returns all the parents of the current concept. This
      * relation is reflexive so the current concept is included in its parents
+     *
+     * @param concept the concept
+     * @return the all parents
      */
     public ISet getAllParents(int concept) {
         ISet parents = factory.createSet(context.getObjectCount()+context.getAttributeCount());
@@ -326,14 +459,32 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         }
     }
 
+    /**
+     * In degree of.
+     *
+     * @param concept the concept
+     * @return the int
+     */
     public int inDegreeOf(int concept) {
         return hierarchy.inDegreeOf(concept);
     }
 
+    /**
+     * Out degree of.
+     *
+     * @param concept the concept
+     * @return the int
+     */
     public int outDegreeOf(int concept) {
         return hierarchy.outDegreeOf(concept);
     }
 
+    /**
+     * Gets the lower cover set.
+     *
+     * @param concept the concept
+     * @return the lower cover set
+     */
     public Set<Integer> getLowerCoverSet(int concept) {
         Set<DefaultEdge> itEdges = hierarchy.incomingEdgesOf(concept);
         Set<Integer> set = new HashSet<>();
@@ -343,6 +494,12 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         return set;
     }
 
+    /**
+     * Gets the upper cover set.
+     *
+     * @param concept the concept
+     * @return the upper cover set
+     */
     public Set<Integer> getUpperCoverSet(int concept) {
         Set<DefaultEdge> itEdges = hierarchy.outgoingEdgesOf(concept);
         Set<Integer> set = new HashSet<>();
@@ -351,6 +508,13 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         }
         return set;
     }
+    
+    /**
+     * Gets the lower cover.
+     *
+     * @param concept the concept
+     * @return the lower cover
+     */
     public ISet getLowerCover(int concept) {
         Set<DefaultEdge> itEdges = hierarchy.incomingEdgesOf(concept);
         ISet set = factory.createSet();
@@ -360,6 +524,12 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         return set;
     }
 
+    /**
+     * Gets the upper cover.
+     *
+     * @param concept the concept
+     * @return the upper cover
+     */
     public ISet getUpperCover(int concept) {
         Set<DefaultEdge> itEdges = hierarchy.outgoingEdgesOf(concept);
         ISet set = factory.createSet(context.getAttributeCount()+context.getObjectCount());
@@ -369,6 +539,12 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         return set;
     }
 
+    /**
+     * Gets the lower cover iterator.
+     *
+     * @param concept the concept
+     * @return the lower cover iterator
+     */
     public Iterator<Integer> getLowerCoverIterator(int concept) {
         Iterator<DefaultEdge> itEdges = hierarchy.incomingEdgesOf(concept).iterator();
         Iterator<Integer> it = new Iterator<Integer>() {
@@ -386,6 +562,12 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         return it;
     }
 
+    /**
+     * Gets the upper cover iterator.
+     *
+     * @param concept the concept
+     * @return the upper cover iterator
+     */
     public Iterator<Integer> getUpperCoverIterator(int concept) {
         Iterator<DefaultEdge> itEdges = hierarchy.outgoingEdgesOf(concept).iterator();
         Iterator<Integer> it = new Iterator<Integer>() {
@@ -403,18 +585,42 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         return it;
     }
 
+    /**
+     * Checks if is fusion.
+     *
+     * @param concept the concept
+     * @return true, if is fusion
+     */
     public boolean isFusion(int concept) {
         return (getConceptReducedExtent(concept).cardinality() > 1);
     }
 
+    /**
+     * Checks if is new concept.
+     *
+     * @param concept the concept
+     * @return true, if is new concept
+     */
     public boolean isNewConcept(int concept) {
         return (getConceptReducedExtent(concept).cardinality() == 0);
     }
 
+    /**
+     * Checks if is dummy.
+     *
+     * @param concept the concept
+     * @return true, if is dummy
+     */
     public boolean isDummy(int concept) {
         return (getConceptExtent(concept).cardinality() == 0 || getConceptIntent(concept).cardinality() == 0);
     }
 
+    /**
+     * Sort by extent.
+     *
+     * @param increasing the increasing
+     * @return the array list
+     */
     public ArrayList<Integer> sortByExtent(boolean increasing) {
         ArrayList<Integer> list = new ArrayList<>(hierarchy.vertexSet());
         if (increasing) {
@@ -425,6 +631,12 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         return list;
     }
 
+    /**
+     * Sort by intent.
+     *
+     * @param increasing the increasing
+     * @return the array list
+     */
     public ArrayList<Integer> sortByIntent(boolean increasing) {
         ArrayList<Integer> list = new ArrayList<>(hierarchy.vertexSet());
         if (increasing) {
@@ -435,14 +647,29 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         return list;
     }
 
+    /**
+     * Gets the basic iterator.
+     *
+     * @return the basic iterator
+     */
     public Iterator<Integer> getBasicIterator() {
         return hierarchy.vertexSet().iterator();
     }
 
+    /**
+     * Gets the bottom up iterator.
+     *
+     * @return the bottom up iterator
+     */
     public Iterator<Integer> getBottomUpIterator() {
         return new TopologicalOrderIterator(hierarchy);
     }
 
+    /**
+     * Gets the top down iterator.
+     *
+     * @return the top down iterator
+     */
     public Iterator<Integer> getTopDownIterator() {
         ArrayList<Integer> vertices = new ArrayList<>();
         for (Iterator<Integer> it = new TopologicalOrderIterator(hierarchy); it.hasNext();) {
@@ -451,10 +678,20 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         return vertices.iterator();
     }
 
+    /**
+     * Gets the concept count.
+     *
+     * @return the concept count
+     */
     public int getConceptCount() {
         return hierarchy.vertexSet().size();
     }
 
+    /**
+     * Gets the edge count.
+     *
+     * @return the edge count
+     */
     /*
 public void exportJSON(Writer writer){
              JSONExporter exporter=new JSONExporter();
@@ -471,10 +708,18 @@ public void exportJSON(Writer writer){
         return hierarchy.edgeSet().size();
     }
 
+    /**
+     * Gets the algo name.
+     *
+     * @return the algo name
+     */
     public String getAlgoName() {
         return algoName;
     }
 
+    /**
+     * Reduce.
+     */
     /* introduce to fix a bug with ares
     Attention: This transformation remove edges without notification to listeners
      */
@@ -491,10 +736,16 @@ public void exportJSON(Writer writer){
         }
     }
 
+    /**
+     * Closure.
+     */
     public void closure() {
         TransitiveClosure.INSTANCE.closeSimpleDirectedGraph(hierarchy);
     }
 
+    /**
+     * Compute intents.
+     */
     public void computeIntents(){
         // populate extents and intents
         for (Iterator<Integer> it = getTopDownIterator(); it.hasNext();) {
@@ -507,6 +758,10 @@ public void exportJSON(Writer writer){
             }
         }
     }
+    
+    /**
+     * Compute extents.
+     */
     public void computeExtents(){    
         for (Iterator<Integer> it = getBottomUpIterator(); it.hasNext();) {
             int concept = it.next();
@@ -518,10 +773,21 @@ public void exportJSON(Writer writer){
             }
         }    	
     }
+    
+    /**
+     * Sets the id.
+     *
+     * @param name the new id
+     */
     public void setId(String name) {
         this.id = name;
     }
 
+    /**
+     * Clone.
+     *
+     * @return the concept order
+     */
     @Override
     public ConceptOrder clone() {
         ConceptOrder newOrder = new ConceptOrder(id, context, algoName);
@@ -536,6 +802,13 @@ public void exportJSON(Writer writer){
         newOrder.minimals = minimals.clone();
         return newOrder;
     }
+    
+    /**
+     * Clone.
+     *
+     * @param newFactory the new factory
+     * @return the concept order
+     */
     @Override
     public ConceptOrder clone(ISetFactory newFactory) {
         ConceptOrder newOrder = new ConceptOrder(id, context, algoName);
@@ -582,6 +855,14 @@ public void exportJSON(Writer writer){
 				result.addAll(classes.get(it.next()));
 		return result;
 	}
+    
+    /**
+     * Substitution.
+     *
+     * @param notClarifiedContext the not clarified context
+     * @param attrClasses the attr classes
+     * @param objClasses the obj classes
+     */
     public void substitution(IBinaryContext notClarifiedContext,List<ISet> attrClasses, List<ISet> objClasses) {
     	this.context=notClarifiedContext;
     	HashMap<Integer,ISet> newExtents=new HashMap<>();

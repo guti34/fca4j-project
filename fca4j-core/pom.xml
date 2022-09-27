@@ -5,22 +5,17 @@
 	<parent>
 		<groupId>fr.lirmm.fca4j</groupId>
 		<artifactId>fca4j-parent</artifactId>
-		<version>0.0.1</version>
+		<version>0.4.3</version>
 	</parent>
 	<artifactId>fca4j-core</artifactId>
 	<name>fca4j-core</name>
 	<description>fca4j core library</description>
-	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 	<dependencies>
 	
 		<dependency>
 			<groupId>fr.lirmm.fca4j</groupId>
 			<artifactId>fca4j-iset</artifactId>
-			<version>0.0.1</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jgrapht</groupId>

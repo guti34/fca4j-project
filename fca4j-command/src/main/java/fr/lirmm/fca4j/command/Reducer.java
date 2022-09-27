@@ -42,15 +42,32 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
 
+/**
+ * The Class Reducer.
+ */
 public class Reducer extends MatrixTransform {
+	
+	/** The with attributes. */
 	boolean withAttr = false;	
+	
+	/** The with objects. */
 	boolean withObj = false;
+	
+	/** if context is not clarified. */
 	boolean unclarified = false;
 
+	/**
+	 * Instantiates a new reducer command.
+	 *
+	 * @param setContext the set context
+	 */
 	public Reducer(ISetContext setContext) {
 		super("reduce", "reduce formal context to irreductibles (--xo option), attributes (--xa option) or both",setContext);
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		options.addOption(Option.builder("xa").desc("reduce attributes").build());
@@ -61,6 +78,12 @@ public class Reducer extends MatrixTransform {
 		super.createOptions();
 	}
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	@Override
 	public void checkOptions(CommandLine line) throws Exception {
 		super.checkOptions(line);
@@ -72,6 +95,12 @@ public class Reducer extends MatrixTransform {
 		unclarified = line.hasOption("u");
 	}
 
+	/**
+	 * Transform.
+	 *
+	 * @return the binary context
+	 * @throws Exception the exception
+	 */
 	@Override
 	protected IBinaryContext transform() throws Exception {
 		IBinaryContext newContext = getContext();
@@ -90,6 +119,13 @@ public class Reducer extends MatrixTransform {
 		return newContext;
 	}
 
+	/**
+	 * Reduce objects.
+	 *
+	 * @param context the context
+	 * @return the binary context
+	 * @throws Exception the exception
+	 */
 	private IBinaryContext reduceObj(IBinaryContext context) throws Exception {
 		IBinaryContext reducedContext = new BinaryContext(0, context.getAttributeCount(), context.getName(), factory);
 		for (int numattr = 0; numattr < context.getAttributeCount(); numattr++) {
@@ -113,6 +149,13 @@ public class Reducer extends MatrixTransform {
 		return reducedContext;
 	}
 
+	/**
+	 * Reduce attributes.
+	 *
+	 * @param context the context
+	 * @return the binary context
+	 * @throws Exception the exception
+	 */
 	protected IBinaryContext reduceAttr(IBinaryContext context) throws Exception {
 		IBinaryContext reducedContext = new BinaryContext(context.getObjectCount(), 0, context.getName(), factory);
 		for (int numobj = 0; numobj < context.getObjectCount(); numobj++) {

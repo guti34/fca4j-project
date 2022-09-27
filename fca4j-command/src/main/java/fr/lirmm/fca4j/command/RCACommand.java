@@ -70,24 +70,68 @@ import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.JSONFormatter;
 
+/**
+ * The Class RCACommand.
+ */
 public class RCACommand extends Command {
 
+	/** The family file. */
 	protected File familyFile;
+	
+	/** The result folder. */
 	protected File resultFolder;
+	
+	/** The new name. */
 	protected String newName;
+	
+	/** The family format. */
 	protected FamilyFormat familyFormat;
+	
+	/** The algorithm. */
 	protected AlgoRCA algo;
+	
+	/** The percent. */
 	protected int percent = -1;
+	
+	/** produce dot file for graphviz. */
 	boolean produce_dot = false;
+	
+	/** produce extended family. */
 	boolean storeExtendedFamily = false;
+	
+	/** rename relational attributes using concept intents. */
 	boolean nameWithIntent = false;
+	
+	/** store xml. */
 	boolean storeXml = false;
+	
+	/** The max step. */
 	int maxStep = -1;
 
+	/**
+	 * The Enum AlgoRCA.
+	 */
 	enum AlgoRCA {
-		ARES, CERES, PLUTON, HERMES, ADD_EXTENT, ICEBERG
+		
+	 /** The ares algorithm. */
+	 ARES, 
+	 /** The ceres algorithm. */
+	 CERES, 
+	 /** The pluton algorithm. */
+	 PLUTON, 
+	 /** The hermes algorithm. */
+	 HERMES, 
+	 /** The add extent algorithm. */
+	 ADD_EXTENT, 
+	 /** The iceberg algorithm. */
+	 ICEBERG
 	};
 
+	/**
+	 * Instantiates a new RCA command.
+	 *
+	 * @param setContext the set context
+	 */
 	public RCACommand(ISetContext setContext) {
 		super("rca", "to create a conceptual structure family from a relational context family. "+
 				"The output is a JSON file that can be opened in RCAviz, a DOT file that contains the graph of the conceptual structure family at the end of the process,"+
@@ -95,6 +139,9 @@ public class RCACommand extends Command {
 				"The input is a relational context family."	, "input", "output-folder",setContext);
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		StringBuilder sb_algo_aoc = new StringBuilder();
@@ -118,6 +165,12 @@ public class RCACommand extends Command {
 
 	}
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	@Override
 	public void checkOptions(CommandLine line) throws Exception {
 		produce_dot = line.hasOption("dot");
@@ -182,6 +235,12 @@ public class RCACommand extends Command {
 		nameWithIntent = line.hasOption("ra");
 	}
 
+	/**
+	 * Exec.
+	 *
+	 * @return the resulting object
+	 * @throws Exception the exception
+	 */
 	@Override
 	public Object exec() throws Exception {
 		// public static void compute(PrintWriter output, Chrono chrono, String
@@ -350,6 +409,13 @@ public class RCACommand extends Command {
 		return null;
 	}
 
+	/**
+	 * Generate JSON.
+	 *
+	 * @param family the rca family
+	 * @param conceptArray the concept array
+	 * @param conceptOrder the concept order
+	 */
 	protected void generateJSON(RCAFamily family, JSONArray conceptArray, IConceptOrder conceptOrder) {
 		IBinaryContext matrix = conceptOrder.getContext();
 		for (Iterator<Integer> it = conceptOrder.getTopDownIterator(); it.hasNext();) {

@@ -39,17 +39,43 @@ import org.json.simple.JSONObject;
 
 import fr.lirmm.fca4j.core.RCAFamily;
 
+/**
+ * The Class RCFALWriter.
+ */
 public class RCFALWriter {
+    
+    /**
+     * Write.
+     *
+     * @param rcf the rcf
+     * @param outputPath the output path
+     * @throws Exception the exception
+     */
     public static void write(RCAFamily rcf,String outputPath) throws Exception{
         File f = new File(outputPath);
         FileWriter fw = new FileWriter(f, false);
         write(rcf,fw);
     }
+        
+        /**
+         * Write.
+         *
+         * @param rcf the rcf
+         * @param writer the writer
+         * @throws Exception the exception
+         */
         public static void write(RCAFamily rcf,Writer writer) throws Exception{
          JSONObject json=family2JSON(rcf);
        writer.append(json.toJSONString());
         writer.close();
     }
+    
+    /**
+     * Family 2 JSON.
+     *
+     * @param rcf the rcf
+     * @return the JSON object
+     */
     private static JSONObject family2JSON(RCAFamily rcf){
     JSONObject json=new JSONObject();
         json.put("familyName", rcf.getName());

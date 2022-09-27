@@ -42,8 +42,14 @@ import fr.lirmm.fca4j.iset.std.IntArrayFactory;
 import fr.lirmm.fca4j.iset.std.JavaCollectionSetFactory;
 import fr.lirmm.fca4j.iset.std.SparseBitSetFactory;
 
+/**
+ * The Class SetContextLight.
+ */
 public class SetContextLight extends AbstractSetContext{
 
+	/**
+	 * Instantiates set factories.
+	 */
 	public SetContextLight() {
 		registerFactory(new BitSetFactory());
 //		registerFactory(new GPUSetFactory());
@@ -56,6 +62,11 @@ public class SetContextLight extends AbstractSetContext{
 		registerFactory( new BoolArrayFactory());
 	}
 	
+	/**
+	 * Gets the default implementation.
+	 *
+	 * @return the default implementation
+	 */
 	@Override
 	public String getDefaultImplementation() {
 		return "BITSET";

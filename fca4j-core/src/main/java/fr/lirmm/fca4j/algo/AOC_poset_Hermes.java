@@ -44,6 +44,9 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
+/**
+ * The Class AOC_poset_Hermes.
+ */
 public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
 
 	protected IBinaryContext matrix; //ressource de depart
@@ -53,6 +56,12 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
     protected ISetFactory factory;
     protected int minSetSize;
 
+    /**
+     * Instantiates a new AO C poset hermes.
+     *
+     * @param bc the bc
+     * @param chrono the chrono
+     */
     public AOC_poset_Hermes(IBinaryContext bc, Chrono chrono) {
         super();
         this.chrono = chrono;
@@ -61,10 +70,22 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
         minSetSize=Integer.max(matrix.getAttributeCount(), matrix.getObjectCount());
     }
 
+    /**
+     * Instantiates a new AO C poset hermes.
+     *
+     * @param bc the bc
+     */
     public AOC_poset_Hermes(IBinaryContext bc) {
         this(bc, null);
     }
 
+    /**
+     * Clarify.
+     *
+     * @param setToClarify the set to clarify
+     * @param setToSynchronize the set to synchronize
+     * @return the array list
+     */
     protected ArrayList<RefSet> clarify(ArrayList<RefSet> setToClarify, ArrayList<RefSet> setToSynchronize) {
         Comparator<RefSet> comparator = new Comparator<RefSet>() {
 
@@ -111,6 +132,12 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
         return attrSets;
     }
 
+    /**
+     * Compute attribute dom relation.
+     *
+     * @param attrSets the attr sets
+     * @return the array list
+     */
     protected ArrayList<RefSet> computeAttributeDomRelation(ArrayList<RefSet> attrSets) {
         ArrayList<RefSet> domRelation = new ArrayList<RefSet>();
         for (int i = 0; i < attrSets.size(); i++) {
@@ -141,6 +168,12 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
         }
     }
 
+    /**
+     * Compute hasse diagram.
+     *
+     * @param conceptSets the concept sets
+     * @throws Exception the exception
+     */
     protected void computeHasseDiagram(ArrayList<ConceptSet> conceptSets) throws Exception {
         // sort concept sets depending on the cardinality
         Collections.sort(conceptSets, new Comparator<ConceptSet>() {
@@ -208,6 +241,12 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
         }
     }
 
+    /**
+     * Compute GSH.
+     *
+     * @return the concept order
+     * @throws Exception the exception
+     */
     public ConceptOrder computeGSH() throws Exception {
         gsh = new ConceptOrder("AOCposetWithHermes", matrix, getDescription());
         ArrayList<RefSet> attrSets = new ArrayList<>();
@@ -271,16 +310,29 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
         return gsh;
     }
 
+    /**
+     * Gets the description.
+     *
+     * @return the description
+     */
     @Override
     public String getDescription() {
         return "Hermes";
     }
 
+    /**
+     * Gets the result.
+     *
+     * @return the result
+     */
     @Override
     public ConceptOrder getResult() {
         return gsh;
     }
 
+    /**
+     * Run.
+     */
     @Override
     public void run() {
         try {
@@ -290,20 +342,38 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
         }
     }
 
+    /**
+     * The Class RefSet.
+     */
     class RefSet {
 
         ISet refs;
         ISet values;
 
+        /**
+         * Instantiates a new ref set.
+         */
         RefSet() {
             this.refs = factory.createSet(minSetSize);
             this.values = factory.createSet(minSetSize);
         }
 
+        /**
+         * Checks if is include.
+         *
+         * @param anotherRefSet the another ref set
+         * @return true, if is include
+         */
         public boolean isInclude(RefSet anotherRefSet) {
             return anotherRefSet.values.containsAll(values);
         }
 
+        /**
+         * Instantiates a new ref set.
+         *
+         * @param ref the ref
+         * @param values the values
+         */
         RefSet(int[] ref, int[] values) {
             this.refs = factory.createSet(ref.length);
             for (int i : ref) {
@@ -321,38 +391,74 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
             }
         }
 
+        /**
+         * Instantiates a new ref set.
+         *
+         * @param ref the ref
+         * @param values the values
+         */
         RefSet(int ref, ISet values) {
             this.refs = factory.createSet(minSetSize);
             this.refs.add(ref);
             this.values = factory.clone(values);
         }
 
+        /**
+         * Instantiates a new ref set.
+         *
+         * @param ref the ref
+         */
         RefSet(int ref) {
             this.refs = factory.createSet(minSetSize);
             this.refs.add(ref);
             this.values = factory.createSet(minSetSize);
         }
 
+        /**
+         * Instantiates a new ref set.
+         *
+         * @param refs the refs
+         */
         RefSet(ISet refs) {
             this.values = factory.createSet(minSetSize);
             this.refs = factory.clone(refs);
         }
 
+        /**
+         * Adds the ref.
+         *
+         * @param ref the ref
+         */
         void addRef(int ref) {
             this.refs.add(ref);
         }
 
+        /**
+         * Adds the ref.
+         *
+         * @param refsToAdd the refs to add
+         */
         void addRef(ISet refsToAdd) {
             this.refs.addAll(refsToAdd);
         }
     }
 
+    /**
+     * The Class ConceptSet.
+     */
     class ConceptSet {
 
         ISet intent;
         ISet extent;
         ISet values;
 
+        /**
+         * Instantiates a new concept set.
+         *
+         * @param intent the intent
+         * @param extent the extent
+         * @param values the values
+         */
         ConceptSet(ISet intent, ISet extent, ISet values) {
             if (intent == null) {
                 this.intent = factory.createSet(matrix.getAttributeCount());

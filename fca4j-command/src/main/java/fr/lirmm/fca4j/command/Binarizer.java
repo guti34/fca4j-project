@@ -48,18 +48,41 @@ import fr.lirmm.fca4j.core.BinaryContext;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetContext;
 
+/**
+ * The Class Binarizer.
+ */
 public class Binarizer extends Command {
+	
+	/** The output file. */
 	protected File outputFile;
+	
+	/** The input file. */
 	protected File inputFile;
+	
+	/** The input format. */
 	protected ContextFormat inputFormat;
+	
+	/** The output format. */
 	protected ContextFormat outputFormat;
+	
+	/** all attributes are processed. */
 	protected boolean allAttributes = true;
+	
+	/** The selected attributes. */
 	protected String[] selectedAttributes = new String[0];
 
+	/**
+	 * Instantiates a new binarizer.
+	 *
+	 * @param setContext the set context
+	 */
 	public Binarizer(ISetContext setContext) {
 		super("binarize", "transform multivalued data table to formal context",setContext);
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		options.addOption(
@@ -78,6 +101,12 @@ public class Binarizer extends Command {
 		declareCommon();
 	}
 
+/**
+ * Check options.
+ *
+ * @param line the line
+ * @throws Exception the exception
+ */
 /*	
 	void declareNameGenerator(){		
 	// include obj names
@@ -140,11 +169,24 @@ public class Binarizer extends Command {
 		// verbose
 		checkVerbose(line);
 	}
+	
+	/**
+	 * Check name generator.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	protected void checkNameGenerator(CommandLine line) throws Exception {
 		generateObjNames=line.hasOption("gobj");
 		generateAttrNames=line.hasOption("gattr");
 	}
 
+	/**
+	 * Exec.
+	 *
+	 * @return the resulting object
+	 * @throws Exception the exception
+	 */
 	@Override
 	public Object exec() throws Exception {
 		BufferedWriter writer;
@@ -232,6 +274,12 @@ public class Binarizer extends Command {
 		return context;
 	}
 
+	/**
+	 * Format attribute name.
+	 *
+	 * @param attrName the attr name
+	 * @return the string
+	 */
 	public static String formatAttributeName(String attrName) {
 		return attrName;
 	}

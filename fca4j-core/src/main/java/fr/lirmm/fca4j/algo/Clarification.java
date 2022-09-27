@@ -42,6 +42,7 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.iset.std.BitSetFactory;
 
 /**
+ * The Class Clarification.
  *
  * @author agutierr
  */
@@ -55,6 +56,15 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
     protected ArrayList<ISet> equivClassAttributes=new ArrayList<>();
     protected ArrayList<ISet> equivClassObjects=new ArrayList<>();
     
+    /**
+     * Instantiates a new clarification.
+     *
+     * @param matrix the matrix
+     * @param nameContext the name context
+     * @param clarifyAttributes the clarify attributes
+     * @param clarifyObjects the clarify objects
+     * @param renameAttributes the rename attributes
+     */
     public Clarification(IBinaryContext matrix, String nameContext,boolean clarifyAttributes,boolean clarifyObjects,boolean renameAttributes){
         this.matrix=matrix;
         this.factory=matrix.getFactory();
@@ -63,6 +73,14 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
         this.clarifyObjects=clarifyObjects;
         this.rename=renameAttributes;
     }
+    
+    /**
+     * Clarify.
+     *
+     * @param setToClarify the set to clarify
+     * @param setToSynchronize the set to synchronize
+     * @return the array list
+     */
     protected ArrayList<RefSet> clarify(ArrayList<RefSet> setToClarify, ArrayList<RefSet> setToSynchronize) {
         // sort RefSets depending on the cardinality
         Collections.sort(setToClarify/*, comparator*/);
@@ -94,11 +112,22 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
     }
 
 
+    /**
+     * Gets the description.
+     *
+     * @return the description
+     */
     @Override
     public String getDescription() {
         return "clarification";
     }
 
+    /**
+     * Gets the attributes by equiv classes.
+     *
+     * @param context the context
+     * @return the attributes by equiv classes
+     */
     public static List<ISet> getAttributesByEquivClasses(IBinaryContext context) {
         ArrayList<RefSet> attrSets = new ArrayList<>();
         int sizeSet=Integer.max(context.getAttributeCount(), context.getObjectCount());
@@ -131,6 +160,13 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
        }
        return classes;  
     }
+    
+    /**
+     * Gets the objects by equiv classes.
+     *
+     * @param context the context
+     * @return the objects by equiv classes
+     */
     public static List<ISet> getObjectsByEquivClasses(IBinaryContext context) {
         ArrayList<RefSet> objSets = new ArrayList<>();
         int sizeSet=Integer.max(context.getAttributeCount(), context.getObjectCount());
@@ -163,11 +199,19 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
        return classes;  
     }
 
+    /**
+     * Gets the result.
+     *
+     * @return the result
+     */
     @Override
     public IBinaryContext getResult() {
         return clarified_matrix;
     }
 
+    /**
+     * Run.
+     */
     @Override
     public void run() {
         ArrayList<RefSet> attrSets = new ArrayList<>();
@@ -221,9 +265,21 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
         }
         clarified_matrix=newContext;
     }
+    
+    /**
+     * Gets the attribute classes.
+     *
+     * @return the attribute classes
+     */
     public List<ISet> getAttributeClasses(){
     	return equivClassAttributes;
     }
+    
+    /**
+     * Gets the object classes.
+     *
+     * @return the object classes
+     */
     public List<ISet> getObjectClasses(){
     	return equivClassObjects;
     }

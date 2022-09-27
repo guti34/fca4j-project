@@ -49,15 +49,28 @@ import fr.lirmm.fca4j.iset.std.BitSetFactory;
 
 /**
  * A parser for the RCFT relational context family description format.
- * @author Jean-R�my Falleri
+ * @author Jean-Remy Falleri
  *
  */
 public class MyParseRcft {
 	
+	/**
+	 * The Class Pair.
+	 */
 	private class Pair{
+		
+		/** The e. */
 		public int e; // entity
+		
+		/** The a. */
 		public int a; // attribute
 		
+		/**
+		 * Instantiates a new pair.
+		 *
+		 * @param e the e
+		 * @param a the a
+		 */
 		public Pair(int e, int a){
 			this.e=e;
 			this.a=a;
@@ -65,10 +78,28 @@ public class MyParseRcft {
 		
 	}
 	
+	/** The line number. */
 	private int lineNumber;
+	
+	/**
+	 * Parses the.
+	 *
+	 * @param path the path
+	 * @return the RCA family
+	 * @throws Exception the exception
+	 */
 	public RCAFamily parse(String path) throws Exception{
             return parse(new FileReader(path),new BitSetFactory());
         }
+	
+	/**
+	 * Parses the.
+	 *
+	 * @param reader the reader
+	 * @param factory the factory
+	 * @return the RCA family
+	 * @throws Exception the exception
+	 */
 	public RCAFamily parse(Reader reader,ISetFactory factory) throws Exception{
 		lineNumber=0;
 		RCAFamily rcf = new RCAFamily(reader.toString(),factory);
@@ -92,6 +123,15 @@ public class MyParseRcft {
                 return rcf;
 	}
 
+	/**
+	 * Parses the OA context.
+	 *
+	 * @param rcf the rcf
+	 * @param input the input
+	 * @param desc the desc
+	 * @param factory the factory
+	 * @throws Exception the exception
+	 */
 	private void parseOAContext(RCAFamily rcf,BufferedReader input,String desc,ISetFactory factory) throws Exception {
 
 		int oAContextLine=lineNumber;
@@ -205,6 +245,15 @@ public class MyParseRcft {
 
 	}
 
+	/**
+	 * Parses the relational context.
+	 *
+	 * @param rcf the rcf
+	 * @param input the input
+	 * @param desc the desc
+	 * @param factory the factory
+	 * @throws Exception the exception
+	 */
 	private void parseRelationalContext(RCAFamily rcf, BufferedReader input,String desc,ISetFactory factory) throws Exception {
 		
 		String rcName = desc.split("\\ ")[1];
@@ -337,25 +386,44 @@ public class MyParseRcft {
 			input.reset();
 
 	}
+	
 	/**
-	 * @author xdolques
+	 * The Class MyParserException.
 	 *
+	 * @author xdolques
 	 */
 	private class MyParserException extends Exception {
-		/**
-		 * 
-		 */
+		
+		/** The Constant serialVersionUID. */
 		private static final long serialVersionUID = 1L;
+		
+		/** The msg. */
 		private String msg;
+		
+		/** The line. */
 		private int line;
+		
+		/** The offset. */
 		private int offset;
 
+		/**
+		 * Instantiates a new my parser exception.
+		 *
+		 * @param msg the msg
+		 * @param line the line
+		 * @param offset the offset
+		 */
 		public MyParserException(String msg, int line, int offset){
 			this.msg=msg;
 			this.line=line;
 			this.offset=offset;
 		}
 
+		/**
+		 * Gets the message.
+		 *
+		 * @return the message
+		 */
 		@Override
 		public String getMessage() {
 			

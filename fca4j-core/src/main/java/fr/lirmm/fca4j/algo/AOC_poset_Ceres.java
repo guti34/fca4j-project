@@ -46,10 +46,9 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
 /**
- * @author roume
+ * The Class AOC_poset_Ceres.
  *
- * TODO To change the template for this generated type comment go to Window -
- * Preferences - Java - Code Style - Code Templates
+ * @author roume
  */
 public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
 
@@ -67,6 +66,12 @@ public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
     // --------------------------------------
     //			StartUp
     // --------------------------------------
+    /**
+     * Instantiates a new AOC poset ceres.
+     *
+     * @param binCtx the bin ctx
+     * @param chrono the chrono
+     */
     // --------------------------------------
     public AOC_poset_Ceres(IBinaryContext binCtx, Chrono chrono) {
         super();
@@ -75,6 +80,11 @@ public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
         this.chrono = chrono;
     }
 
+    /**
+     * Instantiates a new AO C poset ceres.
+     *
+     * @param binCtx the bin ctx
+     */
     public AOC_poset_Ceres(IBinaryContext binCtx) {
         this(binCtx, null);
     }
@@ -197,16 +207,29 @@ public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
     // --------------------------------------
     //			Inherited Methods
     // --------------------------------------
+    /**
+     * Gets the description.
+     *
+     * @return the description
+     */
     // --------------------------------------
     public String getDescription() {
         return "Ceres";
     }
 
+    /**
+     * Gets the result.
+     *
+     * @return the result
+     */
     @Override
     public ConceptOrder getResult() {
         return theGSH;
     }
 
+    /**
+     * Run.
+     */
     @Override
     public void run() {
         if (/*binCtx.getAttributeNumber()==0 || */binCtx.getObjectCount() == 0) {

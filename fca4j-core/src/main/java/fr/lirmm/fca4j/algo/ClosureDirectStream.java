@@ -40,6 +40,7 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
 /**
+ * The Class ClosureDirectStream.
  *
  * @author agutierr
  */
@@ -49,12 +50,27 @@ public class ClosureDirectStream implements ClosureStrategy {
     protected ISetFactory factory;
     protected boolean parallel;
 
+    /**
+     * Instantiates a new closure direct stream.
+     *
+     * @param matrix the matrix
+     * @param parallel the parallel
+     */
     public ClosureDirectStream(IBinaryContext matrix, boolean parallel) {
         this.matrix = matrix;
         this.factory = matrix.getFactory();
         this.parallel = parallel;
     }
 
+    /**
+     * Closure.
+     *
+     * @param fermeture the fermeture
+     * @param attrSet the attr set
+     * @param lastAttrSet the last attr set
+     * @param lastExtent the last extent
+     * @return the i set
+     */
     @Override
     public ISet closure(ISet fermeture, ISet attrSet,ISet lastAttrSet,ISet lastExtent) {
         ISet extent = computeExtent(attrSet);
@@ -64,6 +80,12 @@ public class ClosureDirectStream implements ClosureStrategy {
         return extent;
     }
 
+    /**
+     * Compute intent.
+     *
+     * @param objects the objects
+     * @return the i set
+     */
     public ISet computeIntent(ISet objects) {
         ISet intent = factory.createSet(matrix.getAttributeCount());
         if (parallel) {
@@ -84,6 +106,12 @@ public class ClosureDirectStream implements ClosureStrategy {
         return intent;
     }
 
+    /**
+     * Compute extent.
+     *
+     * @param attributes the attributes
+     * @return the i set
+     */
     public ISet computeExtent(ISet attributes) {
         ISet extent = factory.createSet(matrix.getObjectCount());
         if (parallel) {
@@ -105,27 +133,58 @@ public class ClosureDirectStream implements ClosureStrategy {
 
     }
 
+    /**
+     * Inits the.
+     *
+     * @param chrono the chrono
+     */
     @Override
     public void init(Chrono chrono) {
     }
 
+    /**
+     * Name.
+     *
+     * @return the string
+     */
     @Override
     public String name() {
         return "Direct "+(parallel?"parallel":"mono thread");
     }
 
+    /**
+     * Notify.
+     *
+     * @param implication the implication
+     */
     @Override
     public void notify(Implication implication) {
     }
+	
+	/**
+	 * Threshold.
+	 *
+	 * @return the int
+	 */
 	@Override
 	public int threshold() {
 		return 0;
 	}
+	
+	/**
+	 * Sets the context.
+	 *
+	 * @param ctx the new context
+	 */
 	@Override
 	public void setContext(IBinaryContext ctx) {
 		matrix=ctx;
 		
 	}
+	
+	/**
+	 * Shutdown.
+	 */
 	@Override
 	public void shutdown() {
 		

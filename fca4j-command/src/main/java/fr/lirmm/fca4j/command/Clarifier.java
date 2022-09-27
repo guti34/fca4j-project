@@ -42,14 +42,29 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
 
+/**
+ * The Class Clarifier.
+ */
 public class Clarifier extends MatrixTransform {
+	
+	/** include attributes. */
 	boolean withAttr = false;
+	
+	/** include objects. */
 	boolean withObj = false;
 
+	/**
+	 * Instantiates a new clarifier.
+	 *
+	 * @param setContext the set context
+	 */
 	public Clarifier(ISetContext setContext) {
 		super("clarify", "eliminate any duplicated objets (--xo option), attributes (--xa option) or both",setContext);
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		options.addOption(Option.builder("xa").desc("clarify attributes").build());
@@ -57,6 +72,12 @@ public class Clarifier extends MatrixTransform {
 		super.createOptions();
 	}
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the line
+	 * @throws Exception the exception
+	 */
 	@Override
 	public void checkOptions(CommandLine line) throws Exception {
 		super.checkOptions(line);
@@ -67,6 +88,12 @@ public class Clarifier extends MatrixTransform {
 		}
 	}
 
+	/**
+	 * Transform.
+	 *
+	 * @return the binary context
+	 * @throws Exception the exception
+	 */
 	@Override
 	protected IBinaryContext transform() throws Exception {
 		IBinaryContext newContext = getContext();
@@ -85,6 +112,13 @@ public class Clarifier extends MatrixTransform {
 		return newContext;
 	}
 
+	/**
+	 * Clarify obj.
+	 *
+	 * @param context the binary context
+	 * @return the resulting binary context
+	 * @throws Exception the exception
+	 */
 	private IBinaryContext clarifyObj(IBinaryContext context) throws Exception {
         List<ISet> equivObjs = Clarification.getObjectsByEquivClasses(context);
         IBinaryContext clarifiedContext = new BinaryContext(0, context.getAttributeCount(), context.getName(),factory);
@@ -102,6 +136,13 @@ public class Clarifier extends MatrixTransform {
 		return clarifiedContext;
 	}
 
+	/**
+	 * Clarify attr.
+	 *
+	 * @param context the binary context
+	 * @return the resulting binary context
+	 * @throws Exception the exception
+	 */
 	protected IBinaryContext clarifyAttr(IBinaryContext context) throws Exception {
 		List<ISet> equivAttrs = Clarification.getAttributesByEquivClasses(context);
 		IBinaryContext clarifiedContext = new BinaryContext(context.getObjectCount(), 0, context.getName(), factory);

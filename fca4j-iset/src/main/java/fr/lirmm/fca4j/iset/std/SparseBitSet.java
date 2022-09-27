@@ -654,7 +654,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *  and is a <code>SparseBitSet</code> object that has exactly the same bits
      *  set to <code>true</code> as this bit set. That is, for every nonnegative
      *  <code>i</code> indexing a bit in the set,
-     *  <pre>((SparseBitSet)obj).get(i) == this.get(i)</pre>
+     *  ((SparseBitSet)obj).get(i) == this.get(i)
      *  must be true.
      *
      * @param       obj the Object with which to compare
@@ -779,19 +779,19 @@ public class SparseBitSet implements Cloneable, Serializable
      *  array of <code>long</code> integers called, say, <code>bits</code>, in such
      *  a manner that bit <code>i</code> is set in the <code>SparseBitSet</code>
      *  (for nonnegative values of  <code>i</code>) if and only if the expression
-     *  <pre>
+     *  
      *  ((i&gt;&gt;6) &lt; bits.length) &amp;&amp; ((bits[i&gt;&gt;6] &amp; (1L &lt;&lt; (bit &amp; 0x3F))) != 0)
-     *  </pre>
+     *  
      *  is true. Then the following definition of the <code>hashCode</code> method
      *  would be a correct implementation of the actual algorithm:
-     *  <pre>
+     *  
      *  public int hashCode()
      *  {
      *      long hash = 1234L;
      *      for( int i = bits.length; --i &gt;= 0; )
      *          hash ^= bits[i] * (i + 1);
      *      return (int)((h &gt;&gt; 32) ^ h);
-     *  }</pre>
+     *  }
      *  Note that the hash code values change if the set of bits is altered.
      *
      * @return      a hash code value for this bit set
@@ -947,11 +947,11 @@ public class SparseBitSet implements Cloneable, Serializable
      *  To iterate over the <code>true</code> bits in a <code>SparseBitSet
      *  sbs</code>, use the following loop:
      *
-     *  <pre>
+     *  
      *  for( int i = sbbits.nextSetBit(0); i &gt;= 0; i = sbbits.nextSetBit(i+1) )
      *  {
      *      // operate on index i here
-     *  }</pre>
+     *  }
      *
      * @param       i the index to start checking from (inclusive)
      * @return      the index of the next set bit
@@ -1423,20 +1423,20 @@ public class SparseBitSet implements Cloneable, Serializable
      *  notation for a set of integers.
      *  <br>
      *  Example (with the default value of 2 for subsequences):
-     *  <pre>
+     *  
      *      SparseBitSet drPepper = new SparseBitSet();
-     *  </pre>
+     *  
      *  Now <code>drPepper.toString()</code> returns "<code>{}</code>".
      *  <br>
-     *  <pre>
+     *  
      *      drPepper.set(2);
-     *  </pre>
+     *  
      *  Now <code>drPepper.toString()</code> returns "<code>{2}</code>".
      *  <br>
-     *  <pre>
+     *  
      *      drPepper.set(3, 4);
      *      drPepper.set(10);
-     *  </pre>
+     *  
      *  Now <code>drPepper.toString()</code> returns "<code>{2..4, 10}</code>".
      *  <br>
      *  This method is intended for diagnostic use (as it is relatively expensive
@@ -2105,8 +2105,8 @@ public class SparseBitSet implements Cloneable, Serializable
      *  An array of <code>String</code>s may be obtained containing a
      *  representation of each of these values. An element of such an array, say,
      *  <code>values</code>, may be accessed, for example, by:
-     *  <pre>
-     *      values[SparseBitSet.statistics.Buckets_available.ordinal()]</pre>
+     * 
+     *      values[SparseBitSet.statistics.Buckets_available.ordinal()]
      *
      * @see         #statistics(String[])
      */
@@ -2380,10 +2380,10 @@ public class SparseBitSet implements Cloneable, Serializable
      *  the remainder of the <i>a</i> set is accomplished by selecting both
      *  <i>F_OP_X_EQ_F</i> and <i>X_OP_F_EQ_F</i>.
      *
-     *  <pre>
+     *  
      *  and| 0 1
      *    0| 0 0
-     *    1| 0 1 <pre>
+     *    1| 0 1
      */
     protected static class AndStrategy extends AbstractStrategy
     {
@@ -2436,10 +2436,10 @@ public class SparseBitSet implements Cloneable, Serializable
      *  the remainder of the <i>a</i> set is accomplished by selecting both
      *  <i>F_OP_X_EQ_F</i> and <i>X_OP_F_EQ_F</i>.
      *
-     *  <pre>
+     *  
      * andNot| 0 1
      *      0| 0 0
-     *      1| 1 0 <pre>
+     *      1| 1 0 
      */
     protected static class AndNotStrategy extends AbstractStrategy
     {
@@ -2481,10 +2481,10 @@ public class SparseBitSet implements Cloneable, Serializable
     /**
      *  Clear clears bits in the <i>a</i> set.
      *
-     * <pre>
+     * 
      * clear| 0 1
      *     0| 0 0
-     *     1| 0 0 <pre>
+     *     1| 0 0 
      */
     protected static class ClearStrategy extends AbstractStrategy
     {
@@ -2524,10 +2524,10 @@ public class SparseBitSet implements Cloneable, Serializable
     /**
      *  Copies the needed parts of the <i>b</i> set to the <i>a</i> set.
      *
-     * <pre>
+     * 
      * get| 0 1
      *   0| 0 1
-     *   1| 0 1 <pre>
+     *   1| 0 1 
      */
     protected static class CopyStrategy extends AbstractStrategy
     {
@@ -2570,10 +2570,10 @@ public class SparseBitSet implements Cloneable, Serializable
      *  may have all zero level 3 blocks replaced by null references (and
      *  similarly at level 2).
      *
-     * <pre>
+     * 
      * equals| 0 1
      *      0| 0 -
-     *      1| - - <pre>
+     *      1| - - 
      */
     protected static class EqualsStrategy extends AbstractStrategy
     {
@@ -2627,10 +2627,10 @@ public class SparseBitSet implements Cloneable, Serializable
     /**
      *  Flip inverts the bits of the <i>a</i> set within the given range.
      *
-     * <pre>
+     * 
      * flip| 0 1
      *    0| 1 1
-     *    1| 0 0 <pre>
+     *    1| 0 0 
      */
     protected static class FlipStrategy extends AbstractStrategy
     {
@@ -2675,10 +2675,10 @@ public class SparseBitSet implements Cloneable, Serializable
      *  (which is why X_OP_F_EQ_F is not selected, since this would cause
      *  parts of the <i>a</i> set to be zero-ed out).
      *
-     * <pre>
+     * 
      * intersect| 0 1
      *         0| 0 0
-     *         1| 1 1 <pre>
+     *         1| 1 1 
      */
     protected static class IntersectsStrategy extends AbstractStrategy
     {
@@ -2739,10 +2739,10 @@ public class SparseBitSet implements Cloneable, Serializable
      *  If level1 of the <i>a</i> set is longer than level1 of the bit set
      *  <i>b</i>, then the unmatched entries of the <i>a</i> set (beyond
      *  the actual length of <i>b</i>) corresponding to these remain unchanged. *
-     *  <pre>
+     *  
      *   or| 0 1
      *    0| 0 1
-     *    1| 1 1 <pre>
+     *    1| 1 1 
      */
     protected static class OrStrategy extends AbstractStrategy
     {
@@ -2786,10 +2786,10 @@ public class SparseBitSet implements Cloneable, Serializable
      *  areas or level3 blocks are ignored, and no empty (all zero) blocks are
      *  returned.
      *
-     *  <pre>
+     *  
      * set| 0 1
      *   0| 1 1
-     *   1| 1 1 <pre>
+     *   1| 1 1
      */
     protected static class SetStrategy extends AbstractStrategy
     {
@@ -2830,10 +2830,10 @@ public class SparseBitSet implements Cloneable, Serializable
      *  Update the seven statistics that are computed for each set. These are
      *  updated by calling <i>statisticsUpdate</i>, which uses this strategy.
      *
-     *  <pre>
+     *  
      *  update| 0 1
      *       0| 0 0
-     *       1| 1 1 <pre>
+     *       1| 1 1 
      *
      * @see SparseBitSet#statisticsUpdate()
      */
@@ -2998,10 +2998,10 @@ public class SparseBitSet implements Cloneable, Serializable
     /**
      *  The XOR of level3 blocks is computed.
      *
-     * <pre>
+     * 
      * xor| 0 1
      *   0| 0 1
-     *   1| 1 0 <pre>
+     *   1| 1 0 
      */
     protected static class XorStrategy extends AbstractStrategy
     {

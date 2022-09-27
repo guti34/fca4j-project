@@ -38,65 +38,144 @@ import fr.lirmm.fca4j.iset.AbstractSetFactory.AbstractOrderedSet;
 import fr.lirmm.fca4j.iset.ISet;
 
 /**
+ * A factory for creating sets implemented with boolean arrays.
  *
  * @author agutierr
  */
 public class BoolArrayFactory extends AbstractSetFactory {
 
+    /**
+     * Instantiates a new bool array factory.
+     */
     public BoolArrayFactory() {
     }
 
+    /**
+     * Creates a new BoolArray object.
+     *
+     * @return the i set
+     */
     @Override
     public ISet createSet() {
         throw new UnsupportedOperationException("this kind of set has a fixed size");
     }
 
+    /**
+     * Creates a new BoolArray object.
+     *
+     * @param bs the bs
+     * @return the i set
+     */
     @Override
     public ISet createSet(BitSet bs) {
         return new SetWithBoolArray((BitSet) bs.clone());
     }
+    
+    /**
+     * Creates a new BoolArray object.
+     *
+     * @param bs the bs
+     * @param size the size
+     * @return the i set
+     */
     @Override
     public ISet createSet(BitSet bs,int size) {
         return new SetWithBoolArray(bs,size);
     }
 
+    /**
+     * Creates a new BoolArray object.
+     *
+     * @param initialCapacity the initial capacity
+     * @return the i set
+     */
     @Override
     public ISet createSet(int initialCapacity) {
         return new SetWithBoolArray(initialCapacity);
     }
 
+	/**
+	 * Ordered.
+	 *
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean ordered() {
 		return true;
 	}
+	
+	/**
+	 * Fixed size.
+	 *
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean fixedSize() {
 		return true;
 	}
+	
+	/**
+	 * Name.
+	 *
+	 * @return the string
+	 */
 	@Override
 	public String name() {
 		return "BOOL_ARRAY";
 	}
+    
+    /**
+     * Clone.
+     *
+     * @param b the b
+     * @return the i set
+     */
     @Override
     public ISet clone(ISet b) {
         BoolArray bs = (BoolArray) ((SetWithBoolArray) b).boolArray.clone();
         return new SetWithBoolArray(bs);
     }
 
+    /**
+     * The Class SetWithBoolArray.
+     */
     class SetWithBoolArray extends AbstractOrderedSet {
 
         private BoolArray boolArray;
 
+        /**
+         * Instantiates a new sets the with bool array.
+         *
+         * @param maxSize the max size
+         */
         SetWithBoolArray(int maxSize) {
             boolArray = new BoolArray(maxSize);
         }
 
+        /**
+         * Instantiates a new sets the with bool array.
+         *
+         * @param boolArray the bool array
+         */
         SetWithBoolArray(BoolArray boolArray) {
             this.boolArray = boolArray;
         }
+        
+        /**
+         * Instantiates a new sets the with bool array.
+         *
+         * @param bitSet the bit set
+         */
         SetWithBoolArray(BitSet bitSet) {
             this(bitSet,bitSet.size());
         }
+        
+        /**
+         * Instantiates a new sets the with bool array.
+         *
+         * @param bitSet the bit set
+         * @param size the size
+         */
         SetWithBoolArray(BitSet bitSet,int size) {
             boolArray = new BoolArray(size);
             for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i + 1)) {
@@ -104,60 +183,125 @@ public class BoolArrayFactory extends AbstractSetFactory {
             }
         }
 
+        /**
+         * Adds the.
+         *
+         * @param num the num
+         */
         @Override
         public void add(int num) {
             boolArray.add(num);
         }
 
+        /**
+         * Adds the all.
+         *
+         * @param anotherSet the another set
+         */
         @Override
         public void addAll(ISet anotherSet) {
             boolArray.addAll(((SetWithBoolArray) anotherSet).boolArray);
         }
 
+        /**
+         * Contains.
+         *
+         * @param num the num
+         * @return true, if successful
+         */
         @Override
         public boolean contains(int num) {
             return boolArray.contains(num);
         }
 
+        /**
+         * Contains all.
+         *
+         * @param anotherSet the another set
+         * @return true, if successful
+         */
         @Override
 
         public boolean containsAll(ISet anotherSet) {
         	return boolArray.containsAll(((SetWithBoolArray) anotherSet).boolArray);
         }
+        
+        /**
+         * Capacity.
+         *
+         * @return the int
+         */
         @Override
         public int capacity() {
             return boolArray.size();
         }
 
+        /**
+         * Cardinality.
+         *
+         * @return the int
+         */
         @Override
         public int cardinality() {
             return boolArray.cardinality();
         }
 
+        /**
+         * Fill.
+         *
+         * @param size the size
+         */
         @Override
         public void fill(int size) {
             boolArray.fill(size);
         }
 
+        /**
+         * Clear.
+         *
+         * @param size the size
+         */
         @Override
         public void clear(int size) {
             boolArray.clear(size);
         }
 
+        /**
+         * Removes the all.
+         *
+         * @param anotherSet the another set
+         */
         @Override
         public void removeAll(ISet anotherSet) {
             boolArray.andNot(((SetWithBoolArray) anotherSet).boolArray);
         }
 
+        /**
+         * Iterator.
+         *
+         * @return the iterator
+         */
         @Override
         public Iterator<Integer> iterator() {
             return  boolArray.iterator();
     }
+        
+        /**
+         * Checks if is empty.
+         *
+         * @return true, if is empty
+         */
         @Override
         public boolean isEmpty() {
             return boolArray.isEmpty();
         }
 
+        /**
+         * New intersect.
+         *
+         * @param anotherSet the another set
+         * @return the i set
+         */
         @Override
         public ISet newIntersect(ISet anotherSet) {
             BoolArray bs = (BoolArray) boolArray.clone();
@@ -165,6 +309,12 @@ public class BoolArrayFactory extends AbstractSetFactory {
             return new SetWithBoolArray(bs);
         }
 
+        /**
+         * New difference.
+         *
+         * @param anotherSet the another set
+         * @return the i set
+         */
         @Override
         public ISet newDifference(ISet anotherSet) {
             BoolArray bs = (BoolArray) boolArray.clone();
@@ -172,31 +322,62 @@ public class BoolArrayFactory extends AbstractSetFactory {
             return new SetWithBoolArray(bs);
         }
 
+        /**
+         * Removes the.
+         *
+         * @param num the num
+         */
         @Override
         public void remove(int num) {
             boolArray.remove(num);
         }
 
+        /**
+         * Retain all.
+         *
+         * @param anotherSet the another set
+         */
         @Override
         public void retainAll(ISet anotherSet) {
             boolArray.and(((SetWithBoolArray) anotherSet).boolArray);
         }
 
+        /**
+         * First.
+         *
+         * @return the int
+         */
         @Override
         public int first() {
         		return boolArray.first();
         }
 
+        /**
+         * Last.
+         *
+         * @return the int
+         */
         @Override
         public int last() {
         	return boolArray.last;
         }
 
+        /**
+         * Hash code.
+         *
+         * @return the int
+         */
         @Override
         public int hashCode() {
             return boolArray.array.hashCode();
         }
 
+        /**
+         * Equals.
+         *
+         * @param other the other
+         * @return true, if successful
+         */
         @Override
         public boolean equals(Object other) {
             try{

@@ -50,14 +50,31 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.iset.std.BitSetFactory;
 
 /**
+ * The Class ConExpReader.
  *
  * @author agutierr
  */
 public class ConExpReader {
 
+    /**
+     * Read.
+     *
+     * @param file the file
+     * @return the list
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public static List<IBinaryContext> read(File file) throws IOException {
         return read(file,new BitSetFactory());
     }
+    
+    /**
+     * Read.
+     *
+     * @param file the file
+     * @param factory the factory
+     * @return the list
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public static List<IBinaryContext> read(File file,ISetFactory factory) throws IOException {
         try {
             List<IBinaryContext> results=new ArrayList<>();

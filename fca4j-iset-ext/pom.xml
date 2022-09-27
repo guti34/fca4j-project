@@ -3,16 +3,13 @@
   <parent>
     <groupId>fr.lirmm.fca4j</groupId>
     <artifactId>fca4j-parent</artifactId>
-    <version>0.0.1</version>
+    <version>0.4.3</version>
   </parent>
   <artifactId>fca4j-iset-ext</artifactId>
   <name>fca4j-iset-ext</name>
   <description>extension for fca4j-iset library</description>
 <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
     <junit-jupiter.version>5.5.2</junit-jupiter.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 </properties>
   <dependencies>
         <!-- junit 5 -->
@@ -25,7 +22,7 @@
   	<dependency>
   		<groupId>fr.lirmm.fca4j</groupId>
   		<artifactId>fca4j-iset</artifactId>
-  		<version>0.0.1</version>
+  		<version>${project.version}</version>
   	</dependency>
 		<dependency>
 			<groupId>it.unimi.dsi</groupId>

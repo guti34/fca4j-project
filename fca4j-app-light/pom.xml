@@ -3,22 +3,16 @@
   <parent>
     <groupId>fr.lirmm.fca4j</groupId>
     <artifactId>fca4j-parent</artifactId>
-    <version>0.0.1</version>
+    <version>0.4.3</version>
   </parent>
   <artifactId>fca4j-app-light</artifactId>
   <name>fca4j-app-light</name>
   <description>FCA4J command line interface - light version</description>
-		<version>0.4.3</version>
-	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>fr.lirmm.fca4j</groupId>
 			<artifactId>fca4j-command</artifactId>
-			<version>0.0.1</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

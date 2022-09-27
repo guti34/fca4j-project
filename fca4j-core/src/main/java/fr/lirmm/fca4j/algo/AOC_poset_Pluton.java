@@ -43,6 +43,9 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
+/**
+ * The Class AOC_poset_Pluton.
+ */
 public class AOC_poset_Pluton implements AbstractAlgo<ConceptOrder> {
 
     private IBinaryContext matrix; //ressource de depart
@@ -53,6 +56,12 @@ public class AOC_poset_Pluton implements AbstractAlgo<ConceptOrder> {
     protected HashSet<Integer> upperCover = new HashSet<>();
     protected HashSet<Integer> lowerCover = new HashSet<>();
 
+    /**
+     * Instantiates a new AO C poset pluton.
+     *
+     * @param matrix the matrix
+     * @param chrono the chrono
+     */
     public AOC_poset_Pluton(IBinaryContext matrix, Chrono chrono) {
         super();
         this.matrix = matrix;
@@ -60,6 +69,11 @@ public class AOC_poset_Pluton implements AbstractAlgo<ConceptOrder> {
         this.chrono = chrono;
     }
 
+    /**
+     * Instantiates a new AO C poset pluton.
+     *
+     * @param matrix the matrix
+     */
     public AOC_poset_Pluton(IBinaryContext matrix) {
         this(matrix, null);
     }
@@ -173,6 +187,12 @@ public class AOC_poset_Pluton implements AbstractAlgo<ConceptOrder> {
         return isExtentBS;
     }
 
+    /**
+     * Compute linext.
+     *
+     * @return the array list
+     * @throws Exception the exception
+     */
     //calcul de l'extension lineaire
     public ArrayList<Integer> computeLinext() throws Exception {
         ArrayList<Integer> linext = new ArrayList<>();
@@ -312,6 +332,12 @@ public class AOC_poset_Pluton implements AbstractAlgo<ConceptOrder> {
         }
     }
 
+    /**
+     * Compute GSH.
+     *
+     * @return the concept order
+     * @throws Exception the exception
+     */
     //fonction principale, celle qui calcule la SHG
     public ConceptOrder computeGSH() throws Exception {
         gsh = new ConceptOrder("AOCposetWithPluton", matrix, getDescription());
@@ -366,11 +392,19 @@ public class AOC_poset_Pluton implements AbstractAlgo<ConceptOrder> {
         }
     }
 
+    /**
+     * Gets the result.
+     *
+     * @return the result
+     */
     @Override
     public ConceptOrder getResult() {
         return gsh;
     }
 
+    /**
+     * Run.
+     */
     @Override
     public void run() {
         try {
@@ -380,6 +414,11 @@ public class AOC_poset_Pluton implements AbstractAlgo<ConceptOrder> {
         }
     }
 
+    /**
+     * Gets the description.
+     *
+     * @return the description
+     */
     @Override
     public String getDescription() {
         return "Pluton";

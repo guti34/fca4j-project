@@ -49,8 +49,14 @@ import fr.lirmm.fca4j.iset.trove.TIntHashSetFactory;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
 import it.unimi.dsi.fastutil.ints.IntRBTreeSet;
 
+/**
+ * The Class SetContextComplete.
+ */
 public class SetContextComplete extends AbstractSetContext{
 
+	/**
+	 * Instantiates set factories.
+	 */
 	public SetContextComplete() {
 		registerFactory(new BitSetFactory());
 		registerFactory(new RoaringBitMapFactory());
@@ -68,6 +74,11 @@ public class SetContextComplete extends AbstractSetContext{
 		registerFactory( new BoolArrayFactory());
 	}
 	
+	/**
+	 * Gets the default implementation.
+	 *
+	 * @return the default implementation
+	 */
 	@Override
 	public String getDefaultImplementation() {
 		return "BITSET";

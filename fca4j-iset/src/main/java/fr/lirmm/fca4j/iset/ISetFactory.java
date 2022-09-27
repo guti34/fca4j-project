@@ -29,26 +29,74 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package fr.lirmm.fca4j.iset;
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 
 import java.util.BitSet;
 
 /**
+ * A factory for creating ISet objects.
  *
  * @author agutierr
  */
 public interface ISetFactory {
+	
+	/**
+	 * Ordered.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean ordered();
+	
+	/**
+	 * Fixed size.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean fixedSize();
+	
+	/**
+	 * Name.
+	 *
+	 * @return the string
+	 */
 	public String name();
+    
+    /**
+     * Creates a new ISet object.
+     *
+     * @return the new set
+     */
     public ISet createSet();
+    
+    /**
+     * Creates a new ISet object.
+     *
+     * @param bitset the bitset
+     * @param size the size
+     * @return the new set
+     */
     public ISet createSet(BitSet bitset,int size);
+    
+    /**
+     * Creates a new ISet object.
+     *
+     * @param bitset the bitset
+     * @return the i set
+     */
     public ISet createSet(BitSet bitset);
+    
+    /**
+     * Creates a new ISet object.
+     *
+     * @param size the size
+     * @return the new set
+     */
     public ISet createSet(int size);
+    
+    /**
+     * Clone.
+     *
+     * @param to_clone the set to clone
+     * @return the new set
+     */
     public ISet clone(ISet to_clone);
 }

@@ -41,10 +41,30 @@ import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.iset.std.BitSetFactory;
 
+/**
+ * The Class RCFALReader.
+ */
 public class RCFALReader {
-	    public static RCAFamily read(String filePath)  throws Exception {
+	    
+    	/**
+    	 * Read.
+    	 *
+    	 * @param filePath the file path
+    	 * @return the RCA family
+    	 * @throws Exception the exception
+    	 */
+    	public static RCAFamily read(String filePath)  throws Exception {
         return read(filePath,new BitSetFactory());
     }
+    
+    /**
+     * Read.
+     *
+     * @param filePath the file path
+     * @param factory the factory
+     * @return the RCA family
+     * @throws Exception the exception
+     */
     public static RCAFamily read(String filePath,ISetFactory factory) throws Exception {
             JSONParser parser = new JSONParser();
             Object object = parser.parse(new FileReader(filePath));
@@ -63,6 +83,13 @@ public class RCFALReader {
             }
         return rcf;
     }
+    
+    /**
+     * Adds the formal context.
+     *
+     * @param json the json
+     * @param rcf the rcf
+     */
     private static void addFormalContext(JSONObject json,RCAFamily rcf){
         String fcName=(String)json.get("name");
         JSONArray attributes=(JSONArray) json.get("attributes");
@@ -84,6 +111,13 @@ public class RCFALReader {
         }
         rcf.addFormalContext(context, null);
     }
+    
+    /**
+     * Adds the relational context.
+     *
+     * @param json the json
+     * @param rcf the rcf
+     */
     private static void addRelationalContext(JSONObject json,RCAFamily rcf){
         String rcName=(String)json.get("name");
         String source=(String)json.get("source");

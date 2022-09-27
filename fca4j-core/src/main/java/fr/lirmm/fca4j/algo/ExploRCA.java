@@ -65,6 +65,9 @@ import fr.lirmm.fca4j.core.operator.AbstractScalingOperator;
 import fr.lirmm.fca4j.iset.ISet;
 
 
+/**
+ * The Class ExploRCA.
+ */
 public abstract class ExploRCA {
     /**
      * list the conceptExtent created. This is needed to assign a unique
@@ -99,6 +102,11 @@ public abstract class ExploRCA {
      */
     private StringBuffer trace;
 
+    /**
+     * Instantiates a new explo RCA.
+     *
+     * @param rcf the rcf
+     */
     public ExploRCA(RCAFamily rcf) {
         trace = new StringBuffer();
         this.relationalContextFamily = rcf;
@@ -114,6 +122,11 @@ public abstract class ExploRCA {
         }
     }
 
+    /**
+     * Adds the trace.
+     *
+     * @param algo the algo
+     */
     public void addTrace(AbstractAlgo<ConceptOrder> algo) {
         trace.append("\n" + numstep + "\n");
         trace.append("OAContexts\n");
@@ -136,7 +149,7 @@ public abstract class ExploRCA {
 
     /**
      * generate the concept posets for current step and create the next step
-     * configuration (load it in case of automatic process)
+     * configuration (load it in case of automatic process).
      */
     public void computeStep() {
         if (init) {
@@ -150,8 +163,9 @@ public abstract class ExploRCA {
     }
 
     /**
-     * Returns true if a stopCondition has been reached
+     * Returns true if a stopCondition has been reached.
      *
+     * @return true, if successful
      */
     public boolean stopCondition() {
         return !newConcept;
@@ -189,6 +203,11 @@ public abstract class ExploRCA {
         System.out.println("contexts extended (" + (time_after_extending - time_before_extending) + "s )");
     }
     
+    /**
+     * Generate concept orders.
+     *
+     * @return the my concept order family
+     */
     public MyConceptOrderFamily generateConceptOrders() {
         MyConceptOrderFamily cof = new MyConceptOrderFamily();
         newConcept = false;
@@ -213,6 +232,14 @@ public abstract class ExploRCA {
         }
         return cof;
     }
+    
+    /**
+     * Creates the algo.
+     *
+     * @param context the context
+     * @param numstep the numstep
+     * @return the abstract algo
+     */
     protected abstract AbstractAlgo<ConceptOrder> createAlgo(IBinaryContext context, int numstep);
 
 	private boolean controlCO(ConceptOrder conceptOrder){
@@ -230,16 +257,28 @@ public abstract class ExploRCA {
             return conceptOrder.getConceptCount()==extents.size();
     }
 
+    /**
+     * Checks if is end.
+     *
+     * @return true, if is end
+     */
     public boolean isEnd() {
         return end;
     }
 
+    /**
+     * Sets the end.
+     *
+     * @param end the new end
+     */
     public void setEnd(boolean end) {
         this.end = end;
     }
 
     /**
-     * save a trace of successives configurations used
+     * save a trace of successives configurations used.
+     *
+     * @param outputFolder the output folder
      */
     public void saveTrace(String outputFolder) {
         try {
@@ -253,20 +292,39 @@ public abstract class ExploRCA {
             e.printStackTrace();
         }
     }
+    
+    /**
+     * Generate dot.
+     *
+     * @param fw0 the fw 0
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public void generateDot(FileWriter fw0) throws IOException{
         GenerateSVGDot genSVGdot = new GenerateSVGDot(fw0, getConceptOrderFamily());
         genSVGdot.generateCode();
         fw0.close();
     	
     }
+    
+    /**
+     * Generate dot.
+     *
+     * @param fw0 the fw 0
+     * @param co the co
+     * @param numstep the numstep
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public void generateDot(FileWriter fw0,ConceptOrder co,int numstep) throws IOException{
         GenerateDot genSVGdot = new GenerateDot(fw0, co,numstep);
         genSVGdot.generateCode();
         fw0.close();
     	
     }
+    
     /**
-     * Saves concept orders at the end of a given step
+     * Saves concept orders at the end of a given step.
+     *
+     * @param outputFolder the output folder
      */
 /*    public void saveConceptOrders(String outputFolder, int step) {
         int i = 0;
@@ -305,14 +363,29 @@ public abstract class ExploRCA {
         saveTrace(outputFolder);
     }
 
+    /**
+     * Gets the rcf.
+     *
+     * @return the rcf
+     */
     public RCAFamily getRCF() {
         return relationalContextFamily;
     }
 
+    /**
+     * Gets the num step.
+     *
+     * @return the num step
+     */
     public int getNumStep() {
         return numstep;
     }
 
+    /**
+     * Gets the concept order family.
+     *
+     * @return the concept order family
+     */
     public MyConceptOrderFamily getConceptOrderFamily() {
         return conceptOrderFamilies.peek();
     }
@@ -387,24 +460,49 @@ public abstract class ExploRCA {
         return null;
         }
     }
+    
+    /**
+     * The Class ConceptExtentKey.
+     */
     public class ConceptExtentKey implements Iterable<Integer> {
 
         ISet extent;
 
+        /**
+         * Instantiates a new concept extent key.
+         *
+         * @param extent the extent
+         */
         ConceptExtentKey(ISet extent) {
                  this.extent = extent.clone();
         }
 
+        /**
+         * Iterator.
+         *
+         * @return the iterator
+         */
         @Override
         public Iterator<Integer> iterator() {
             return extent.iterator();
         }
 
+        /**
+         * Equals.
+         *
+         * @param o the o
+         * @return true, if successful
+         */
         @Override
         public boolean equals(Object o) {
             return extent.equals(((ConceptExtentKey) o).extent);
         }
 
+        /**
+         * Hash code.
+         *
+         * @return the int
+         */
         @Override
         public int hashCode() {
             // TODO 
@@ -413,24 +511,46 @@ public abstract class ExploRCA {
         }
 
     }
+    
+    /**
+     * The Class MyConceptOrderFamily.
+     */
     public class MyConceptOrderFamily {
     	protected ArrayList<ConceptOrder> conceptOrders;
     	private int stepNb;
-    	public MyConceptOrderFamily() {
+    	
+	    /**
+	     * Instantiates a new my concept order family.
+	     */
+	    public MyConceptOrderFamily() {
     		super();
     		conceptOrders=new ArrayList<>();
     	}
 
-    	public boolean addConceptOrder(ConceptOrder e) {
+    	/**
+	     * Adds the concept order.
+	     *
+	     * @param e the e
+	     * @return true, if successful
+	     */
+	    public boolean addConceptOrder(ConceptOrder e) {
     		return conceptOrders.add(e);
     	}
 
-    	public ArrayList<ConceptOrder> getConceptOrders() {
+    	/**
+	     * Gets the concept orders.
+	     *
+	     * @return the concept orders
+	     */
+	    public ArrayList<ConceptOrder> getConceptOrders() {
     		return conceptOrders;
     	}
-    	/**
-    	 * This information is valuable for the classical RCA as the concept generation is monotonous
-    	 * */
+    	
+	    /**
+	     * This information is valuable for the classical RCA as the concept generation is monotonous.
+	     *
+	     * @return the int
+	     */
     	public int totalConceptNb(){
     		int result=0;
     		for (ConceptOrder co: conceptOrders){
@@ -439,11 +559,22 @@ public abstract class ExploRCA {
     		return result;
     		
     	}
-    	public int getStepNb() {
+    	
+	    /**
+	     * Gets the step nb.
+	     *
+	     * @return the step nb
+	     */
+	    public int getStepNb() {
     		return stepNb;
     	}
 
-    	public void setStepNb(int stepNb) {
+    	/**
+	     * Sets the step nb.
+	     *
+	     * @param stepNb the new step nb
+	     */
+	    public void setStepNb(int stepNb) {
     		this.stepNb = stepNb;
     	}
     	    
@@ -592,6 +723,10 @@ public abstract class ExploRCA {
         }
 
     }
+    
+    /**
+     * The Class GenerateCode.
+     */
     public abstract class GenerateCode {
     	
     	protected final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -599,14 +734,21 @@ public abstract class ExploRCA {
     	protected Writer writer;
     	protected BufferedWriter buffer;
     	
-    	public GenerateCode(Writer buffer2) {
+    	/**
+	     * Instantiates a new generate code.
+	     *
+	     * @param buffer2 the buffer 2
+	     */
+	    public GenerateCode(Writer buffer2) {
     		this.writer=buffer2;
     		buffer=new BufferedWriter(buffer2,128000);
     	}
     	
     	/**
-    	 * Generate the code.
-    	 */
+	     * Generate the code.
+	     *
+	     * @throws IOException Signals that an I/O exception has occurred.
+	     */
     	public abstract void generateCode() throws IOException;
     	
     	
@@ -622,19 +764,22 @@ public abstract class ExploRCA {
     	
     	
     	/**
-    	 * Appends the given string to the internal buffer.
-    	 * @param s a string.
-    	 */
+	     * Appends the given string to the internal buffer.
+	     *
+	     * @param cs the cs
+	     * @throws IOException Signals that an I/O exception has occurred.
+	     */
     	protected void append(CharSequence... cs) throws IOException {
     		for (CharSequence s:cs)
     			buffer.append(s);
     	}
     	
     	/**
-    	 * Appends the given string to a dedicated line in the internal buffer.
-    	 * @param s a string.
-    	 * @throws IOException 
-    	 */
+	     * Appends the given string to a dedicated line in the internal buffer.
+	     *
+	     * @param s a string.
+	     * @throws IOException Signals that an I/O exception has occurred.
+	     */
     	protected void appendLine(CharSequence... s) throws IOException {
     		append(s);
     		newLine();
@@ -642,20 +787,22 @@ public abstract class ExploRCA {
     	}
     	
     	/**
-    	 * Appends an empty line in the internal buffer.
-    	 * @throws IOException 
-    	 */
+	     * Appends an empty line in the internal buffer.
+	     *
+	     * @throws IOException Signals that an I/O exception has occurred.
+	     */
     	protected void newLine() throws IOException {
     		append(LINE_SEPARATOR);
     	}
     	
     	/**
-    	 * Appends the given string in a dedicated line in the internal buffer. This string is preceded
-    	 * by a given number of tabulations.
-    	 * @param tabsNb the number of tabulations.
-    	 * @param s a string.
-    	 * @throws IOException 
-    	 */
+	     * Appends the given string in a dedicated line in the internal buffer. This string is preceded
+	     * by a given number of tabulations.
+	     *
+	     * @param tabsNb the number of tabulations.
+	     * @param s a string.
+	     * @throws IOException Signals that an I/O exception has occurred.
+	     */
     	protected void appendWithTabs(int tabsNb,String... s) throws IOException {
     		for(int i = 0 ; i < tabsNb ; i++ )
     			append("\t");
@@ -663,29 +810,32 @@ public abstract class ExploRCA {
     	}
     	
     	/**
-    	 * Appends the given string preceded by a tab.
-    	 * @param s a string.
-    	 * @throws IOException 
-    	 */
+	     * Appends the given string preceded by a tab.
+	     *
+	     * @param s a string.
+	     * @throws IOException Signals that an I/O exception has occurred.
+	     */
     	protected void appendWithTab(String s) throws IOException {
     		appendWithTabs(1,s);
     	}
     	
     	/**
-    	 * Appends the given string on a dedicated line preceded by a tab.
-    	 * @param s a string
-    	 * @throws IOException 
-    	 */
+	     * Appends the given string on a dedicated line preceded by a tab.
+	     *
+	     * @param s a string
+	     * @throws IOException Signals that an I/O exception has occurred.
+	     */
     	protected void appendLineWithTab(String... s) throws IOException {
     		appendLineWithTabs(1,s);
     	}
     	
     	/**
-    	 * Appends the given string on a dedicated line preceded by a given number of tabs.
-    	 * @param tabsNb the number of tabs.
-    	 * @param s a string
-    	 * @throws IOException 
-    	 */
+	     * Appends the given string on a dedicated line preceded by a given number of tabs.
+	     *
+	     * @param tabsNb the number of tabs.
+	     * @param s a string
+	     * @throws IOException Signals that an I/O exception has occurred.
+	     */
     	protected void appendLineWithTabs(int tabsNb,String... s) throws IOException {
     		appendWithTabs(tabsNb , s);
     		newLine();
@@ -722,101 +872,220 @@ public abstract class ExploRCA {
     	
             private int numstep;
     	
-    	public GenerateDot(FileWriter buffer,ConceptOrder lattice,int numstep) {
+    	/**
+	     * Instantiates a new generate dot.
+	     *
+	     * @param buffer the buffer
+	     * @param lattice the lattice
+	     * @param numstep the numstep
+	     */
+	    public GenerateDot(FileWriter buffer,ConceptOrder lattice,int numstep) {
     		super(buffer);
     		this.conceptOrder = lattice;
                     this.numstep=numstep;
     	}
-    	public GenerateDot(FileWriter buffer,ConceptOrder lattice, boolean fullIntentExtent,int numstep) {
+    	
+	    /**
+	     * Instantiates a new generate dot.
+	     *
+	     * @param buffer the buffer
+	     * @param lattice the lattice
+	     * @param fullIntentExtent the full intent extent
+	     * @param numstep the numstep
+	     */
+	    public GenerateDot(FileWriter buffer,ConceptOrder lattice, boolean fullIntentExtent,int numstep) {
     		this(buffer,lattice,numstep);
     		useSimplifiedIntent=!fullIntentExtent;
     		useSimplifiedExtent=!fullIntentExtent;
     	}
-    	public String getNewConceptColor() {
+    	
+	    /**
+	     * Gets the new concept color.
+	     *
+	     * @return the new concept color
+	     */
+	    public String getNewConceptColor() {
     		return newConceptColor;
     	}
 
-    	public void setNewConceptColor(String newConceptColor) {
+    	/**
+	     * Sets the new concept color.
+	     *
+	     * @param newConceptColor the new new concept color
+	     */
+	    public void setNewConceptColor(String newConceptColor) {
     		this.newConceptColor = newConceptColor;
     	}
 
-    	public String getFusionConceptColor() {
+    	/**
+	     * Gets the fusion concept color.
+	     *
+	     * @return the fusion concept color
+	     */
+	    public String getFusionConceptColor() {
     		return fusionConceptColor;
     	}
 
-    	public void setFusionConceptColor(String fusionConceptColor) {
+    	/**
+	     * Sets the fusion concept color.
+	     *
+	     * @param fusionConceptColor the new fusion concept color
+	     */
+	    public void setFusionConceptColor(String fusionConceptColor) {
     		this.fusionConceptColor = fusionConceptColor;
     	}
 
-    	public String getNormalConceptColor() {
+    	/**
+	     * Gets the normal concept color.
+	     *
+	     * @return the normal concept color
+	     */
+	    public String getNormalConceptColor() {
     		return normalConceptColor;
     	}
 
-    	public void setNormalConceptColor(String normalConceptColor) {
+    	/**
+	     * Sets the normal concept color.
+	     *
+	     * @param normalConceptColor the new normal concept color
+	     */
+	    public void setNormalConceptColor(String normalConceptColor) {
     		this.normalConceptColor = normalConceptColor;
     	}
 
-    	public String getConceptNamePrefix() {
+    	/**
+	     * Gets the concept name prefix.
+	     *
+	     * @return the concept name prefix
+	     */
+	    public String getConceptNamePrefix() {
     		return conceptNamePrefix;
     	}
 
-    	public void setConceptNamePrefix(String conceptNamePrefix) {
+    	/**
+	     * Sets the concept name prefix.
+	     *
+	     * @param conceptNamePrefix the new concept name prefix
+	     */
+	    public void setConceptNamePrefix(String conceptNamePrefix) {
     		this.conceptNamePrefix = conceptNamePrefix;
     	}
 
-    	public boolean isDisplayConceptNumber() {
+    	/**
+	     * Checks if is display concept number.
+	     *
+	     * @return true, if is display concept number
+	     */
+	    public boolean isDisplayConceptNumber() {
     		return displayConceptNumber;
     	}
 
-    	public void setDisplayConceptNumber(boolean displayConceptNumber) {
+    	/**
+	     * Sets the display concept number.
+	     *
+	     * @param displayConceptNumber the new display concept number
+	     */
+	    public void setDisplayConceptNumber(boolean displayConceptNumber) {
     		this.displayConceptNumber = displayConceptNumber;
     	}
 
-    	public boolean isUseSimplifiedIntent() {
+    	/**
+	     * Checks if is use simplified intent.
+	     *
+	     * @return true, if is use simplified intent
+	     */
+	    public boolean isUseSimplifiedIntent() {
     		return useSimplifiedIntent;
     	}
 
-    	public void setUseSimplifiedIntent(boolean useSimplifiedIntent) {
+    	/**
+	     * Sets the use simplified intent.
+	     *
+	     * @param useSimplifiedIntent the new use simplified intent
+	     */
+	    public void setUseSimplifiedIntent(boolean useSimplifiedIntent) {
     		this.useSimplifiedIntent = useSimplifiedIntent;
     	}
 
-    	public boolean isUseSimplifiedExtent() {
+    	/**
+	     * Checks if is use simplified extent.
+	     *
+	     * @return true, if is use simplified extent
+	     */
+	    public boolean isUseSimplifiedExtent() {
     		return useSimplifiedExtent;
     	}
 
-    	public void setUseSimplifiedExtent(boolean useSimplifiedExtent) {
+    	/**
+	     * Sets the use simplified extent.
+	     *
+	     * @param useSimplifiedExtent the new use simplified extent
+	     */
+	    public void setUseSimplifiedExtent(boolean useSimplifiedExtent) {
     		this.useSimplifiedExtent = useSimplifiedExtent;
     	}
 
-    	public boolean isDisplayIntent() {
+    	/**
+	     * Checks if is display intent.
+	     *
+	     * @return true, if is display intent
+	     */
+	    public boolean isDisplayIntent() {
     		return displayIntent;
     	}
 
-    	public void setDisplayIntent(boolean displayIntent) {
+    	/**
+	     * Sets the display intent.
+	     *
+	     * @param displayIntent the new display intent
+	     */
+	    public void setDisplayIntent(boolean displayIntent) {
     		this.displayIntent = displayIntent;
     	}
 
-    	public boolean isDisplayExtent() {
+    	/**
+	     * Checks if is display extent.
+	     *
+	     * @return true, if is display extent
+	     */
+	    public boolean isDisplayExtent() {
     		return displayExtent;
     	}
 
-    	public void setDisplayExtent(boolean displayExtent) {
+    	/**
+	     * Sets the display extent.
+	     *
+	     * @param displayExtent the new display extent
+	     */
+	    public void setDisplayExtent(boolean displayExtent) {
     		this.displayExtent = displayExtent;
     	}
 
-    	public boolean isUseColor() {
+    	/**
+	     * Checks if is use color.
+	     *
+	     * @return true, if is use color
+	     */
+	    public boolean isUseColor() {
     		return useColor;
     	}
 
-    	public void setUseColor(boolean useColor) {
+    	/**
+	     * Sets the use color.
+	     *
+	     * @param useColor the new use color
+	     */
+	    public void setUseColor(boolean useColor) {
     		this.useColor = useColor;
     	}
 
     	
     	
     	/**
-    	 * Generates the dot code corresponding to the concept lattice.
-    	 */
+	     * Generates the dot code corresponding to the concept lattice.
+	     *
+	     * @throws IOException Signals that an I/O exception has occurred.
+	     */
     	public void generateCode() throws IOException{
     		appendHeader();
     		generateDot();
@@ -901,6 +1170,10 @@ public abstract class ExploRCA {
     	}
 
     }
+    
+    /**
+     * The Class GenerateXml.
+     */
     public class GenerateXml {
         private boolean reduced;
         private Document doc=null;
@@ -908,12 +1181,26 @@ public abstract class ExploRCA {
         private MyConceptOrderFamily coFamily;
         private int step;
         
+        /**
+         * Instantiates a new generate xml.
+         *
+         * @param rcaFamily the rca family
+         * @param coFamily the co family
+         * @param step the step
+         * @param reduced the reduced
+         */
         public GenerateXml(RCAFamily rcaFamily, MyConceptOrderFamily coFamily, int step,boolean reduced){
             this.rcaFamily=rcaFamily;
             this.coFamily=coFamily;
             this.step=step;
             this.reduced=reduced;
         }
+        
+        /**
+         * Generate.
+         *
+         * @throws ParserConfigurationException the parser configuration exception
+         */
         public void generate() throws ParserConfigurationException{
                 DocumentBuilder builder;
                 builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -1008,12 +1295,13 @@ public abstract class ExploRCA {
     		}
             }
     }
+    
     /**
      * Write document.
-     * 
-     * @param doc the doc
-     * @param out the out
-     * 
+     *
+     * @param writer the writer
+     * @param encoding the encoding
+     * @param pretty the pretty
      * @throws Exception the exception
      */
     public void writeDocument(Writer writer,String encoding,boolean pretty)throws Exception
@@ -1031,6 +1319,14 @@ public abstract class ExploRCA {
     	}
         
     }
+        
+        /**
+         * Adds the element.
+         *
+         * @param parent the parent
+         * @param tagName the tag name
+         * @return the element
+         */
         public static Element addElement(Element parent,String tagName)
         {
         	Element elem= parent.getOwnerDocument().createElement(tagName);
@@ -1038,6 +1334,14 @@ public abstract class ExploRCA {
         	return elem;
         }
 
+		/**
+		 * Generate xml.
+		 *
+		 * @param writer the writer
+		 * @param family the family
+		 * @param step the step
+		 * @throws Exception the exception
+		 */
 		public void generateXml(Writer writer,RCAFamily family, int step) throws Exception {
             GenerateXml genXml=new GenerateXml(family, getConceptOrderFamily(), step,true);
             genXml.generate();

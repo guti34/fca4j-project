@@ -41,6 +41,7 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.util.Chrono;
 
 /**
+ * The Class LinCbOWithPruning.
  *
  * @author agutierr
  */
@@ -51,15 +52,31 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 	List<Integer> counts;
 	Stack<Integer> pruningStack;
 
+	/**
+	 * Instantiates a new lin cb O with pruning.
+	 *
+	 * @param binCtx the bin ctx
+	 * @param chrono the chrono
+	 * @param computeIntExtStrategy the compute int ext strategy
+	 * @param clarify the clarify
+	 */
 	public LinCbOWithPruning(IBinaryContext binCtx, Chrono chrono, ClosureStrategy computeIntExtStrategy,
 			boolean clarify) {
 		super(binCtx, chrono, computeIntExtStrategy, clarify);
 	}
 
+	/**
+	 * Instantiates a new lin cb O with pruning.
+	 *
+	 * @param binCtx the bin ctx
+	 */
 	public LinCbOWithPruning(IBinaryContext binCtx) {
 		this(binCtx, null, new ClosureDirect(binCtx), false);
 	}
 
+	/**
+	 * Inits the.
+	 */
 	@Override
 	protected void init() {
 		implications = new ArrayList<>();
@@ -70,6 +87,11 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 		pruningStack = new Stack<>();
 	}
 
+	/**
+	 * Lin cb O.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	protected void _LinCbO() throws InterruptedException {
 		for (int attr = 0; attr < matrix.getAttributeCount(); attr++) {
 			list.add(new ArrayList(matrix.getObjectCount()));
@@ -79,6 +101,18 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 				counts,null,null);
 	}
 
+	/**
+	 * Lin cb O step.
+	 *
+	 * @param B the b
+	 * @param y the y
+	 * @param Z the z
+	 * @param prevCount the prev count
+	 * @param lastAttrSet the last attr set
+	 * @param lastExtent the last extent
+	 * @return the int
+	 * @throws InterruptedException the interrupted exception
+	 */
 	protected int _LinCbOStep(ISet B, int y, ISet Z, List<Integer> prevCount, ISet lastAttrSet,ISet lastExtent)
 			throws InterruptedException {
 		if (Thread.interrupted())
@@ -133,6 +167,15 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 		return fail;
 	}
 
+	/**
+	 * Lin closure RC.
+	 *
+	 * @param B the b
+	 * @param y the y
+	 * @param Z the z
+	 * @param prevCount the prev count
+	 * @return the triple
+	 */
 	protected Triple<List<Integer>, ISet, Integer> _LinClosureRC(ISet B, int y, ISet Z, List<Integer> prevCount) {
 		ISet D = factory.clone(B);
 		if (defaultConclusion != null) {
@@ -168,6 +211,14 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 		return new Triple(count, D, -1);
 	}
 
+	/**
+	 * Adds the implication.
+	 *
+	 * @param premise the premise
+	 * @param conclusion the conclusion
+	 * @param support the support
+	 * @return the int
+	 */
 	protected int addImplication(ISet premise, ISet conclusion, ISet support) {
 		Implication newImplication = new Implication(premise, conclusion, support);
 		int num_implication = implications.size();
@@ -188,6 +239,11 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 		return num_implication;
 	}
 
+	/**
+	 * Gets the description.
+	 *
+	 * @return the description
+	 */
 	@Override
 	public String getDescription() {
 		return "LinCbOWithPruning";

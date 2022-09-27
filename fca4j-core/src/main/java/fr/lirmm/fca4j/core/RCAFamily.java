@@ -44,6 +44,9 @@ import fr.lirmm.fca4j.core.operator.MyScalingOperatorFactory;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 
+/**
+ * The Class RCAFamily.
+ */
 public class RCAFamily {
 
     private String familyName;
@@ -61,27 +64,71 @@ public class RCAFamily {
     protected HashMap<String, FormalContext> formalContexts = new LinkedHashMap<>(); 
     protected HashMap<String, RelationalContext> relationalContexts = new LinkedHashMap<>(); 
 
+    /**
+     * Instantiates a new RCA family.
+     *
+     * @param familyName the family name
+     * @param factory the factory
+     */
     public RCAFamily(String familyName,ISetFactory factory) {
         this.familyName = familyName;
         this.factory=factory;
     }
+    
+    /**
+     * Gets the factory.
+     *
+     * @return the factory
+     */
     public ISetFactory getFactory(){
         return factory;
     }
+    
+    /**
+     * Gets the name.
+     *
+     * @return the name
+     */
     public String getName() {
         return familyName;
     }
 
+    /**
+     * Sets the name with intent.
+     *
+     * @param nameWithIntent the new name with intent
+     */
     public void setNameWithIntent(boolean nameWithIntent) {
         this.nameWithIntent = nameWithIntent;
     }
 
+    /**
+     * Gets the formal context.
+     *
+     * @param name the name
+     * @return the formal context
+     */
     public FormalContext getFormalContext(String name) {
         return formalContexts.get(name);
     }
+    
+    /**
+     * Gets the relational context.
+     *
+     * @param name the name
+     * @param operator the operator
+     * @return the relational context
+     */
     public RelationalContext getRelationalContext(String name,String operator) {
         return relationalContexts.get(operator+"_"+name);
     }
+    
+    /**
+     * Gets the relational context.
+     *
+     * @param name the name
+     * @return the relational context
+     */
     public List<RelationalContext> getRelationalContext(String name) {
     	ArrayList<RelationalContext> list=new ArrayList<>();
     	for(RelationalContext rc:relationalContexts.values()){
@@ -91,6 +138,13 @@ public class RCAFamily {
         return list;
     }
 
+    /**
+     * Adds the formal context.
+     *
+     * @param context the context
+     * @param myGsh the my gsh
+     * @return the formal context
+     */
     public FormalContext addFormalContext(IBinaryContext context, ConceptOrder myGsh) {
         FormalContext fc = new FormalContext(myGsh, context);
         formalContexts.put(fc.getName(), fc);
@@ -98,6 +152,12 @@ public class RCAFamily {
         return fc;
     }
 
+    /**
+     * Delete formal context.
+     *
+     * @param fc the fc
+     * @return true, if successful
+     */
     public boolean deleteFormalContext(FormalContext fc) {
         if(!(graph.incomingEdgesOf(fc.getName()).isEmpty() && graph.outgoingEdgesOf(fc.getName()).isEmpty()))
             return false;
@@ -108,6 +168,13 @@ public class RCAFamily {
             return true;
         }
     }
+    
+    /**
+     * Delete relational context.
+     *
+     * @param rc the rc
+     * @return true, if successful
+     */
     public boolean deleteRelationalContext(RelationalContext rc) {
         if(graph.removeEdge(rc.getName()))
                 {
@@ -116,6 +183,14 @@ public class RCAFamily {
                 }
         else return false;
     }
+    
+    /**
+     * Rename formal context.
+     *
+     * @param fc the fc
+     * @param newName the new name
+     * @return true, if successful
+     */
     public boolean renameFormalContext(FormalContext fc, String newName) {
         String oldName = fc.getName();
         if (graph.containsVertex(newName)) return false;
@@ -140,6 +215,14 @@ public class RCAFamily {
         return true;
         }
      }
+    
+    /**
+     * Rename relational context.
+     *
+     * @param rc the rc
+     * @param newRelationName the new relation name
+     * @return true, if successful
+     */
     public boolean renameRelationalContext(RelationalContext rc, String newRelationName) {
         if (graph.containsEdge(newRelationName)) return false;
         else{
@@ -154,20 +237,50 @@ public class RCAFamily {
         }
      }
 
+    /**
+     * Adds the attribute.
+     *
+     * @param rc the rc
+     * @param concept the concept
+     * @param extent the extent
+     * @return the int
+     */
     public int addAttribute(RelationalContext rc, int concept, ISet extent) {
         FormalContext fcSource = getSourceOf(rc);
         return fcSource.addRelationalAttribute(this, concept, rc, extent);
     }
 
+    /**
+     * Adds the relational context.
+     *
+     * @param context the context
+     * @param source the source
+     * @param target the target
+     * @param operator the operator
+     */
     public void addRelationalContext(IBinaryContext context, IBinaryContext source, IBinaryContext target, String operator) {
         addRelationalContext(context, source.getName(), target.getName(), operator);
     }
 
+    /**
+     * Adds the relational context.
+     *
+     * @param context the context
+     * @param source the source
+     * @param target the target
+     * @param operator the operator
+     */
     public void addRelationalContext(IBinaryContext context, String source, String target, String operator) {
         RelationalContext rc = new RelationalContext(context, context.getName(), operator);
         relationalContexts.put(rc.getName(), rc);
         graph.addEdge(source, target, rc.getName());
     }
+    
+    /**
+     * Adds the family.
+     *
+     * @param importFamily the import family
+     */
     public void addFamily(RCAFamily importFamily)
     {
         for(String vertex:importFamily.graph.vertexSet())
@@ -182,59 +295,136 @@ public class RCAFamily {
         formalContexts.putAll(importFamily.formalContexts);
         relationalContexts.putAll(importFamily.relationalContexts);
     }
+    
+    /**
+     * Gets the source of.
+     *
+     * @param key the key
+     * @return the source of
+     */
     public FormalContext getSourceOf(RelationalContext key) {
         String fcId = graph.getEdgeSource(key.getName());
         return fcId == null ? null : formalContexts.get(fcId);
     }
 
+    /**
+     * Gets the target of.
+     *
+     * @param key the key
+     * @return the target of
+     */
     public FormalContext getTargetOf(RelationalContext key) {
         String fcId = graph.getEdgeTarget(key.getName());
         return fcId == null ? null : formalContexts.get(fcId);
     }
 
+    /**
+     * The Class FRContext.
+     */
     public abstract class FRContext {
         IBinaryContext context;
 
+        /**
+         * Gets the name.
+         *
+         * @return the name
+         */
         public abstract String getName();
+        
+        /**
+         * Gets the context.
+         *
+         * @return the context
+         */
         public abstract IBinaryContext getContext();
 
+        /**
+         * Sets the context.
+         *
+         * @param context the new context
+         */
         public void setContext(IBinaryContext context) {
             this.context=context;
         }
     }
 
+    /**
+     * The Class FormalContext.
+     */
     public class FormalContext extends FRContext {
 
         ConceptOrder myGsh;
         HashMap<Integer, RelationalAttribute> relationalAttributes = new HashMap<>();
         int nativeAttributesCount;
 
+        /**
+         * Instantiates a new formal context.
+         *
+         * @param myGsh the my gsh
+         * @param context the context
+         */
         FormalContext(ConceptOrder myGsh, IBinaryContext context) {
 //            this.myGsh = myGsh;
             this.context = context;
             nativeAttributesCount = context.getAttributeCount();
         }
 
+        /**
+         * Gets the context.
+         *
+         * @return the context
+         */
         public IBinaryContext getContext() {
             return context;
         }
 
+        /**
+         * Gets the order.
+         *
+         * @return the order
+         */
         public ConceptOrder getOrder() {
             return myGsh;
         }
+        
+        /**
+         * Sets the order.
+         *
+         * @param order the new order
+         */
         public void setOrder(ConceptOrder order) {
             myGsh = order;
         }
 
+        /**
+         * Gets the name.
+         *
+         * @return the name
+         */
         public String getName() {
             return context.getName();
         }
 
 
+        /**
+         * Gets the relational attribute.
+         *
+         * @param numattr the numattr
+         * @return the relational attribute
+         */
         public RelationalAttribute getRelationalAttribute(int numattr) {
             return relationalAttributes.get(numattr);
         }
 
+        /**
+         * Adds the relational attribute.
+         *
+         * @param family the family
+         * @param concept the concept
+         * @param rc the rc
+         * @param extent the extent
+         * @return the int
+         */
         public int addRelationalAttribute(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
             ISet rIntent=family.getTargetOf(rc).getOrder().getConceptReducedIntent(concept);
             String attr_name;
@@ -262,59 +452,129 @@ public class RCAFamily {
             }
         }
 
+        /**
+         * Gets the concept name.
+         *
+         * @param concept the concept
+         * @return the concept name
+         */
         public String getConceptName(int concept) {
             return "C_" + getName() + "_" + concept;
         }
 
+        /**
+         * Gets the native attribute count.
+         *
+         * @return the native attribute count
+         */
         public int getNativeAttributeCount() {
             return nativeAttributesCount;
         }
 
+        /**
+         * Checks if is relational attribute.
+         *
+         * @param attr the attr
+         * @return true, if is relational attribute
+         */
         public boolean isRelationalAttribute(int attr) {
             return attr >= 0 && attr < context.getAttributeCount() && relationalAttributes.get(attr) != null;
 //            return attr>=0 && attr<context.getAttributeCount() && attr>=context.getAttributeCount()-getNativeAttributeCount();
         }
     }
 
+    /**
+     * The Class RelationalContext.
+     */
     public class RelationalContext extends FRContext {
 
         String relName;
         String operator;
 
+        /**
+         * Instantiates a new relational context.
+         *
+         * @param context the context
+         * @param relName the rel name
+         * @param operator the operator
+         */
         RelationalContext(IBinaryContext context, String relName, String operator) {
             this.relName = relName;
             this.operator = operator;
             this.context = context;
         }
 
+        /**
+         * Gets the name.
+         *
+         * @return the name
+         */
         public String getName() {
             return operator + "_" + relName;
         }
 
+        /**
+         * Gets the relation name.
+         *
+         * @return the relation name
+         */
         public String getRelationName() {
             return relName;
         }
+        
+        /**
+         * Sets the relation name.
+         *
+         * @param newName the new relation name
+         */
         public void setRelationName(String newName)
         {
             relName=newName;
         }
+        
+        /**
+         * Gets the operator.
+         *
+         * @return the operator
+         */
         public AbstractScalingOperator getOperator() {
             return MyScalingOperatorFactory.createScalingOperator(operator);
         }
 
+        /**
+         * Gets the context.
+         *
+         * @return the context
+         */
         public IBinaryContext getContext() {
             return context;
         }
     }
 
+    /**
+     * Gets the formal contexts.
+     *
+     * @return the formal contexts
+     */
     public Collection<FormalContext> getFormalContexts() {
         return formalContexts.values();
     }
 
+    /**
+     * Gets the relational contexts.
+     *
+     * @return the relational contexts
+     */
     public Collection<RelationalContext> getRelationalContexts() {
         return relationalContexts.values();
     }
 
+    /**
+     * Outgoing relational context of.
+     *
+     * @param fc the fc
+     * @return the collection
+     */
     public Collection<RelationalContext> outgoingRelationalContextOf(FormalContext fc) {
         ArrayList<RelationalContext> list = new ArrayList<>();
         for (String rcId : graph.outgoingEdgesOf(fc.getName())) {
@@ -323,6 +583,12 @@ public class RCAFamily {
         return list;
     }
 
+    /**
+     * Incoming relational context of.
+     *
+     * @param fc the fc
+     * @return the collection
+     */
     public Collection<RelationalContext> incomingRelationalContextOf(FormalContext fc) {
         ArrayList<RelationalContext> list = new ArrayList<>();
         for (String rcId : graph.incomingEdgesOf(fc.getName())) {

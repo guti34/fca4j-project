@@ -41,11 +41,32 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.iset.std.BitSetFactory;
 
+/**
+ * The Class UniversalReader.
+ */
 public class UniversalReader {
+	
+	/**
+	 * Read.
+	 *
+	 * @param file the file
+	 * @param sep the sep
+	 * @return the i binary context
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public static IBinaryContext read(File file,char sep) throws IOException {
 		return read(file, new BitSetFactory(),sep);
 	}
 
+	/**
+	 * Read.
+	 *
+	 * @param file the file
+	 * @param factory the factory
+	 * @param sep the sep
+	 * @return the i binary context
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public static IBinaryContext read(File file, ISetFactory factory,char sep) throws IOException {
 		BufferedReader buff = new BufferedReader(new FileReader(file));
 		String line;
@@ -84,11 +105,24 @@ public class UniversalReader {
 			context.set(incidence.obj, incidence.attr, true);
 		return context;
 	}
+    
+    /**
+     * The Class Incidence.
+     */
     public static class Incidence {
 
+        /** The obj. */
         int obj;
+        
+        /** The attr. */
         int attr;
 
+        /**
+         * Instantiates a new incidence.
+         *
+         * @param obj the obj
+         * @param attr the attr
+         */
         public Incidence(int obj,int attr) {
             this.obj = obj;
             this.attr = attr;

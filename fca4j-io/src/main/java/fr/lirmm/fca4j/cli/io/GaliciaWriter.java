@@ -42,10 +42,19 @@ import org.w3c.dom.Element;
 import fr.lirmm.fca4j.core.IBinaryContext;
 
 /**
+ * The Class GaliciaWriter.
  *
  * @author agutierr
  */
 public class GaliciaWriter extends XMLWriter {
+    
+    /**
+     * Write.
+     *
+     * @param writer the writer
+     * @param context the context
+     * @throws Exception the exception
+     */
     public static void write(BufferedWriter writer,IBinaryContext context) throws Exception {
         Document doc;
         DocumentBuilder builder;

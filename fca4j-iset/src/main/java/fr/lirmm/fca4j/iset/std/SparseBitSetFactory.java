@@ -39,64 +39,130 @@ import fr.lirmm.fca4j.iset.AbstractSetFactory.AbstractOrderedSet;
 import fr.lirmm.fca4j.iset.ISet;
 
 /**
+ * A factory for creating sets based on SparseBitSet class.
  *
  * @author agutierr
  */
 public class SparseBitSetFactory extends AbstractSetFactory {
 
+    /**
+     * Instantiates a new sparse bit set factory.
+     */
     public SparseBitSetFactory() {
     }
 
+    /**
+     * Creates a new SparseBitSet object.
+     *
+     * @return the i set
+     */
     @Override
     public ISet createSet() {
         return new SetWithSparseBitSet();
     }
 
+    /**
+     * Creates a new SparseBitSet object.
+     *
+     * @param bs the bs
+     * @return the i set
+     */
     @Override
     public ISet createSet(BitSet bs) {
 
         return new SetWithSparseBitSet((BitSet) bs.clone());
     }
 
+    /**
+     * Creates a new SparseBitSet object.
+     *
+     * @param initialCapacity the initial capacity
+     * @return the i set
+     */
     @Override
     public ISet createSet(int initialCapacity) {
         return new SetWithSparseBitSet(initialCapacity);
     }
 
+	/**
+	 * Ordered.
+	 *
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean ordered() {
 		return true;
 	}
+	
+	/**
+	 * Fixed size.
+	 *
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean fixedSize() {
 		return false;
 	}
+	
+	/**
+	 * Name.
+	 *
+	 * @return the string
+	 */
 	@Override
 	public String name() {
 		return "SPARSE_BITSET";
 	}
+    
+    /**
+     * Clone.
+     *
+     * @param b the b
+     * @return the i set
+     */
     @Override
     public ISet clone(ISet b) {
         SparseBitSet bs = (SparseBitSet) ((SetWithSparseBitSet) b).bitSet.clone();
         return new SetWithSparseBitSet(bs);
     }
 
+    /**
+     * The Class SetWithSparseBitSet.
+     */
     class SetWithSparseBitSet extends AbstractOrderedSet {
 
         private SparseBitSet bitSet;
 
+        /**
+         * Instantiates a new sets the with sparse bit set.
+         */
         SetWithSparseBitSet() {
             bitSet = new SparseBitSet();
         }
 
+        /**
+         * Instantiates a new sets the with sparse bit set.
+         *
+         * @param initialCapacity the initial capacity
+         */
         SetWithSparseBitSet(int initialCapacity) {
             bitSet = new SparseBitSet(initialCapacity);
         }
 
+        /**
+         * Instantiates a new sets the with sparse bit set.
+         *
+         * @param bitSet the bit set
+         */
         SetWithSparseBitSet(SparseBitSet bitSet) {
             this.bitSet = bitSet;
         }
 
+        /**
+         * Instantiates a new sets the with sparse bit set.
+         *
+         * @param bitSet the bit set
+         */
         SetWithSparseBitSet(BitSet bitSet) {
 
             this.bitSet = new SparseBitSet();
@@ -105,21 +171,43 @@ public class SparseBitSetFactory extends AbstractSetFactory {
             }
         }
 
+        /**
+         * Adds the.
+         *
+         * @param num the num
+         */
         @Override
         public void add(int num) {
             bitSet.set(num);
         }
 
+        /**
+         * Adds the all.
+         *
+         * @param anotherSet the another set
+         */
         @Override
         public void addAll(ISet anotherSet) {
             bitSet.or(((SetWithSparseBitSet)anotherSet).bitSet);
         }
 
+        /**
+         * Contains.
+         *
+         * @param num the num
+         * @return true, if successful
+         */
         @Override
         public boolean contains(int num) {
             return bitSet.get(num);
         }
 
+        /**
+         * Contains all.
+         *
+         * @param anotherSet the another set
+         * @return true, if successful
+         */
         @Override
         public boolean containsAll(ISet anotherSet) {
             SparseBitSet intersect = (SparseBitSet) bitSet.clone();
@@ -127,31 +215,61 @@ public class SparseBitSetFactory extends AbstractSetFactory {
             return intersect.cardinality()==anotherSet.cardinality();
         }
 
+        /**
+         * Capacity.
+         *
+         * @return the int
+         */
         @Override
         public int capacity() {
             return bitSet.size();
         }
 
+        /**
+         * Cardinality.
+         *
+         * @return the int
+         */
         @Override
         public int cardinality() {
             return bitSet.cardinality();
         }
 
+        /**
+         * Fill.
+         *
+         * @param size the size
+         */
         @Override
         public void fill(int size) {
             bitSet.set(0, size);
         }
 
+        /**
+         * Clear.
+         *
+         * @param size the size
+         */
         @Override
         public void clear(int size) {
             bitSet.clear(0, size);
         }
 
+        /**
+         * Removes the all.
+         *
+         * @param anotherSet the another set
+         */
         @Override
         public void removeAll(ISet anotherSet) {
             bitSet.andNot( ((SetWithSparseBitSet) anotherSet).bitSet);
         }
 
+        /**
+         * Iterator.
+         *
+         * @return the iterator
+         */
         @Override
         public Iterator<Integer> iterator() {
             return new Iterator<Integer>() {
@@ -194,11 +312,22 @@ public class SparseBitSetFactory extends AbstractSetFactory {
             };
         }
 
+        /**
+         * Checks if is empty.
+         *
+         * @return true, if is empty
+         */
         @Override
         public boolean isEmpty() {
             return bitSet.isEmpty();
         }
 
+        /**
+         * New intersect.
+         *
+         * @param anotherSet the another set
+         * @return the i set
+         */
         @Override
         public ISet newIntersect(ISet anotherSet) {
             SparseBitSet bs = (SparseBitSet) bitSet.clone();
@@ -206,6 +335,12 @@ public class SparseBitSetFactory extends AbstractSetFactory {
             return new SetWithSparseBitSet(bs);
         }
 
+        /**
+         * New difference.
+         *
+         * @param anotherSet the another set
+         * @return the i set
+         */
         @Override
         public ISet newDifference(ISet anotherSet) {
             SparseBitSet bs = (SparseBitSet) bitSet.clone();
@@ -213,20 +348,41 @@ public class SparseBitSetFactory extends AbstractSetFactory {
             return new SetWithSparseBitSet(bs);
         }
 
+        /**
+         * Removes the.
+         *
+         * @param num the num
+         */
         @Override
         public void remove(int num) {
             bitSet.set(num, false);
         }
 
+        /**
+         * Retain all.
+         *
+         * @param anotherSet the another set
+         */
         @Override
         public void retainAll(ISet anotherSet) {
             bitSet.and(((SetWithSparseBitSet) anotherSet).bitSet);
         }
 
+        /**
+         * First.
+         *
+         * @return the int
+         */
         @Override
         public int first() {
             return bitSet.nextSetBit(0);
         }
+        
+        /**
+         * Last.
+         *
+         * @return the int
+         */
         @Override
         public int last() {
             int length=bitSet.length();
@@ -234,10 +390,22 @@ public class SparseBitSetFactory extends AbstractSetFactory {
             else return bitSet.previousSetBit(length-1);
         }
 
+        /**
+         * Hash code.
+         *
+         * @return the int
+         */
         @Override
         public int hashCode() {
             return bitSet.hashCode();
         }
+    
+    /**
+     * Equals.
+     *
+     * @param aSet the a set
+     * @return true, if successful
+     */
     @Override
     public boolean equals(Object aSet) {
         try{

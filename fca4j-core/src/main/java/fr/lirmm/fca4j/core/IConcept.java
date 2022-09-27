@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package fr.lirmm.fca4j.core;
 
 /**
+ * The Interface IConcept.
  *
  * @author agutierr
  */

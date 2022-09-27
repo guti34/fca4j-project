@@ -55,22 +55,55 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
 
+/**
+ * The Class AOCPosetBuilder.
+ */
 public class AOCPosetBuilder extends ConceptOrderBuilder {
+	
+	/** The output file. */
 	protected File outputFile;
+	
+	/** The input file. */
 	protected File inputFile;
+	
+	/** The binary context. */
 	protected IBinaryContext ctx;
+	
+	/** The input format. */
 	protected ContextFormat inputFormat;
+	
+	/** The algo. */
 	protected AlgoAOCPoset algo;
 
+	/**
+	 * The Enum AlgoAOCPoset.
+	 */
 	enum AlgoAOCPoset {
-		ARES, CERES, PLUTON, /*ATHENA,*/ HERMES
+		
+		/** The ares algorithm. */
+		ARES, 
+		 /** The ceres algorithm. */
+		 CERES, 
+		 /** The pluton algorithm. */
+		 PLUTON, 
+		 /** The hermes algorithm. */
+		 HERMES 
+		 /*,ATHENA*/
 	};
 
+	/**
+	 * Instantiates a new AOC poset builder.
+	 *
+	 * @param setContext the set context
+	 */
 	public AOCPosetBuilder(ISetContext setContext) {
 		super("aocposet",
 				"build a sub-order of the concept lattice restricted to attribute-concepts and object-concepts",setContext);
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		StringBuilder sb_algo_aoc = new StringBuilder();
@@ -95,6 +128,12 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		declareCommon();
 	}
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the line
+	 * @throws Exception the exception
+	 */
 	public void checkOptions(CommandLine line) throws Exception {
 		List<String> args = line.getArgList();
 		// System.out.println(args);
@@ -140,6 +179,12 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		checkVerbose(line);
 	}
 
+	/**
+	 * Exec.
+	 *
+	 * @return the resulting object
+	 * @throws Exception the exception
+	 */
 	@Override
 	public Object exec() throws Exception {
 		ctx = readContext(inputFormat, inputFile);

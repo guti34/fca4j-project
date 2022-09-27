@@ -48,12 +48,30 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.iset.std.BitSetFactory;
 
 
+/**
+ * The Class GaliciaXMLReader.
+ */
 public class GaliciaXMLReader implements ErrorHandler {
 
+	/**
+	 * Read.
+	 *
+	 * @param file the file
+	 * @return the i binary context
+	 * @throws Exception the exception
+	 */
 	public static IBinaryContext read(File file) throws Exception {
 		return read(file, new BitSetFactory());
 	}
 
+    /**
+     * Read.
+     *
+     * @param iFile the i file
+     * @param factory the factory
+     * @return the i binary context
+     * @throws Exception the exception
+     */
     public static IBinaryContext read(File iFile, ISetFactory factory) throws Exception {
 
         DocumentBuilderFactory DBF = DocumentBuilderFactory.newInstance();
@@ -106,18 +124,36 @@ public class GaliciaXMLReader implements ErrorHandler {
         return binRel;
     }
 
+    /**
+     * Warning.
+     *
+     * @param exception the exception
+     * @throws SAXException the SAX exception
+     */
     @Override
     public void warning(SAXParseException exception) throws SAXException {
         // mute mode for errors
         throw exception;
     }
 
+    /**
+     * Error.
+     *
+     * @param exception the exception
+     * @throws SAXException the SAX exception
+     */
     @Override
     public void error(SAXParseException exception) throws SAXException {
         // mute mode for errors
         throw exception;
     }
 
+    /**
+     * Fatal error.
+     *
+     * @param exception the exception
+     * @throws SAXException the SAX exception
+     */
     @Override
     public void fatalError(SAXParseException exception) throws SAXException {
         // mute mode for errors

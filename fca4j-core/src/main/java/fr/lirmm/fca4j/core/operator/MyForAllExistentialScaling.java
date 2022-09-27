@@ -34,8 +34,19 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;
 
 
+/**
+ * The Class MyForAllExistentialScaling.
+ */
 public class MyForAllExistentialScaling extends AbstractScalingOperator{
 	
+	/**
+	 * Scale.
+	 *
+	 * @param e the e
+	 * @param c the c
+	 * @param context the context
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean scale(int e, ISet c, IBinaryContext context) {
 		if (c.isEmpty())
@@ -44,6 +55,11 @@ public class MyForAllExistentialScaling extends AbstractScalingOperator{
 		return inter.equals(context.getIntent(e));
 	}
 
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
 	@Override
 	public String getName() {
 		return "existForall";

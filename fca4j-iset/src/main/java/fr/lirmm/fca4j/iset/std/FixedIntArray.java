@@ -34,29 +34,58 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /**
+ * The Class FixedIntArray.
  *
  * @author agutierr
  */
 public class FixedIntArray implements Cloneable {
 
+    /** The array. */
     int[] array;
+    
+    /** The count. */
     int count = 0;
 
+    /**
+     * Instantiates a new fixed int array.
+     *
+     * @param size the size
+     */
     public FixedIntArray(int size) {
         array = new int[size];
     }
 
+    /**
+     * Contains.
+     *
+     * @param num the num
+     * @return true, if successful
+     */
     public boolean contains(int num) {
         return Arrays.binarySearch(array, 0, count, num) >= 0;
     }
 
+    /**
+     * Gets the count.
+     *
+     * @return the count
+     */
     public int getCount() {
         return count;
     }
 
+    /**
+     * Clear.
+     */
     public void clear() {
         count = 0;
     }
+    
+    /**
+     * And.
+     *
+     * @param second the second
+     */
     public void and(FixedIntArray second){
         int newCount=0;
         for(int index2=0,index1=0;index2<second.count&& index1<count;)
@@ -74,12 +103,24 @@ public class FixedIntArray implements Cloneable {
         }
         count=newCount;
     }
+    
+    /**
+     * And not.
+     *
+     * @param set2 the set 2
+     */
     public void andNot(FixedIntArray set2) {
         for(Iterator<Integer> it=set2.iterator();it.hasNext();)
         {
             remove(it.next());
         }        
     }
+    
+    /**
+     * And not 2.
+     *
+     * @param set2 the set 2
+     */
     public void andNot2(FixedIntArray set2) {
         for(int index2=0,index1=0;index2<set2.count&& index1<count;)
         {
@@ -94,6 +135,12 @@ public class FixedIntArray implements Cloneable {
             }
         }
     }
+    
+    /**
+     * Adds the all.
+     *
+     * @param second the second
+     */
     public void addAll(FixedIntArray second){
         int[] first=new int[count];
         System.arraycopy(array, 0, first, 0, count);
@@ -119,6 +166,13 @@ public class FixedIntArray implements Cloneable {
         }     
         count=index;
     }
+    
+    /**
+     * Adds the.
+     *
+     * @param num the num
+     * @return the int
+     */
     public int add(int num) {
         int pos = getPosition(num, 0);
         if (pos < 0) // insertion point
@@ -133,6 +187,11 @@ public class FixedIntArray implements Cloneable {
         }
     }
 
+    /**
+     * Sorted.
+     *
+     * @return true, if successful
+     */
     public boolean sorted() {
         for (int i = 1; i < count; i++) {
             if (array[i - 1] >= array[i]) {
@@ -142,6 +201,13 @@ public class FixedIntArray implements Cloneable {
         return true;
     }
 
+    /**
+     * Gets the position 2.
+     *
+     * @param num the num
+     * @param startIndex the start index
+     * @return the position 2
+     */
     public int getPosition2(int num, int startIndex) {
         for (int i = startIndex; i < count ; i++) {
             if (array[i] == num) {
@@ -153,16 +219,34 @@ public class FixedIntArray implements Cloneable {
         return -count-1;
     }
 
+    /**
+     * Gets the position.
+     *
+     * @param num the num
+     * @param startIndex the start index
+     * @return the position
+     */
     public int getPosition(int num, int startIndex) {
         return Arrays.binarySearch(array, startIndex, count, num);
     }
 
+    /**
+     * Removes the at.
+     *
+     * @param index the index
+     */
     public void removeAt(int index) {
         if (index >= 0 && index < count) {
             System.arraycopy(array, index + 1, array, index, count - index - 1);
             count--;
         }
     }
+    
+    /**
+     * Removes the.
+     *
+     * @param num the num
+     */
     public void remove(int num) {
         int index = Arrays.binarySearch(array, 0, count, num);
         if (index >= 0 && index < count) {
@@ -171,6 +255,11 @@ public class FixedIntArray implements Cloneable {
         }
     }
 
+    /**
+     * Fill.
+     *
+     * @param size the size
+     */
     public void fill(int size) {
         for (int i = 0; i < size; i++) {
             array[i] = i;
@@ -178,6 +267,11 @@ public class FixedIntArray implements Cloneable {
         count = size;
     }
 
+    /**
+     * Iterator.
+     *
+     * @return the iterator
+     */
     public Iterator<Integer> iterator() {
         return new Iterator<Integer>() {
             int counter = 0;
@@ -194,6 +288,12 @@ public class FixedIntArray implements Cloneable {
         };
     }
 
+    /**
+     * Gets the.
+     *
+     * @param pos the pos
+     * @return the int
+     */
     int get(int pos) {
         if (pos >= count) {
             return -1;
@@ -202,10 +302,20 @@ public class FixedIntArray implements Cloneable {
         }
     }
 
+    /**
+     * First.
+     *
+     * @return the int
+     */
     int first() {
         return count == 0 ? -1 : array[0];
     }
 
+    /**
+     * Last.
+     *
+     * @return the int
+     */
     int last() {
         if (count == 0) {
             return -1;
@@ -213,6 +323,13 @@ public class FixedIntArray implements Cloneable {
             return array[count - 1];
         }
     }
+   
+   /**
+    * Checks if is subset of.
+    *
+    * @param other the other
+    * @return true, if is subset of
+    */
    public boolean isSubsetOf( FixedIntArray other)
     {
         int thisIndex = 0, otherIndex = 0; 
@@ -232,6 +349,11 @@ public class FixedIntArray implements Cloneable {
         return (thisIndex == count);
     }
 
+    /**
+     * Clone.
+     *
+     * @return the fixed int array
+     */
     @Override
     public FixedIntArray clone() {
         FixedIntArray clone = new FixedIntArray(array.length);

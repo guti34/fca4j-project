@@ -39,7 +39,20 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;
 
 
+/**
+ * The Class ConceptOrderXMLWriter.
+ */
 public class ConceptOrderXMLWriter {
+	
+	/**
+	 * Write.
+	 *
+	 * @param buff the buff
+	 * @param order the order
+	 * @param mbc the mbc
+	 * @param reduced the reduced
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public static void write(BufferedWriter buff,ConceptOrder order,IBinaryContext mbc,boolean reduced) throws IOException {
 		
 		ISet setOfAllObjects=mbc.getFactory().createSet();
@@ -85,6 +98,16 @@ public class ConceptOrderXMLWriter {
 		buff.flush();		
 				
 	}
+	
+	/**
+	 * Write conceptual structure.
+	 *
+	 * @param buff the buff
+	 * @param order the order
+	 * @param mbc the mbc
+	 * @param reduced the reduced
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	static protected void writeConceptualStructure(BufferedWriter buff,ConceptOrder order,IBinaryContext mbc,boolean reduced)throws IOException {
 		int fo;
 		int fa;

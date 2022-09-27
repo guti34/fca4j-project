@@ -34,11 +34,40 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;
 
 
+/**
+ * The Class AbstractScalingOperator.
+ */
 public abstract class AbstractScalingOperator {
 	
+	/**
+	 * Scale.
+	 *
+	 * @param i the i
+	 * @param cExtent the c extent
+	 * @param context the context
+	 * @return true, if successful
+	 */
 	public abstract boolean scale(int i, ISet cExtent, IBinaryContext context);
+	
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
 	public abstract String getName();
+	
+	/**
+	 * Checks for parameter.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean hasParameter() {return false;}
+	
+	/**
+	 * Sets the parameter.
+	 *
+	 * @param param the new parameter
+	 */
 	public void setParameter(float param){}
     
 }

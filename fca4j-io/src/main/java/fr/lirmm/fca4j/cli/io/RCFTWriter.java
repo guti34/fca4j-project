@@ -44,8 +44,20 @@ import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
 import fr.lirmm.fca4j.core.RCAFamily.RelationalContext;
 
+/**
+ * The Class RCFTWriter.
+ */
 public class RCFTWriter {
 	
+    /**
+     * Write.
+     *
+     * @param rcf the rcf
+     * @param outputPath the output path
+     * @param compressed the compressed
+     * @return the file
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public static File write(RCAFamily rcf, String outputPath, boolean compressed) throws IOException {
         Writer fw;
         File f = new File(outputPath);
@@ -66,7 +78,11 @@ public class RCFTWriter {
     }
 
     /**
-     * Ecrit le contexte formel dans le fichier rcft
+     * Ecrit le contexte formel dans le fichier rcft.
+     *
+     * @param writer the writer
+     * @param context the context
+     * @throws IOException Signals that an I/O exception has occurred.
      */
     private static void writeFC(Writer writer, IBinaryContext context) throws IOException {
         //ecriture de l'en-tete du contexte formel
@@ -97,7 +113,15 @@ public class RCFTWriter {
     }
 
     /**
-     * Ecrit le contexte formel dans le fichier rcft
+     * Ecrit le contexte formel dans le fichier rcft.
+     *
+     * @param writer the writer
+     * @param context the context
+     * @param rname the rname
+     * @param op the op
+     * @param source the source
+     * @param target the target
+     * @throws IOException Signals that an I/O exception has occurred.
      */
     private static void writeRC(Writer writer, IBinaryContext context, String rname, String op, String source, String target) throws IOException {
         //ecriture de l'en-tete du contexte relationnel

@@ -36,8 +36,18 @@ import java.io.IOException;
 import fr.lirmm.fca4j.core.IBinaryContext;
 
 
+/**
+ * The Class SLFWriter.
+ */
 public class SLFWriter {
 
+	/**
+	 * Write context.
+	 *
+	 * @param writer the writer
+	 * @param ctx the ctx
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public static void writeContext(BufferedWriter writer, IBinaryContext ctx) throws IOException {
 
 		writer.write("[Lattice]\n");

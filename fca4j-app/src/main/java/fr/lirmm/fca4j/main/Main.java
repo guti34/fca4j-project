@@ -56,11 +56,25 @@ import fr.lirmm.fca4j.command.Reducer;
 import fr.lirmm.fca4j.command.RuleBasisBuilder;
 import fr.lirmm.fca4j.iset.AbstractSetContext;
 
+/**
+ * The Class Main.
+ */
 public class Main {
+	
+	/** The commands. */
 	static Command[] commands;
+	
+	/** The command. */
 	static Command command = null;
+	
+	/** The timeout. */
 	static long timeout = -1L;
 
+	/**
+	 * The main method.
+	 *
+	 * @param args the arguments
+	 */
 	public final static void main(String[] args) {
 		AbstractSetContext setContext = new SetContextComplete();
 		commands = new Command[] { new LatticeBuilder(setContext), new AOCPosetBuilder(setContext),
@@ -138,6 +152,12 @@ public class Main {
 			task.run();
 	}
 
+	/**
+	 * Gets the command.
+	 *
+	 * @param pcmd command name
+	 * @return command
+	 */
 	private static Command getCommand(String pcmd) {
 		for (Command cmd : commands)
 			if (pcmd.equalsIgnoreCase(cmd.name()))
@@ -145,6 +165,11 @@ public class Main {
 		return null;
 	}
 
+	/**
+	 * Prints the header.
+	 *
+	 * @param pw the writer
+	 */
 	static private void printHeader(PrintWriter pw) {
 		StringBuffer sb = new StringBuffer();
 		String title = "FCA4J Command Line Interface " + Main.class.getPackage().getImplementationVersion();
@@ -153,6 +178,12 @@ public class Main {
 		pw.println(sb.toString() + "\n" + title + "\n" + sb.toString() + "\n");
 	}
 
+	/**
+	 * Prints the help.
+	 *
+	 * @param cmd the command
+	 * @param printHeader enable print header
+	 */
 	static void printHelp(Command cmd, boolean printHeader) {
 		if (cmd == null) {
 			printHelp(printHeader);
@@ -183,6 +214,11 @@ public class Main {
 		pw.flush();
 	}
 
+	/**
+	 * Prints the help.
+	 *
+	 * @param printHeader enable print header
+	 */
 	static private void printHelp(boolean printHeader) {
 		PrintWriter pw = new PrintWriter(System.out);
 		if (printHeader)

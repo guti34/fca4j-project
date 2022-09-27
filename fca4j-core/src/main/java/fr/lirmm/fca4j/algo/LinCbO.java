@@ -40,6 +40,7 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.util.Chrono;
 
 /**
+ * The Class LinCbO.
  *
  * @author agutierr
  */
@@ -47,14 +48,30 @@ import fr.lirmm.fca4j.util.Chrono;
 public class LinCbO extends AbstractLinCbo {
 
     
+    /**
+     * Instantiates a new lin cb O.
+     *
+     * @param binCtx the bin ctx
+     * @param chrono the chrono
+     * @param computeIntExtStrategy the compute int ext strategy
+     * @param clarify the clarify
+     */
     public LinCbO(IBinaryContext binCtx, Chrono chrono,ClosureStrategy computeIntExtStrategy,boolean clarify) {
         super(binCtx,chrono,computeIntExtStrategy,clarify);
     }
 
+    /**
+     * Instantiates a new lin cb O.
+     *
+     * @param binCtx the bin ctx
+     */
     public LinCbO(IBinaryContext binCtx) {
         this(binCtx, null,new ClosureDirect(binCtx),false);
     }
 
+    /**
+     * Inits the.
+     */
     @Override
     protected void init() {
         implications = new ArrayList<>();
@@ -63,6 +80,11 @@ public class LinCbO extends AbstractLinCbo {
     }
 
 
+    /**
+     * Lin cb O.
+     *
+     * @throws InterruptedException the interrupted exception
+     */
     protected void _LinCbO()  throws InterruptedException{
         for (int attr = 0; attr < matrix.getAttributeCount(); attr++) {
             list.add(new ArrayList(matrix.getObjectCount()));
@@ -71,6 +93,17 @@ public class LinCbO extends AbstractLinCbo {
         _LinCbOStep(factory.createSet(matrix.getAttributeCount()), -1, factory.createSet(matrix.getAttributeCount()), count,null,null);
     }
 
+    /**
+     * Lin cb O step.
+     *
+     * @param B the b
+     * @param y the y
+     * @param Z the z
+     * @param prevCount the prev count
+     * @param lastAttrSet the last attr set
+     * @param lastExtent the last extent
+     * @throws InterruptedException the interrupted exception
+     */
     protected void _LinCbOStep(ISet B, int y, ISet Z, List<Integer> prevCount, ISet lastAttrSet,ISet lastExtent) throws InterruptedException{
                 if (Thread.interrupted())  throw new InterruptedException("interrupted by user");
 
@@ -105,6 +138,15 @@ public class LinCbO extends AbstractLinCbo {
         }
     }
     
+    /**
+     * Lin closure RC.
+     *
+     * @param B the b
+     * @param y the y
+     * @param Z the z
+     * @param prevCount the prev count
+     * @return the pair
+     */
     protected Pair<List<Integer>,ISet> _LinClosureRC(ISet B, int y, ISet Z, List<Integer> prevCount) {
         ISet D = factory.clone(B);
         if (defaultConclusion != null) {
@@ -138,6 +180,15 @@ public class LinCbO extends AbstractLinCbo {
         }
         return new Pair(count, D);
     }
+    
+    /**
+     * Adds the implication.
+     *
+     * @param premise the premise
+     * @param conclusion the conclusion
+     * @param support the support
+     * @return the int
+     */
     protected int addImplication(ISet premise, ISet conclusion, ISet support) {
         Implication newImplication = new Implication(premise, conclusion, support);
         int num_implication = implications.size();
@@ -151,15 +202,34 @@ public class LinCbO extends AbstractLinCbo {
         computeIntExt.notify(newImplication);
         return num_implication;
     }
+    
+    /**
+     * Gets the description.
+     *
+     * @return the description
+     */
     @Override
     public String getDescription() {
         return "LinCbO";
     }
+    
+    /**
+     * The Class Pair.
+     *
+     * @param <L> the generic type
+     * @param <R> the generic type
+     */
     public class Pair<L,R>{
 
         L left;
         R right;
 
+        /**
+         * Instantiates a new pair.
+         *
+         * @param left the left
+         * @param right the right
+         */
         public Pair(L left, R right) {
             this.left = left;
             this.right = right;

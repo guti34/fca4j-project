@@ -39,23 +39,58 @@ import fr.lirmm.fca4j.cli.io.GraphVizDotWriter;
 import fr.lirmm.fca4j.cli.io.GraphVizDotWriter.DisplayFormat;
 import fr.lirmm.fca4j.iset.ISetContext;
 
+/**
+ * The Class ConceptOrderBuilder.
+ */
 public abstract class ConceptOrderBuilder extends Command {
 
+	/**
+	 * The Enum DisplayMode.
+	 */
 	enum DisplayMode {
-		FULL, SIMPLIFIED, MINIMAL
+		
+		/** The full. */
+		FULL, 
+ /** The simplified. */
+ SIMPLIFIED, 
+ /** The minimal. */
+ MINIMAL
 	};
+	
+	/**
+	 * The Enum ConceptOrderFormat.
+	 */
 	enum ConceptOrderFormat {
-		JSON, XML
+		
+	/** The json format. */
+	JSON, 
+	/** The xml format. */
+	 XML
 	};
 
+	/** The output format. */
 	ConceptOrderFormat outputFormat;
+	
+	/** The display mode. */
 	DisplayMode displayMode=DisplayMode.SIMPLIFIED;
+	
+	/** The dot file. */
 	File dotFile;
 
+	/**
+	 * Instantiates a new concept order builder.
+	 *
+	 * @param name the name
+	 * @param description the description
+	 * @param setContext the set context
+	 */
 	ConceptOrderBuilder(String name, String description,ISetContext setContext) {
 		super(name, description,setContext);
 	}
 
+	/**
+	 * Declare output format.
+	 */
 	protected void declareOutputFormat() {
 		// output format
 		options.addOption(Option.builder("o").desc("supported formats are:\n* XML (default)\n* JSON\n").hasArg()
@@ -63,6 +98,9 @@ public abstract class ConceptOrderBuilder extends Command {
 
 	}
 
+	/**
+	 * Declare Graphviz DOT options.
+	 */
 	protected void declareGraphvizOptions() {
 		// output dot
 		options.addOption(
@@ -72,6 +110,12 @@ public abstract class ConceptOrderBuilder extends Command {
 				.hasArg().argName("DISPLAY-MODE").build());
 	}
 
+	/**
+	 * Check dot file.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	protected void checkDotFile(CommandLine line)  throws Exception{
 		if (line.hasOption("g")) {
 			dotFile = new File(line.getOptionValue("g"));
@@ -89,6 +133,13 @@ public abstract class ConceptOrderBuilder extends Command {
 			dotFile = null;
 	}
 	
+	/**
+	 * Check output format.
+	 *
+	 * @param line the command line
+	 * @param outFileName the output file name
+	 * @throws Exception the exception
+	 */
 	protected void checkOutputFormat(CommandLine line, String outFileName) throws Exception {
 		if (line.hasOption("o")) {
 			try {
@@ -105,6 +156,13 @@ public abstract class ConceptOrderBuilder extends Command {
 				throw new Exception("output format must be specified for file " + outFileName);
 		}
 	}
+	
+	/**
+	 * Gets the display mode.
+	 *
+	 * @return the display mode
+	 * @throws Exception the exception
+	 */
 	protected DisplayFormat getDisplayMode() throws Exception
 	{
         GraphVizDotWriter.DisplayFormat df;

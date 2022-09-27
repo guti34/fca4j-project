@@ -42,11 +42,19 @@ import org.w3c.dom.Element;
 import fr.lirmm.fca4j.core.IBinaryContext;
 
 /**
+ * The Class ConExpWriter.
  *
  * @author agutierr
  */
 public class ConExpWriter extends XMLWriter {
 	
+    /**
+     * Write context.
+     *
+     * @param writer the writer
+     * @param context the context
+     * @throws Exception the exception
+     */
     public static void writeContext(BufferedWriter writer,IBinaryContext context) throws Exception {
         Document doc;
         DocumentBuilder builder;

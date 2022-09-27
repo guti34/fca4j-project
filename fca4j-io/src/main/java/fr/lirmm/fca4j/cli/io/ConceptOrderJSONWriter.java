@@ -40,8 +40,18 @@ import org.json.simple.JSONObject;
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 
+/**
+ * The Class ConceptOrderJSONWriter.
+ */
 public class ConceptOrderJSONWriter {
 
+	/**
+	 * Builds the.
+	 *
+	 * @param json the json
+	 * @param conceptOrder the concept order
+	 * @param matrix the matrix
+	 */
 	public static void build(JSONObject json, ConceptOrder conceptOrder, IBinaryContext matrix) {
 		JSONArray conceptArray = new JSONArray();
 		json.put("concepts", conceptArray);
@@ -84,6 +94,14 @@ public class ConceptOrderJSONWriter {
 
 	}
 
+	/**
+	 * Write.
+	 *
+	 * @param buff the buff
+	 * @param conceptOrder the concept order
+	 * @param matrix the matrix
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public static void write(BufferedWriter buff, ConceptOrder conceptOrder, IBinaryContext matrix) throws IOException {
 		JSONObject mainJson = new JSONObject();
 		mainJson.put("source", matrix.getName());

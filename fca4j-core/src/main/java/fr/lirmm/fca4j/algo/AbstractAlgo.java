@@ -30,9 +30,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package fr.lirmm.fca4j.algo;
 
+/**
+ * The Interface AbstractAlgo for all kind of algorithms.
+ *
+ * @param <T> the generic type
+ */
 public interface AbstractAlgo<T> extends Runnable {
 
+    /**
+     * Gets the result.
+     *
+     * @return the result
+     */
     public T getResult();
 
+    /**
+     * Gets the description.
+     *
+     * @return the description
+     */
     public String getDescription();
 }

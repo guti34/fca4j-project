@@ -41,21 +41,41 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
 /**
+ * The Class AbstractLinCbo.
  *
  * @author agutierr
  */
 public abstract class AbstractLinCbo implements AbstractAlgo<List<Implication>> {
 
+	/** The matrix. */
 	protected IBinaryContext matrix; // ressource de depart
+	
+	/** The factory. */
 	protected ISetFactory factory;
+	
 	protected Chrono chrono = null; // eventually a chrono to store execution
+									
+									/** The implications. */
 									// time
 	protected ArrayList<Implication> implications;
+	
 	protected ISet defaultConclusion;
+	
 	protected List<List> list;
+	
 	protected ClosureStrategy computeIntExt;
+	
+	/** The clarify. */
 	protected boolean clarify;
 
+	/**
+	 * Instantiates a new abstract lin cbo.
+	 *
+	 * @param binCtx the context
+	 * @param chrono the chrono
+	 * @param computeIntExt the closure strategy
+	 * @param clarify clarify context before
+	 */
 	public AbstractLinCbo(IBinaryContext binCtx, Chrono chrono, ClosureStrategy computeIntExt, boolean clarify) {
 		super();
 		this.matrix = binCtx;
@@ -65,8 +85,21 @@ public abstract class AbstractLinCbo implements AbstractAlgo<List<Implication>> 
 		this.clarify = clarify;
 	}
 
+	/**
+	 * Lin cb O.
+	 *
+	 * @throws InterruptedException the interrupted exception
+	 */
 	protected abstract void _LinCbO() throws InterruptedException;
 
+	/**
+	 * Equals until 2.
+	 *
+	 * @param set1 the set 1
+	 * @param set2 the set 2
+	 * @param y the y
+	 * @return true, if successful
+	 */
 	protected boolean equalsUntil2(ISet set1, ISet set2, int y) {
 		for (int i = 0; i <= y; i++) {
 			if (set1.contains(i) != set2.contains(i)) {
@@ -76,6 +109,14 @@ public abstract class AbstractLinCbo implements AbstractAlgo<List<Implication>> 
 		return true;
 	}
 
+	/**
+	 * Equals until.
+	 *
+	 * @param set1 the set 1
+	 * @param set2 the set 2
+	 * @param y the y
+	 * @return true, if successful
+	 */
 	protected boolean equalsUntil(ISet set1, ISet set2, int y) {
 		Iterator<Integer> it1 = set1.iterator();
 		Iterator<Integer> it2 = set2.iterator();
@@ -94,6 +135,12 @@ public abstract class AbstractLinCbo implements AbstractAlgo<List<Implication>> 
 		}
 	}
 
+	/**
+	 * Min.
+	 *
+	 * @param set the set
+	 * @return the int
+	 */
 	protected int min(ISet set) {
 		if (set.isEmpty()) {
 			return Integer.MAX_VALUE;
@@ -102,6 +149,15 @@ public abstract class AbstractLinCbo implements AbstractAlgo<List<Implication>> 
 		}
 	}
 
+	/**
+	 * Closure.
+	 *
+	 * @param fermeture the fermeture
+	 * @param attrSet the attributes set
+	 * @param lastAttrSet the last attributes set
+	 * @param lastExtent the last extent
+	 * @return the resulting set
+	 */
 	protected final ISet closure(ISet fermeture, ISet attrSet, ISet lastAttrSet, ISet lastExtent) {
 		ISet ret = computeIntExt.closure(fermeture, attrSet, lastAttrSet, lastExtent);
 		// System.out.println("closure "+attrSet+" = "+fermeture+"
@@ -109,6 +165,12 @@ public abstract class AbstractLinCbo implements AbstractAlgo<List<Implication>> 
 		return ret;
 	}
 
+	/**
+	 * Display attributes.
+	 *
+	 * @param set the set
+	 * @return the string
+	 */
 	protected String displayAttrs(ISet set) {
 		StringBuilder sb = new StringBuilder();
 		for (Iterator<Integer> it = set.iterator(); it.hasNext();) {
@@ -120,8 +182,14 @@ public abstract class AbstractLinCbo implements AbstractAlgo<List<Implication>> 
 		return sb.toString();
 	}
 
+	/**
+	 * Inits.
+	 */
 	abstract protected void init();
 
+	/**
+	 * Run.
+	 */
 	@Override
 	public void run() {
 		IBinaryContext clarifiedContext = null;
@@ -234,6 +302,11 @@ public abstract class AbstractLinCbo implements AbstractAlgo<List<Implication>> 
 	
 	}
 
+	/**
+	 * Gets the result.
+	 *
+	 * @return the list of all computed implications
+	 */
 	@Override
 	public ArrayList<Implication> getResult() {
 		return (implications);

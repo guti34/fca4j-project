@@ -50,28 +50,69 @@ import fr.lirmm.fca4j.core.operator.AbstractScalingOperator;
 import fr.lirmm.fca4j.core.operator.MyScalingOperatorFactory;
 import fr.lirmm.fca4j.iset.ISetContext;
 
+/**
+ * The Class FamilyCommand.
+ */
 public class FamilyCommand extends Command {
 
+	/**
+	 * The Enum FamilyAction.
+	 */
 	enum FamilyAction {
-		IMPORT, EXPORT, REMOVE, RENAME
+		
+	 /** The import action. */
+	 IMPORT, 
+	 /** The export action. */
+	 EXPORT, 
+	 /** The remove action. */
+	 REMOVE, 
+	 /** The rename action. */
+	 RENAME
 	};
 
+	/** The context file. */
 	protected File familyFile, ctxFile;
+	
+	/** The context file name. */
 	protected String ctxName;
+	
+	/** The new name. */
 	protected String newName;
+	
+	/** The source. */
 	protected String source;
+	
+	/** The target. */
 	protected String target;
+	
+	/** The operator. */
 	protected AbstractScalingOperator op;
+	
+	/** The context format. */
 	protected ContextFormat ctxFormat;
+	
+	/** The family format. */
 	protected FamilyFormat familyFormat;
+	
+	/** The action. */
 	protected FamilyAction action;
+	
+	/** The relation concerned. */
 	protected boolean relationConcerned = false;
 
+	/**
+	 * Instantiates a new family command.
+	 *
+	 * @param setContext the set context
+	 */
 	public FamilyCommand(ISetContext setContext) {
 		super("family", "to create and manage relational context families (set of formal contexts and relations)",
 				"family", "context",setContext);
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		StringBuilder sb_action = new StringBuilder();
@@ -103,6 +144,12 @@ public class FamilyCommand extends Command {
 		declareCommon();
 	}
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	@Override
 	public void checkOptions(CommandLine line) throws Exception {
 		// factory
@@ -177,6 +224,12 @@ public class FamilyCommand extends Command {
 	checkVerbose(line);
 	}
 
+	/**
+	 * Exec.
+	 *
+	 * @return the resulting object
+	 * @throws Exception the exception
+	 */
 	@Override
 	public Object exec() throws Exception {
 		RCAFamily family;

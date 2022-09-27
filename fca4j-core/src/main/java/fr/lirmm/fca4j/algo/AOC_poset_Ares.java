@@ -41,6 +41,10 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class AOC_poset_Ares.
+ */
 public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
 
     private IBinaryContext matrix; //ressource d'entree
@@ -50,10 +54,25 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
     private boolean ocposet;
     protected ISetFactory factory;
 
+    /**
+     * Instantiates a new AOC poset algorithm: ares.
+     *
+     * @param matrix the context
+     * @param chrono the chrono
+     */
     public AOC_poset_Ares(IBinaryContext matrix, Chrono chrono) {
         this(matrix, chrono, null, true, true);
     }
 
+    /**
+     * Instantiates a new AOC poset algorithm: ares.
+     *
+     * @param matrix the context
+     * @param chrono the chrono
+     * @param gsh the gsh
+     * @param ocposet build ocposet
+     * @param acposet build acposet
+     */
     public AOC_poset_Ares(IBinaryContext matrix, Chrono chrono, ConceptOrder gsh, boolean ocposet, boolean acposet) {
         super();
         this.gsh = gsh;
@@ -64,6 +83,11 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
         this.acposet = acposet;
     }
 
+    /**
+     * Instantiates a new AOC poset algorithm: ares.
+     *
+     * @param matrix the context
+     */
     public AOC_poset_Ares(IBinaryContext matrix) {
         this(matrix, null);
     }
@@ -77,6 +101,13 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
     }
 
 
+    /**
+     * Compute.
+     *
+     * @param newAttributes the new attributes
+     * @return the concept order
+     * @throws CloneNotSupportedException the clone not supported exception
+     */
     public ConceptOrder compute(ISet newAttributes) throws CloneNotSupportedException {
         //for each attribute add it
         for (Iterator<Integer> attrIterator = newAttributes.iterator(); attrIterator.hasNext();) {
@@ -118,15 +149,28 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
         }
     }
 
+    /**
+     * Gets the description.
+     *
+     * @return the description
+     */
     public String getDescription() {
         return "Ares";
     }
 
+    /**
+     * Gets the result.
+     *
+     * @return the result
+     */
     @Override
     public ConceptOrder getResult() {
         return gsh;
     }
 
+    /**
+     * Run.
+     */
     @Override
     public void run() {
         try {

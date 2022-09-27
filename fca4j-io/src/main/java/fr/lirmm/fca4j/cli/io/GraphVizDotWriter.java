@@ -37,26 +37,60 @@ import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 
 
+/**
+ * The Class GraphVizDotWriter.
+ */
 public class GraphVizDotWriter {
 
-	public enum DisplayFormat {REDUCED, FULL, MINIMAL}
+	/**
+	 * The Enum DisplayFormat.
+	 */
+	public enum DisplayFormat {/** The reduced. */
+REDUCED, /** The full. */
+ FULL, /** The minimal. */
+ MINIMAL}
 
+	/** The Constant NEW_CONCEPT_COLOR. */
 	public final static String NEW_CONCEPT_COLOR = "lightblue";
 	
+	/** The Constant FUSION_CONCEPT_COLOR. */
 	public final static String FUSION_CONCEPT_COLOR = "orange";
 	
+	/** The lattice. */
 	private ConceptOrder lattice;
 	
+	/** The mbc. */
 	private IBinaryContext mbc;
 	
+	/** The buff. */
 	protected BufferedWriter _buff=null;
 
+	/** The display size. */
 	private boolean displaySize;
+	
+	/** The use color. */
 	private boolean useColor;
+	
+	/** The df. */
 	private DisplayFormat df;
+        
+        /** The orientation. */
         private String orientation;
+        
+        /** The align sibling. */
         private boolean alignSibling;
 
+	/**
+	 * Instantiates a new graph viz dot writer.
+	 *
+	 * @param buff the buff
+	 * @param lattice the lattice
+	 * @param mbc the mbc
+	 * @param df the df
+	 * @param displaySize the display size
+	 * @param alignSibling the align sibling
+	 * @param orientation the orientation
+	 */
 	public GraphVizDotWriter(BufferedWriter buff, ConceptOrder lattice,IBinaryContext mbc,DisplayFormat df,boolean displaySize,boolean alignSibling, String orientation) {
 		this._buff=buff;
 		this.lattice = lattice;
@@ -67,8 +101,11 @@ public class GraphVizDotWriter {
                 this.orientation=orientation;
                 this.alignSibling=alignSibling;
 	}
+	
 	/**
 	 * Generates the dot code corresponding to the concept lattice.
+	 *
+	 * @return the string
 	 */
 	protected String buildDot() {
 		StringBuffer sb=new StringBuffer();
@@ -79,6 +116,13 @@ public class GraphVizDotWriter {
 		appendFooter(sb);
 		return sb.toString();
 	}
+        
+        /**
+         * Write concept.
+         *
+         * @param sb the sb
+         * @param concept the concept
+         */
         protected void writeConcept(StringBuffer sb,int concept){
 			sb.append(""+concept + " ");
                         sb.append("[shape=record,style=filled");
@@ -129,6 +173,12 @@ public class GraphVizDotWriter {
 			sb.append("}\"];\n");
             
         }
+	
+	/**
+	 * Builds the dot concepts.
+	 *
+	 * @param sb the sb
+	 */
 	protected void buildDotConcepts(StringBuffer sb) {
 		for(Iterator<Integer> it=lattice.getBasicIterator();it.hasNext();)
 		 {
@@ -147,15 +197,28 @@ public class GraphVizDotWriter {
 	}
 
 
+	/**
+	 * Append header.
+	 *
+	 * @param sb the sb
+	 */
 	private void appendHeader(StringBuffer sb) {
 		sb.append("digraph G { \n");
 		sb.append("\trankdir="+orientation+";\n");
 	}
 
+	/**
+	 * Append footer.
+	 *
+	 * @param sb the sb
+	 */
 	private void appendFooter(StringBuffer sb) {
 		sb.append("}");
 	}
 
+	/**
+	 * Write.
+	 */
 	public void write() {
 		try {
 			String dot=buildDot();
@@ -168,6 +231,11 @@ public class GraphVizDotWriter {
 		
 	}
 
+	/**
+	 * Gets the description.
+	 *
+	 * @return the description
+	 */
 	public String getDescription() {
 		return "DOT Writer";
 	}

@@ -35,16 +35,31 @@ import fr.lirmm.fca4j.iset.ISet;
 
 
 /**
+ * The Class MyExistentialScaling.
  *
  * @author agutierr
  */
 public class MyExistentialScaling extends AbstractScalingOperator{
+	
+	/**
+	 * Scale.
+	 *
+	 * @param e the e
+	 * @param c the c
+	 * @param context the context
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean scale(int e, ISet c, IBinaryContext context) {
 		return ! context.getIntent(e).newIntersect(c).isEmpty();
 		
 	}
 
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
 	@Override
 	public String getName() {
 		return "exist";

@@ -40,6 +40,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
 /**
+ * The Class Splitter.
  *
  * @author agutierr
  */
@@ -53,6 +54,12 @@ public class Splitter implements AbstractAlgo {
     protected SimpleGraph<Integer, DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class); 
     private int ATTR_COUNT; 
     
+    /**
+     * Instantiates a new splitter.
+     *
+     * @param binCtx the bin ctx
+     * @param chrono the chrono
+     */
     public Splitter(IBinaryContext binCtx, Chrono chrono) {
         super();
         this.matrix = binCtx;
@@ -60,16 +67,29 @@ public class Splitter implements AbstractAlgo {
         ATTR_COUNT=matrix.getAttributeCount();
     }
 
+    /**
+     * Gets the description.
+     *
+     * @return the description
+     */
     @Override
     public String getDescription() {
         return "Splitter";
     }
 
+    /**
+     * Gets the result.
+     *
+     * @return the result
+     */
     @Override
     public Object getResult() {
         return null;
     }
 
+    /**
+     * Run.
+     */
     @Override
     public void run() {
         for(int attr=0;attr<ATTR_COUNT;attr++)

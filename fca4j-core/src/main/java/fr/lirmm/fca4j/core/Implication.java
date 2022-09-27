@@ -33,6 +33,7 @@ package fr.lirmm.fca4j.core;
 import fr.lirmm.fca4j.iset.ISet;
 
 /**
+ * The Class Implication.
  *
  * @author agutierr
  */
@@ -42,23 +43,60 @@ import fr.lirmm.fca4j.iset.ISet;
         ISet conclusion;
         ISet support;
 
+        /**
+         * Instantiates a new implication.
+         *
+         * @param premise the premise
+         * @param conclusion the conclusion
+         * @param support the support
+         */
         public Implication(ISet premise, ISet conclusion,ISet support) {
             this.premise = premise;
             this.conclusion = conclusion.newDifference(premise);
             this.support=support;
         }
+        
+        /**
+         * Gets the support.
+         *
+         * @return the support
+         */
         public ISet getSupport(){
             return support;
         }
+        
+        /**
+         * Sets the support.
+         *
+         * @param support the new support
+         */
         public void setSupport(ISet support){
         	this.support=support;
         }
+        
+        /**
+         * Gets the premise.
+         *
+         * @return the premise
+         */
         public ISet getPremise(){
             return premise;
         }
+        
+        /**
+         * Gets the conclusion.
+         *
+         * @return the conclusion
+         */
         public ISet getConclusion(){
             return conclusion;
         }
+        
+        /**
+         * To string.
+         *
+         * @return the string
+         */
         @Override
         public String toString() {
             return String.format("<%d> %s => %s",support.cardinality(),premise,conclusion );

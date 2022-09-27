@@ -52,23 +52,53 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
 
+/**
+ * The Class LatticeBuilder.
+ */
 public class LatticeBuilder extends ConceptOrderBuilder {
+	
+	/** The output file. */
 	protected File outputFile;
+	
+	/** The input file. */
 	protected File inputFile;
+	
+	/** The context. */
 	protected IBinaryContext ctx;
+	
+	/** The input format. */
 	protected ContextFormat inputFormat;
+	
+	/** The algorithm. */
 	protected AlgoLattice algo;
+	
+	/** The percent. */
 	protected int percent = -1;
 
+	/**
+	 * The Enum AlgoLattice.
+	 */
 	enum AlgoLattice {
-		ADD_EXTENT, ICEBERG
+		
+		/** The add extent algo. */
+		ADD_EXTENT, 
+		 /** The iceberg algo. */
+		 ICEBERG
 	};
 
+	/**
+	 * Instantiates a new lattice builder.
+	 *
+	 * @param setContext the set context
+	 */
 	public LatticeBuilder(ISetContext setContext) {
 		super("lattice",
 				"builds a concept lattice. ADD_EXTENT algorithm build the complete concept lattice. ICEBERG builds a lattice with only the top-most concepts of the concept lattice",setContext);
 	}
 
+	/**
+	 * Creates the options.
+	 */
 	@Override
 	void createOptions() {
 		StringBuilder sb_algo_lat = new StringBuilder();
@@ -98,6 +128,12 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		declareCommon();
 	}
 
+	/**
+	 * Check options.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
 	public void checkOptions(CommandLine line) throws Exception {
 		List<String> args = line.getArgList();
 		// System.out.println(args);
@@ -159,6 +195,12 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		checkVerbose(line);
 	}
 
+	/**
+	 * Exec.
+	 *
+	 * @return the resulting object
+	 * @throws Exception the exception
+	 */
 	@Override
 	public Object exec() throws Exception {
 		ctx = readContext(inputFormat, inputFile);

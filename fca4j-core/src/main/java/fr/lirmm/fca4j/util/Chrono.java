@@ -48,23 +48,50 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class Chrono.
+ */
 public class Chrono {
 	private String name;
 	protected HashMap<String,Instant> current_chronos=new HashMap<>();
 	protected HashMap<String,ArrayList<Duration>> results=new HashMap<>();
+	
+	/**
+	 * Instantiates a new chrono.
+	 *
+	 * @param name the name
+	 */
 	public Chrono(String name)
 	{
 		this.name=name;
 	}
+	
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
 	public String getName()
 	{
 		return name;
 	}
 
+	/**
+	 * Start.
+	 *
+	 * @param serieName the serie name
+	 */
 	public void start(String serieName)
 	{
 		current_chronos.put(serieName, Instant.now());
 	}
+	
+	/**
+	 * Stop.
+	 *
+	 * @param serieName the serie name
+	 */
 	public void stop(String serieName)
 	{
 		Instant currentTime=current_chronos.get(serieName);
@@ -79,16 +106,36 @@ public class Chrono {
 			result.add(Duration.between(currentTime,Instant.now()));
 			}
 	}
+	
+	/**
+	 * Gets the result.
+	 *
+	 * @param serieName the serie name
+	 * @return the result
+	 */
 	public long getResult(String serieName)
 	{
 		long l=0L;
 		for(Duration mesure:results.get(serieName)) l+=mesure.toNanos();
 		return l/1_000_000L;
 	}
+	
+	/**
+	 * Gets the result array.
+	 *
+	 * @param serieName the serie name
+	 * @return the result array
+	 */
 	public ArrayList<Duration> getResultArray(String serieName)
 	{
 		return results.get(serieName);
 	}
+	
+	/**
+	 * Gets the result.
+	 *
+	 * @return the result
+	 */
 	public long getResult()
 	{
 		long l=0L;
@@ -96,10 +143,22 @@ public class Chrono {
 			for(Duration mesure:mesures) l+=mesure.toNanos();
 		return l/1_000_000L;
 	}
+	
+	/**
+	 * Gets the serie count.
+	 *
+	 * @return the serie count
+	 */
 	public int getSerieCount()
 	{
 		return results.size();
 	}
+	
+	/**
+	 * Gets the serie names.
+	 *
+	 * @return the serie names
+	 */
 	public String[] getSerieNames()
 	{
 		return results.keySet().toArray(new String[results.keySet().size()]);

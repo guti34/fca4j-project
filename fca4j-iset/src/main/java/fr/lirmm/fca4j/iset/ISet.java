@@ -62,19 +62,19 @@ public interface ISet extends Cloneable {
     public void addAll(ISet anotherSet);
 
     /**
-     * Returns <tt>true</tt> if this set contains the specified integer.
+     * Returns true if this set contains the specified integer.
      *
      * @param num integer whose presence in this set is to be tested
-     * @return <tt>true</tt> if this set contains the specified integer
+     * @return true if this set contains the specified integer
      */
     public boolean contains(int num);
 
     /**
-     * Returns <tt>true</tt> if this set contains all of the integer of the
+     * Returns true if this set contains all of the integer of the
      * specified set.
      *
      * @param anotherSet collection to be checked for containment in this set
-     * @return <tt>true</tt> if this set contains all of the integer of the
+     * @return true if this set contains all of the integer of the
      * specified collection
      * @see #contains(int)
      */
@@ -149,9 +149,9 @@ public interface ISet extends Cloneable {
     public Iterator<Integer> iterator();
 
     /**
-     * Returns <tt>true</tt> if this set contains no elements.
+     * Returns true if this set contains no elements.
      *
-     * @return <tt>true</tt> if this set contains no elements
+     * @return true if this set contains no elements
      */
     public boolean isEmpty();
 
