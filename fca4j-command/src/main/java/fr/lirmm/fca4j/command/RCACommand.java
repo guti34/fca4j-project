@@ -77,34 +77,40 @@ public class RCACommand extends Command {
 
 	/** The family file. */
 	protected File familyFile;
-	
+
 	/** The result folder. */
 	protected File resultFolder;
-	
+
 	/** The new name. */
 	protected String newName;
-	
+
 	/** The family format. */
 	protected FamilyFormat familyFormat;
-	
+
 	/** The algorithm. */
 	protected AlgoRCA algo;
-	
+
 	/** The percent. */
 	protected int percent = -1;
-	
+
 	/** produce dot file for graphviz. */
 	boolean produce_dot = false;
-	
+
 	/** produce extended family. */
 	boolean storeExtendedFamily = false;
 	
+	/** add full concept extents */
+	boolean fullExtents=false;
+
+	/** add full concept extents */
+	boolean fullIntents=false;
+
 	/** rename relational attributes using concept intents. */
 	boolean nameWithIntent = false;
-	
+
 	/** store xml. */
 	boolean storeXml = false;
-	
+
 	/** The max step. */
 	int maxStep = -1;
 
@@ -112,19 +118,19 @@ public class RCACommand extends Command {
 	 * The Enum AlgoRCA.
 	 */
 	enum AlgoRCA {
-		
-	 /** The ares algorithm. */
-	 ARES, 
-	 /** The ceres algorithm. */
-	 CERES, 
-	 /** The pluton algorithm. */
-	 PLUTON, 
-	 /** The hermes algorithm. */
-	 HERMES, 
-	 /** The add extent algorithm. */
-	 ADD_EXTENT, 
-	 /** The iceberg algorithm. */
-	 ICEBERG
+
+		/** The ares algorithm. */
+		ARES,
+		/** The ceres algorithm. */
+		CERES,
+		/** The pluton algorithm. */
+		PLUTON,
+		/** The hermes algorithm. */
+		HERMES,
+		/** The add extent algorithm. */
+		ADD_EXTENT,
+		/** The iceberg algorithm. */
+		ICEBERG
 	};
 
 	/**
@@ -133,10 +139,10 @@ public class RCACommand extends Command {
 	 * @param setContext the set context
 	 */
 	public RCACommand(ISetContext setContext) {
-		super("rca", "to create a conceptual structure family from a relational context family. "+
-				"The output is a JSON file that can be opened in RCAviz, a DOT file that contains the graph of the conceptual structure family at the end of the process,"+
-				"TXT files for tracing the size of structures at each step, and traces.csv that contains the formal and relational contexts and other settings used at each step."+
-				"The input is a relational context family."	, "input", "output-folder",setContext);
+		super("rca", "to create a conceptual structure family from a relational context family. "
+				+ "The output is a JSON file that can be opened in RCAviz, a DOT file that contains the graph of the conceptual structure family at the end of the process,"
+				+ "TXT files for tracing the size of structures at each step, and traces.csv that contains the formal and relational contexts and other settings used at each step."
+				+ "The input is a relational context family.", "input", "output-folder", setContext);
 	}
 
 	/**
@@ -152,6 +158,8 @@ public class RCACommand extends Command {
 		options.addOption(Option.builder("e").desc("store the final extended family").build());
 		options.addOption(Option.builder("dot").desc("build dot files").build());
 		options.addOption(Option.builder("xml").desc("build xml files").build());
+		options.addOption(Option.builder("fe").desc("add full concept extents").build());
+		options.addOption(Option.builder("fi").desc("add full concept intents").build());
 		// algo
 		options.addOption(
 				Option.builder("a").desc("supported algorithms are:" + sb_algo_aoc).hasArg().argName("ALGO").build());
@@ -176,6 +184,8 @@ public class RCACommand extends Command {
 		produce_dot = line.hasOption("dot");
 		storeXml = line.hasOption("xml");
 		storeExtendedFamily = line.hasOption("e");
+		fullExtents=line.hasOption("fe");
+		fullIntents=line.hasOption("fi");
 		// family file
 		List<String> args = line.getArgList();
 		for (String arg : args) {
@@ -372,7 +382,7 @@ public class RCACommand extends Command {
 						// create json concept Array
 						conceptArray = new JSONArray();
 					}
-					generateJSON(family, conceptArray, cPoset);
+					generateJSON(family, conceptArray, cPoset,fullIntents,fullExtents);
 				}
 				i++;
 			}
@@ -412,100 +422,121 @@ public class RCACommand extends Command {
 	/**
 	 * Generate JSON.
 	 *
-	 * @param family the rca family
-	 * @param conceptArray the concept array
-	 * @param conceptOrder the concept order
+	 * @param family           the rca family
+	 * @param conceptJsonArray the concept array
+	 * @param conceptOrder     the concept order
 	 */
-	protected void generateJSON(RCAFamily family, JSONArray conceptArray, IConceptOrder conceptOrder) {
+	protected void generateJSON(RCAFamily family, JSONArray conceptJsonArray, IConceptOrder conceptOrder,
+			boolean fullIntents, boolean fullExtents) {
 		IBinaryContext matrix = conceptOrder.getContext();
 		for (Iterator<Integer> it = conceptOrder.getTopDownIterator(); it.hasNext();) {
 			int concept = it.next();
-			JSONObject conceptObject = new JSONObject();
-			conceptObject.put("id", concept);
-			conceptObject.put("context", matrix.getName());
-			conceptArray.add(conceptObject);
-			// populate intent
-			JSONObject attributesObject = new JSONObject();
-			conceptObject.put("attributes", attributesObject);
-			// JSONArray rawArray=new JSONArray();
-			// attributesObject.put("raw", rawArray);
+			JSONObject conceptJson = new JSONObject();
+			conceptJson.put("id", concept);
+			conceptJson.put("context", matrix.getName());
+			conceptJsonArray.add(conceptJson);
+			// populate reduced intent
+			JSONObject attributesJson = new JSONObject();
+			conceptJson.put("attributes", attributesJson);
 			for (Iterator<Integer> itIntent = conceptOrder.getConceptReducedIntent(concept).iterator(); itIntent
 					.hasNext();) {
 				String attrName = matrix.getAttributeName(itIntent.next());
-				int index = attrName.indexOf("(C_");
-				if (index > 0) {
-					String attrRelName = attrName.substring(0, index);
-					JSONObject relAttrObject =(JSONObject)attributesObject.get(attrRelName);
-					if(relAttrObject==null)
-					{
-						relAttrObject = new JSONObject();
-						relAttrObject.put("concepts", new JSONArray());
-						attributesObject.put(attrRelName, relAttrObject);						
-						// parse relation name
-						int beg=attrRelName.indexOf("_");
-						String relationName = attrRelName.substring(beg+1);
-						relAttrObject.put("relation", relationName);
-						// parse operator
-						String sOperator=attrRelName.substring(0,beg);
-						AbstractScalingOperator operator=MyScalingOperatorFactory.createScalingOperator(sOperator, null);
-						if(operator==null)
-						{
-							relAttrObject.put("operator", "?");
-						}
-						else{
-							if(MyScalingOperatorFactory.hasParameter(operator.getName())){
-									relAttrObject.put("percent", MyScalingOperatorFactory.getParameter(operator.getName()));
-									int idx=operator.getName().lastIndexOf('N');
-									relAttrObject.put("operator",operator.getName().substring(0, idx+1));
-							}else{
-								relAttrObject.put("operator",operator.getName());								
-							}
-						}
-						// parse target
-						String s = attrName.substring(index + 3);
-						int underscore = s.indexOf("_");
-						String target= s.substring(0, underscore);
-						relAttrObject.put("target", target);
-						
-					}
-					// parse concepts
-					String s = attrName.substring(index + 3);
-					int parenthesis = s.indexOf(")");
-					int underscore = s.indexOf("_");
-					int numConcept = Integer.parseInt(s.substring(underscore+1,parenthesis));
-					JSONArray attrConceptArray=(JSONArray) relAttrObject.get("concepts");
-					attrConceptArray.add(numConcept);
-				} else {
-					try {
-						int underscore = attrName.indexOf("_");
-						String key = attrName.substring(0, underscore);
-						String value = attrName.substring(underscore + 1);
-						attributesObject.put(key, value);
-					} catch (Exception e) {
-						attributesObject.put(attrName, attrName);
-					}
+				generateAttribute(attrName, attributesJson);
+			}
+			if (fullIntents) {
+				// populate full intent
+				JSONObject fullIntentJson = new JSONObject();
+				conceptJson.put("intent", fullIntentJson);
+				for (Iterator<Integer> itIntent = conceptOrder.getConceptIntent(concept).iterator(); itIntent
+						.hasNext();) {
+					String attrName = matrix.getAttributeName(itIntent.next());
+					generateAttribute(attrName, fullIntentJson);
 				}
 			}
 			// populate extent
-			JSONArray objectArray = new JSONArray();
-			conceptObject.put("objects", objectArray);
+			JSONArray objectJsonArray = new JSONArray();
+			conceptJson.put("objects", objectJsonArray);
 			for (Iterator<Integer> itExtent = conceptOrder.getConceptReducedExtent(concept).iterator(); itExtent
 					.hasNext();) {
 				String objName = matrix.getObjectName(itExtent.next());
-				objectArray.add(objName);
+				objectJsonArray.add(objName);
+			}
+			if (fullExtents) {
+				// populate full extent
+				JSONArray fullExtentJsonArray = new JSONArray();
+				conceptJson.put("extent", fullExtentJsonArray);
+				for (Iterator<Integer> itExtent = conceptOrder.getConceptExtent(concept).iterator(); itExtent
+						.hasNext();) {
+					String objName = matrix.getObjectName(itExtent.next());
+					fullExtentJsonArray.add(objName);
+				}
 			}
 			// populate children
 			JSONArray children = new JSONArray();
 			for (Iterator<Integer> itChildren = conceptOrder.getLowerCover(concept).iterator(); itChildren.hasNext();) {
 				children.add(itChildren.next());
 			}
-			conceptObject.put("children", children);
+			conceptJson.put("children", children);
 			// populate parents
 			JSONArray parents = new JSONArray();
 			for (Iterator<Integer> itParents = conceptOrder.getUpperCover(concept).iterator(); itParents.hasNext();) {
 				parents.add(itParents.next());
 			}
-			conceptObject.put("parents", parents);
+			conceptJson.put("parents", parents);
+		}
+
+	}
+
+	private void generateAttribute(String attrName, JSONObject attributesJson) {
+		int index = attrName.indexOf("(C_");
+		if (index > 0) {
+			String attrRelName = attrName.substring(0, index);
+			JSONObject relAttrJson = (JSONObject) attributesJson.get(attrRelName);
+			if (relAttrJson == null) {
+				relAttrJson = new JSONObject();
+				relAttrJson.put("concepts", new JSONArray());
+				attributesJson.put(attrRelName, relAttrJson);
+				// parse relation name
+				int beg = attrRelName.indexOf("_");
+				String relationName = attrRelName.substring(beg + 1);
+				relAttrJson.put("relation", relationName);
+				// parse operator
+				String sOperator = attrRelName.substring(0, beg);
+				AbstractScalingOperator operator = MyScalingOperatorFactory.createScalingOperator(sOperator, null);
+				if (operator == null) {
+					relAttrJson.put("operator", "?");
+				} else {
+					if (MyScalingOperatorFactory.hasParameter(operator.getName())) {
+						relAttrJson.put("percent", MyScalingOperatorFactory.getParameter(operator.getName()));
+						int idx = operator.getName().lastIndexOf('N');
+						relAttrJson.put("operator", operator.getName().substring(0, idx + 1));
+					} else {
+						relAttrJson.put("operator", operator.getName());
+					}
+				}
+				// parse target
+				String s = attrName.substring(index + 3);
+				int underscore = s.indexOf("_");
+				String target = s.substring(0, underscore);
+				relAttrJson.put("target", target);
+
+			}
+			// parse concepts
+			String s = attrName.substring(index + 3);
+			int parenthesis = s.indexOf(")");
+			int underscore = s.indexOf("_");
+			int numConcept = Integer.parseInt(s.substring(underscore + 1, parenthesis));
+			JSONArray attrConceptJsonArray = (JSONArray) relAttrJson.get("concepts");
+			attrConceptJsonArray.add(numConcept);
+		} else {
+			try {
+				int underscore = attrName.indexOf("_");
+				String key = attrName.substring(0, underscore);
+				String value = attrName.substring(underscore + 1);
+				attributesJson.put(key, value);
+			} catch (Exception e) {
+				attributesJson.put(attrName, attrName);
+			}
 		}
 
 	}
