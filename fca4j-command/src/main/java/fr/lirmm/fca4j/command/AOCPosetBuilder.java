@@ -166,7 +166,7 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		checkImplementation(line);
 		if (line.hasOption("a")) {
 			try {
-				algo = AlgoAOCPoset.valueOf(line.getOptionValue("a"));
+				algo = AlgoAOCPoset.valueOf(line.getOptionValue("a").toUpperCase());
 			} catch (IllegalArgumentException e) {
 			}
 			if (algo == null)
