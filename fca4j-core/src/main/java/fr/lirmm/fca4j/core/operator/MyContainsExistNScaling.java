@@ -63,10 +63,10 @@ public class MyContainsExistNScaling extends AbstractScalingOperator{
     @Override
     public boolean scale(int e, ISet c, IBinaryContext context) {
 		int maxLinks=c.cardinality();
-		int threshold=new Float((x*maxLinks)/100).intValue();
-		if (maxLinks==0)
+		int threshold=(int)((x*maxLinks)/100);
+		if (c.isEmpty())
 			return false;
-		return context.getIntent(e).newIntersect(c).cardinality()<=threshold;
+		return context.getIntent(e).newIntersect(c).cardinality()>threshold;
     }
 
     /**

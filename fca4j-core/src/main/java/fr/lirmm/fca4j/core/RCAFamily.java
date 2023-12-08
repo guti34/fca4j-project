@@ -38,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.DirectedPseudograph;
 
 import fr.lirmm.fca4j.core.operator.AbstractScalingOperator;
 import fr.lirmm.fca4j.core.operator.MyScalingOperatorFactory;
@@ -57,7 +58,8 @@ public class RCAFamily {
     /**
      * The graph.
      */
-    protected DirectedMultigraph<String, String> graph = new DirectedMultigraph<>(String.class);
+//    protected DirectedMultigraph<String, String> graph = new DirectedMultigraph<>(String.class);
+    protected DirectedPseudograph<String, String> graph = new DirectedPseudograph<>(String.class);
     /**
      * The contexts
      */

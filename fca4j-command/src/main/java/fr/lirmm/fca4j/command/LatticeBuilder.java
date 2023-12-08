@@ -93,7 +93,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 	 */
 	public LatticeBuilder(ISetContext setContext) {
 		super("lattice",
-				"builds a concept lattice. ADD_EXTENT algorithm build the complete concept lattice. ICEBERG builds a lattice with only the top-most concepts of the concept lattice",setContext);
+				"builds a concept lattice. ADD_EXTENT algorithm build the complete concept lattice. ICEBERG builds a lattice with only the top-most concepts of the concept lattice. A bottom concept is added that groups remaining attributes (not introduced by a frequent concept extent) and transforms the semi-lattice into a lattice. Euclidian division is used in FCA4J: e.g. In Iceberg50,  the concepts have an extent whose cardinality is >= total object count * 50 /100, where / is Euclidian division",setContext);
 	}
 
 	/**

@@ -30,16 +30,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package fr.lirmm.fca4j.core.operator;
 
+import java.util.Iterator;
+
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;
-
 
 /**
  * The Class MyForNearlyAllExistentialScaling.
  */
-public class MyForNearlyAllExistentialScaling extends AbstractScalingOperator{
+public class MyForNearlyAllExistentialScaling extends AbstractScalingOperator {
 	private float x;
-	
+
 	/**
 	 * Instantiates a new my for nearly all existential scaling.
 	 *
@@ -47,40 +48,38 @@ public class MyForNearlyAllExistentialScaling extends AbstractScalingOperator{
 	 */
 	public MyForNearlyAllExistentialScaling(float parameter) {
 		super();
-		x=parameter;
+		x = parameter;
 	}
 
-    /**
-     * Scale.
-     *
-     * @param e the e
-     * @param c the c
-     * @param context the context
-     * @return true, if successful
-     */
-    @Override
-    public boolean scale(int e, ISet c, IBinaryContext context) {
-        ISet targetEntities=context.getIntent(e);
-	int maxLinks=targetEntities.cardinality();
-	//TODO check the validity of the rounding
-	int threshold= new Float(x*maxLinks/100).intValue();
-	if (maxLinks==0)
-		return false;
-	ISet inter=targetEntities.newIntersect(c);
-		return inter.cardinality()<=threshold;		
-    }
+	/**
+	 * Scale.
+	 *
+	 * @param e       the e
+	 * @param c       the c
+	 * @param context the context
+	 * @return true, if successful
+	 */
+	public boolean scale(int e, ISet c, IBinaryContext context) {
+		ISet targetEntities = context.getIntent(e);
+		int maxLinks = targetEntities.cardinality();
+		int threshold = (int) ((x * maxLinks) / 100);
+		if (maxLinks == 0 || c.isEmpty()) {
+			return false;
+		}
+		ISet inter = targetEntities.newIntersect(c);
+		return inter.cardinality() > threshold;
+	}
 
-    /**
-     * Gets the name.
-     *
-     * @return the name
-     */
-    @Override
-    public String getName() {
-    	if(Math.ceil(x)==x)
-    		return "existForallN"+(int)x;
-        return "existForallN"+x;
-    }
-    
-    
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
+	@Override
+	public String getName() {
+		if (Math.ceil(x) == x)
+			return "existForallN" + (int) x;
+		return "existForallN" + x;
+	}
+
 }
