@@ -99,6 +99,9 @@ public class RCACommand extends Command {
 	/** produce extended family. */
 	boolean storeExtendedFamily = false;
 	
+	/** produce extended family. */
+	boolean storeAllExtendedFamily = false;
+	
 	/** add full concept extents */
 	boolean fullExtents=false;
 
@@ -107,6 +110,9 @@ public class RCACommand extends Command {
 
 	/** rename relational attributes using concept intents. */
 	boolean nameWithIntent = false;
+	
+	/** show all intent when renaming attributes (nameWithIntent must be set to true)*/
+	boolean nameWithFullIntent = false;
 
 	/** store xml. */
 	boolean storeXml = false;
@@ -154,8 +160,10 @@ public class RCACommand extends Command {
 		for (AlgoRCA algo : AlgoRCA.values()) {
 			sb_algo_aoc.append("\n* " + algo.name());
 		}
-		options.addOption(Option.builder("ra").desc("rename relational attributes using concept intents").build());
+		options.addOption(Option.builder("ra").desc("rename relational attributes using concept reduced intents").build());
+		options.addOption(Option.builder("ri").desc("rename relational attributes using concept full intents").build());
 		options.addOption(Option.builder("e").desc("store the final extended family").build());
+		options.addOption(Option.builder("es").desc("store the extended family at each step").build());
 		options.addOption(Option.builder("dot").desc("build dot files").build());
 		options.addOption(Option.builder("xml").desc("build xml files").build());
 		options.addOption(Option.builder("fe").desc("add full concept extents").build());
@@ -184,6 +192,7 @@ public class RCACommand extends Command {
 		produce_dot = line.hasOption("dot");
 		storeXml = line.hasOption("xml");
 		storeExtendedFamily = line.hasOption("e");
+		storeAllExtendedFamily = line.hasOption("es");
 		fullExtents=line.hasOption("fe");
 		fullIntents=line.hasOption("fi");
 		// family file
@@ -243,6 +252,7 @@ public class RCACommand extends Command {
 		} else
 			throw new Exception("algorithm must be specified (-a option)");
 		nameWithIntent = line.hasOption("ra");
+		nameWithFullIntent= line.hasOption("ri");
 	}
 
 	/**
@@ -275,8 +285,10 @@ public class RCACommand extends Command {
 		} else {
 			throw new Exception("input file " + familyFile.getPath() + " cannot be found");
 		}
-		// renaming of relational attributes
+		// renaming of relational attributes reduced intents
 		family.setNameWithIntent(nameWithIntent);
+		// renaming of relational attributes full intents
+		family.setNameWithFullIntent(nameWithIntent);
 
 		String familyName = familyFile.getName();
 		int index = familyName.lastIndexOf(".");
@@ -363,19 +375,35 @@ public class RCACommand extends Command {
 					fw.append(msg);
 					fw.close();
 				}
-				if (thisIsTheEnd && storeExtendedFamily) {
+				if (thisIsTheEnd&&storeExtendedFamily) {
+					String ext_name="extended";
 					switch (familyFormat) {
 					case RCFAL:
-						RCFALWriter.write(family, resultFolder.getPath() + "/" + familyName + "extended.rcfal");
+						RCFALWriter.write(family, resultFolder.getPath() + "/" + familyName +ext_name+ ".rcfal");
 						break;
 					case RCFGZ:
-						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + "extended.rcfgz", true);
+						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcfgz", true);
 						break;
 					case RCFT:
-						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + "extended.rcft", false);
+						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcft", false);
 						break;
 					}
 				}
+				if (storeAllExtendedFamily) {
+					String ext_name="_step"+step;
+					switch (familyFormat) {
+					case RCFAL:
+						RCFALWriter.write(family, resultFolder.getPath() + "/" + familyName +ext_name+ ".rcfal");
+						break;
+					case RCFGZ:
+						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcfgz", true);
+						break;
+					case RCFT:
+						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcft", false);
+						break;
+					}
+				}
+				
 				// store concepts in json file
 				if (thisIsTheEnd) {
 					if (conceptArray == null) {

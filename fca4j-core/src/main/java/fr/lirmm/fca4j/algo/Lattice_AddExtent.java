@@ -85,7 +85,6 @@ public class Lattice_AddExtent implements AbstractAlgo<ConceptOrder> {
             return generator;
         }
         ArrayList<Integer> newChildren = new ArrayList<>();
-        
         Iterator<Integer> it = order.getLowerCoverIterator(generator);
         while (it.hasNext()) {
             int candidate = it.next();
@@ -95,7 +94,7 @@ public class Lattice_AddExtent implements AbstractAlgo<ConceptOrder> {
             }
             boolean addChild = true;
             ArrayList<Integer> conceptsToDelete = new ArrayList<>();
-            for (int child : newChildren) {
+            for (int child:newChildren) {
                 if (order.getConceptExtent(child).containsAll(order.getConceptExtent(candidate))) {
                     addChild = false;
                     break;
@@ -109,7 +108,8 @@ public class Lattice_AddExtent implements AbstractAlgo<ConceptOrder> {
             }
         }       
         int newConcept = order.addConcept(factory.clone(extent), factory.clone(order.getConceptIntent(generator)));
-        for (int child : newChildren) {
+        for (int child:newChildren) 
+        {
             order.removePrecedenceConnection(child, generator);
             order.addPrecedenceConnection(child, newConcept);
         }

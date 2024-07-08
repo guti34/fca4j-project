@@ -52,6 +52,7 @@ public class RCAFamily {
 
     private String familyName;
     private ISetFactory factory;
+    private boolean nameWithFullIntent=false;
     private boolean nameWithIntent=true;
 
     private HashMap<String, Integer> relAttrsIndex = new HashMap<>();
@@ -103,7 +104,15 @@ public class RCAFamily {
     public void setNameWithIntent(boolean nameWithIntent) {
         this.nameWithIntent = nameWithIntent;
     }
-
+    /**
+     * Force inherited attributes when the name is built with intent.
+     *
+     * @param nameWithIntent the new name with intent
+     */
+    public void setNameWithFullIntent(boolean nameWithFullIntent) {
+        this.nameWithFullIntent = nameWithFullIntent;
+    }
+    
     /**
      * Gets the formal context.
      *
@@ -429,6 +438,7 @@ public class RCAFamily {
          */
         public int addRelationalAttribute(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
             ISet rIntent=family.getTargetOf(rc).getOrder().getConceptReducedIntent(concept);
+            ISet intent=family.getTargetOf(rc).getOrder().getConceptIntent(concept);
             String attr_name;
             if(nameWithIntent && !rIntent.isEmpty())
             {
