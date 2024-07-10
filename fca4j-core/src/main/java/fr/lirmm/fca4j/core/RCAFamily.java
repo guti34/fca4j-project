@@ -53,7 +53,8 @@ public class RCAFamily {
     private String familyName;
     private ISetFactory factory;
     private boolean nameWithFullIntent=false;
-    private boolean nameWithIntent=true;
+    private boolean nameWithReducedIntent=true;
+    private boolean nameWithReducedIntent2=false;
 
     private HashMap<String, Integer> relAttrsIndex = new HashMap<>();
     /**
@@ -97,12 +98,20 @@ public class RCAFamily {
     }
 
     /**
-     * Sets the name with intent.
+     * Sets the name with reduced intent.
+     *
+     * @param nameWithReducedIntent the new name with intent
+     */
+    public void setNameWithReducedIntent(boolean nameWithReducedIntent) {
+        this.nameWithReducedIntent = nameWithReducedIntent;
+    }
+    /**
+     * Sets the name with reduced intent except for object concepts.
      *
      * @param nameWithIntent the new name with intent
      */
-    public void setNameWithIntent(boolean nameWithIntent) {
-        this.nameWithIntent = nameWithIntent;
+    public void setNameWithReducedIntent2(boolean nameWithReducedIntent) {
+        this.nameWithReducedIntent2 = nameWithReducedIntent;
     }
     /**
      * Force inherited attributes when the name is built with intent.
@@ -439,19 +448,58 @@ public class RCAFamily {
         public int addRelationalAttribute(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
             ISet rIntent=family.getTargetOf(rc).getOrder().getConceptReducedIntent(concept);
             ISet intent=family.getTargetOf(rc).getOrder().getConceptIntent(concept);
+            intent.removeAll(rIntent);
             String attr_name;
-            if(nameWithIntent && !rIntent.isEmpty())
+            attr_name=rc.operator+"_"+rc.getRelationName() + "(";
+            // case 1: relation attribute name is built with full intent
+            if(nameWithFullIntent)
             {
-                attr_name=rc.operator+"_"+rc.getRelationName() + "(";
                 for(Iterator<Integer> it=rIntent.iterator();it.hasNext();)
                 {
                     if(!attr_name.endsWith("("))
                         attr_name+="&";
                     attr_name+=family.getTargetOf(rc).getOrder().getContext().getAttributeName(it.next());
                 }
-                attr_name+=")";
+                if(!intent.isEmpty())
+                	attr_name+="/I/";
+                for(Iterator<Integer> it=intent.iterator();it.hasNext();)
+                {
+                    if(!attr_name.endsWith("("))
+                        attr_name+="&";
+                    attr_name+=family.getTargetOf(rc).getOrder().getContext().getAttributeName(it.next());
+                }
+               attr_name+=")";
+            	
             }
-            else attr_name = rc.operator+"_"+rc.getRelationName() + "(" + family.getTargetOf(rc).getConceptName(concept) + ")";
+            // relation attribute name is built with reduced intent
+            else {
+            	if(!rIntent.isEmpty()) {
+                    for(Iterator<Integer> it=rIntent.iterator();it.hasNext();)
+                    {
+                        if(!attr_name.endsWith("("))
+                            attr_name+="&";
+                        attr_name+=family.getTargetOf(rc).getOrder().getContext().getAttributeName(it.next());
+                    }            		
+                    attr_name+=")";            			
+            	}else {
+            		// case 2: relation attribute name is built with inherited intent for object concepts (when reduced intent is empty)
+            		if(nameWithReducedIntent2) {
+                        if(!intent.isEmpty())
+                        	attr_name+="/I/";
+                        for(Iterator<Integer> it=intent.iterator();it.hasNext();)
+                        {
+                            if(!attr_name.endsWith("("))
+                                attr_name+="&";
+                            attr_name+=family.getTargetOf(rc).getOrder().getContext().getAttributeName(it.next());
+                        }
+                        attr_name+=")";            			
+            		}
+            		// case 3: relation attribute name is built with concept name (when reduced intent is empty)
+            		else {
+            			attr_name = rc.operator+"_"+rc.getRelationName() + "(" + family.getTargetOf(rc).getConceptName(concept) + ")";            			
+            		}
+            	}
+            }
             Integer numattr = relAttrsIndex.get(attr_name);
             if (numattr != null) {
                 return numattr;

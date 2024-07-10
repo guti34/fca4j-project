@@ -108,11 +108,14 @@ public class RCACommand extends Command {
 	/** add full concept extents */
 	boolean fullIntents=false;
 
-	/** rename relational attributes using concept intents. */
-	boolean nameWithIntent = false;
+	/** rename relational attributes using concept reduced intents. */
+	boolean nameWithReducedIntent = false;
 	
-	/** show all intent when renaming attributes (nameWithIntent must be set to true)*/
+	/** rename relational attributes using concept full intents.*/
 	boolean nameWithFullIntent = false;
+
+	/** rename relational attributes using concept reduced intents except for object concepts (when reduced intent is empty).*/
+	boolean nameWithReducedIntent2 = false;
 
 	/** store xml. */
 	boolean storeXml = false;
@@ -161,6 +164,7 @@ public class RCACommand extends Command {
 			sb_algo_aoc.append("\n* " + algo.name());
 		}
 		options.addOption(Option.builder("ra").desc("rename relational attributes using concept reduced intents").build());
+		options.addOption(Option.builder("rai").desc("rename relational attributes using concept full intents only when reduced intent is empty (object concepts)").build());
 		options.addOption(Option.builder("ri").desc("rename relational attributes using concept full intents").build());
 		options.addOption(Option.builder("e").desc("store the final extended family").build());
 		options.addOption(Option.builder("es").desc("store the extended family at each step").build());
@@ -251,8 +255,10 @@ public class RCACommand extends Command {
 
 		} else
 			throw new Exception("algorithm must be specified (-a option)");
-		nameWithIntent = line.hasOption("ra");
+		nameWithReducedIntent = line.hasOption("ra");
 		nameWithFullIntent= line.hasOption("ri");
+		if(nameWithFullIntent) nameWithReducedIntent=false;
+		nameWithReducedIntent2= line.hasOption("rai");
 	}
 
 	/**
@@ -286,9 +292,9 @@ public class RCACommand extends Command {
 			throw new Exception("input file " + familyFile.getPath() + " cannot be found");
 		}
 		// renaming of relational attributes reduced intents
-		family.setNameWithIntent(nameWithIntent);
+		family.setNameWithReducedIntent(nameWithReducedIntent);
 		// renaming of relational attributes full intents
-		family.setNameWithFullIntent(nameWithIntent);
+		family.setNameWithFullIntent(nameWithFullIntent);
 
 		String familyName = familyFile.getName();
 		int index = familyName.lastIndexOf(".");
