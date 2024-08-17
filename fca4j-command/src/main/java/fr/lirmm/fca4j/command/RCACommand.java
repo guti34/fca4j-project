@@ -33,6 +33,7 @@ package fr.lirmm.fca4j.command;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -54,6 +55,7 @@ import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.ExploRCA;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
+import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.RCFALReader;
 import fr.lirmm.fca4j.cli.io.RCFALWriter;
 import fr.lirmm.fca4j.cli.io.RCFTReader;
@@ -94,8 +96,11 @@ public class RCACommand extends Command {
 	protected int percent = -1;
 
 	/** produce dot file for graphviz. */
-	boolean produce_dot = false;
+	boolean produceDot = false;
 
+	/** storeAllJSon */
+	boolean produceJSon = false;
+	
 	/** produce extended family. */
 	boolean storeExtendedFamily = false;
 	
@@ -168,7 +173,8 @@ public class RCACommand extends Command {
 		options.addOption(Option.builder("ri").desc("rename relational attributes using concept full intents").build());
 		options.addOption(Option.builder("e").desc("store the final extended family").build());
 		options.addOption(Option.builder("es").desc("store the extended family at each step").build());
-		options.addOption(Option.builder("dot").desc("build dot files").build());
+		options.addOption(Option.builder("dot").desc("build dot files at each step").build());
+		options.addOption(Option.builder("json").desc("build json files at each step").build());
 		options.addOption(Option.builder("xml").desc("build xml files").build());
 		options.addOption(Option.builder("fe").desc("add full concept extents").build());
 		options.addOption(Option.builder("fi").desc("add full concept intents").build());
@@ -193,7 +199,8 @@ public class RCACommand extends Command {
 	 */
 	@Override
 	public void checkOptions(CommandLine line) throws Exception {
-		produce_dot = line.hasOption("dot");
+		produceJSon = line.hasOption("json");
+		produceDot = line.hasOption("dot");
 		storeXml = line.hasOption("xml");
 		storeExtendedFamily = line.hasOption("e");
 		storeAllExtendedFamily = line.hasOption("es");
@@ -292,9 +299,11 @@ public class RCACommand extends Command {
 			throw new Exception("input file " + familyFile.getPath() + " cannot be found");
 		}
 		// renaming of relational attributes reduced intents
-		family.setNameWithReducedIntent(nameWithReducedIntent);
+		family.setNameWithReducedIntentRA(nameWithReducedIntent);
+		// renaming of relational attributes reduced intents and inherited attributes for object concepts
+		family.setNameWithReducedIntentRAI(nameWithReducedIntent2);
 		// renaming of relational attributes full intents
-		family.setNameWithFullIntent(nameWithFullIntent);
+		family.setNameWithFullIntentRI(nameWithFullIntent);
 
 		String familyName = familyFile.getName();
 		int index = familyName.lastIndexOf(".");
@@ -353,7 +362,7 @@ public class RCACommand extends Command {
 			exploMFca.computeStep();
 			chronoStep.stop("step");
 			boolean thisIsTheEnd = exploMFca.stopCondition() || step == maxStep;
-			if (thisIsTheEnd) {
+			if (thisIsTheEnd||produceDot) {
 				FileWriter fw0 = new FileWriter(resultFolder.getPath() + "/step" + step + ".dot");
 				exploMFca.generateDot(fw0);
 			}
@@ -369,18 +378,10 @@ public class RCACommand extends Command {
 						+ cPoset.getConceptCount() + " nb.attrib rel.=" + nbAttrib + "\n";
 				System.out.println(msg);
 				results.append(msg);
-				if (produce_dot) {
-					if (thisIsTheEnd) {
-						FileWriter fw = null;
-						fw = new FileWriter(resultFolder.getPath() + "/step" + step + "-" + i + ".dot");
-						exploMFca.generateDot(fw, cPoset, step);
-					}
-				} else {
-					// pour garder des traces lorsque la tache ne se termine pas
-					FileWriter fw = new FileWriter(resultFolder.getPath() + "/step" + step + "-" + i + ".txt");
-					fw.append(msg);
-					fw.close();
-				}
+				// pour garder des traces lorsque la tache ne se termine pas
+				FileWriter fw = new FileWriter(resultFolder.getPath() + "/step" + step + "-" + i + ".txt");
+				fw.append(msg);
+				fw.close();
 				if (thisIsTheEnd&&storeExtendedFamily) {
 					String ext_name="extended";
 					switch (familyFormat) {
@@ -416,13 +417,17 @@ public class RCACommand extends Command {
 						// create json concept Array
 						conceptArray = new JSONArray();
 					}
-					generateJSON(family, conceptArray, cPoset,fullIntents,fullExtents);
+					conceptArray.addAll(ConceptOrderJSONWriter.build(cPoset, fullIntents, fullExtents));
+//					generateJSON(family, conceptArray, cPoset,fullIntents,fullExtents);
 				}
 				i++;
 			}
 			String msg = "time:" + chronoStep.getResult("step") + " ms\n";
 			System.out.println(msg);
 			results.append(msg);
+			if(produceJSon) {
+				writeJSon("step"+step, conceptArray);
+			}
 			if (thisIsTheEnd) {
 				if (storeXml) {
 					FileWriter fw = new FileWriter(resultFolder.getPath() + "/step" + step + ".xml");
@@ -444,134 +449,16 @@ public class RCACommand extends Command {
 		fw_result.write(results.toString());
 		fw_result.close();
 		// save json file
-		String formattedString = new JSONFormatter(true, true).format(conceptArray);
-		Writer json_result = new OutputStreamWriter(
-				new FileOutputStream(resultFolder.getPath() + "/" + familyName + ".json"), StandardCharsets.UTF_8);
-		json_result.write(formattedString);
-		json_result.close();
+		writeJSon(familyName,conceptArray);
 
 		return null;
 	}
 
-	/**
-	 * Generate JSON.
-	 *
-	 * @param family           the rca family
-	 * @param conceptJsonArray the concept array
-	 * @param conceptOrder     the concept order
-	 */
-	protected void generateJSON(RCAFamily family, JSONArray conceptJsonArray, IConceptOrder conceptOrder,
-			boolean fullIntents, boolean fullExtents) {
-		IBinaryContext matrix = conceptOrder.getContext();
-		for (Iterator<Integer> it = conceptOrder.getTopDownIterator(); it.hasNext();) {
-			int concept = it.next();
-			JSONObject conceptJson = new JSONObject();
-			conceptJson.put("id", concept);
-			conceptJson.put("context", matrix.getName());
-			conceptJsonArray.add(conceptJson);
-			// populate reduced intent
-			JSONObject attributesJson = new JSONObject();
-			conceptJson.put("attributes", attributesJson);
-			for (Iterator<Integer> itIntent = conceptOrder.getConceptReducedIntent(concept).iterator(); itIntent
-					.hasNext();) {
-				String attrName = matrix.getAttributeName(itIntent.next());
-				generateAttribute(attrName, attributesJson);
-			}
-			if (fullIntents) {
-				// populate full intent
-				JSONObject fullIntentJson = new JSONObject();
-				conceptJson.put("intent", fullIntentJson);
-				for (Iterator<Integer> itIntent = conceptOrder.getConceptIntent(concept).iterator(); itIntent
-						.hasNext();) {
-					String attrName = matrix.getAttributeName(itIntent.next());
-					generateAttribute(attrName, fullIntentJson);
-				}
-			}
-			// populate extent
-			JSONArray objectJsonArray = new JSONArray();
-			conceptJson.put("objects", objectJsonArray);
-			for (Iterator<Integer> itExtent = conceptOrder.getConceptReducedExtent(concept).iterator(); itExtent
-					.hasNext();) {
-				String objName = matrix.getObjectName(itExtent.next());
-				objectJsonArray.add(objName);
-			}
-			if (fullExtents) {
-				// populate full extent
-				JSONArray fullExtentJsonArray = new JSONArray();
-				conceptJson.put("extent", fullExtentJsonArray);
-				for (Iterator<Integer> itExtent = conceptOrder.getConceptExtent(concept).iterator(); itExtent
-						.hasNext();) {
-					String objName = matrix.getObjectName(itExtent.next());
-					fullExtentJsonArray.add(objName);
-				}
-			}
-			// populate children
-			JSONArray children = new JSONArray();
-			for (Iterator<Integer> itChildren = conceptOrder.getLowerCover(concept).iterator(); itChildren.hasNext();) {
-				children.add(itChildren.next());
-			}
-			conceptJson.put("children", children);
-			// populate parents
-			JSONArray parents = new JSONArray();
-			for (Iterator<Integer> itParents = conceptOrder.getUpperCover(concept).iterator(); itParents.hasNext();) {
-				parents.add(itParents.next());
-			}
-			conceptJson.put("parents", parents);
-		}
-
-	}
-
-	private void generateAttribute(String attrName, JSONObject attributesJson) {
-		int index = attrName.indexOf("(C_");
-		if (index > 0) {
-			String attrRelName = attrName.substring(0, index);
-			JSONObject relAttrJson = (JSONObject) attributesJson.get(attrRelName);
-			if (relAttrJson == null) {
-				relAttrJson = new JSONObject();
-				relAttrJson.put("concepts", new JSONArray());
-				attributesJson.put(attrRelName, relAttrJson);
-				// parse relation name
-				int beg = attrRelName.indexOf("_");
-				String relationName = attrRelName.substring(beg + 1);
-				relAttrJson.put("relation", relationName);
-				// parse operator
-				String sOperator = attrRelName.substring(0, beg);
-				AbstractScalingOperator operator = MyScalingOperatorFactory.createScalingOperator(sOperator, null);
-				if (operator == null) {
-					relAttrJson.put("operator", "?");
-				} else {
-					if (MyScalingOperatorFactory.hasParameter(operator.getName())) {
-						relAttrJson.put("percent", MyScalingOperatorFactory.getParameter(operator.getName()));
-						int idx = operator.getName().lastIndexOf('N');
-						relAttrJson.put("operator", operator.getName().substring(0, idx + 1));
-					} else {
-						relAttrJson.put("operator", operator.getName());
-					}
-				}
-				// parse target
-				String s = attrName.substring(index + 3);
-				int underscore = s.indexOf("_");
-				String target = s.substring(0, underscore);
-				relAttrJson.put("target", target);
-
-			}
-			// parse concepts
-			String s = attrName.substring(index + 3);
-			int parenthesis = s.indexOf(")");
-			int underscore = s.indexOf("_");
-			int numConcept = Integer.parseInt(s.substring(underscore + 1, parenthesis));
-			JSONArray attrConceptJsonArray = (JSONArray) relAttrJson.get("concepts");
-			attrConceptJsonArray.add(numConcept);
-		} else {
-			try {
-				int underscore = attrName.indexOf("_");
-				String key = attrName.substring(0, underscore);
-				String value = attrName.substring(underscore + 1);
-				attributesJson.put(key, value);
-			} catch (Exception e) {
-				attributesJson.put(attrName, attrName);
-			}
-		}
-
-	}
+private void writeJSon(String name,JSONArray conceptArray) throws IOException {
+	String formattedString = new JSONFormatter(true, true).format(conceptArray);
+	Writer json_result = new OutputStreamWriter(
+			new FileOutputStream(resultFolder.getPath() + "/" + name + ".json"), StandardCharsets.UTF_8);
+	json_result.write(formattedString);
+	json_result.close();	
+}
 }

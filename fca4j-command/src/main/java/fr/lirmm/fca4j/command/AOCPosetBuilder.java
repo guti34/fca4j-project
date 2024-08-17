@@ -234,7 +234,8 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 				JSONObject mainJson = new JSONObject();
 				mainJson.put("source", ctx.getName());
 				mainJson.put("algo", aoc_algo.getDescription());
-				ConceptOrderJSONWriter.build(mainJson, result, ctx);
+//				mainJson.put("concepts", ConceptOrderJSONWriter.build(result, ctx));
+				mainJson.put("concepts", ConceptOrderJSONWriter.build(result, false,false));
 				mainJson.writeJSONString(writer);
 				writer.flush();
 				writer.close();

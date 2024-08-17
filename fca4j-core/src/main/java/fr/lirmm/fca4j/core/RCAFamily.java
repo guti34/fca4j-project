@@ -52,7 +52,7 @@ public class RCAFamily {
 
     private String familyName;
     private ISetFactory factory;
-    private boolean nameWithFullIntent=false;
+    private boolean nameWithFullIntentRI=false;
     private boolean nameWithReducedIntent=true;
     private boolean nameWithReducedIntent2=false;
 
@@ -102,7 +102,7 @@ public class RCAFamily {
      *
      * @param nameWithReducedIntent the new name with intent
      */
-    public void setNameWithReducedIntent(boolean nameWithReducedIntent) {
+    public void setNameWithReducedIntentRA(boolean nameWithReducedIntent) {
         this.nameWithReducedIntent = nameWithReducedIntent;
     }
     /**
@@ -110,7 +110,7 @@ public class RCAFamily {
      *
      * @param nameWithIntent the new name with intent
      */
-    public void setNameWithReducedIntent2(boolean nameWithReducedIntent) {
+    public void setNameWithReducedIntentRAI(boolean nameWithReducedIntent) {
         this.nameWithReducedIntent2 = nameWithReducedIntent;
     }
     /**
@@ -118,8 +118,8 @@ public class RCAFamily {
      *
      * @param nameWithIntent the new name with intent
      */
-    public void setNameWithFullIntent(boolean nameWithFullIntent) {
-        this.nameWithFullIntent = nameWithFullIntent;
+    public void setNameWithFullIntentRI(boolean nameWithFullIntent) {
+        this.nameWithFullIntentRI = nameWithFullIntent;
     }
     
     /**
@@ -441,18 +441,18 @@ public class RCAFamily {
          *
          * @param family the family
          * @param concept the concept
-         * @param rc the rc
+         * @param rc the relational context
          * @param extent the extent
-         * @return the int
+         * @return the attribute number
          */
         public int addRelationalAttribute(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
             ISet rIntent=family.getTargetOf(rc).getOrder().getConceptReducedIntent(concept);
-            ISet intent=family.getTargetOf(rc).getOrder().getConceptIntent(concept);
+            ISet intent=family.getTargetOf(rc).getOrder().getConceptIntent(concept).clone();
             intent.removeAll(rIntent);
             String attr_name;
             attr_name=rc.operator+"_"+rc.getRelationName() + "(";
             // case 1: relation attribute name is built with full intent
-            if(nameWithFullIntent)
+            if(nameWithFullIntentRI)
             {
                 for(Iterator<Integer> it=rIntent.iterator();it.hasNext();)
                 {
@@ -464,7 +464,7 @@ public class RCAFamily {
                 	attr_name+="/I/";
                 for(Iterator<Integer> it=intent.iterator();it.hasNext();)
                 {
-                    if(!attr_name.endsWith("("))
+                    if(!(attr_name.endsWith("(")||attr_name.endsWith("/")))
                         attr_name+="&";
                     attr_name+=family.getTargetOf(rc).getOrder().getContext().getAttributeName(it.next());
                 }
@@ -472,7 +472,7 @@ public class RCAFamily {
             	
             }
             // relation attribute name is built with reduced intent
-            else {
+            else if(nameWithReducedIntent || nameWithReducedIntent2){
             	if(!rIntent.isEmpty()) {
                     for(Iterator<Integer> it=rIntent.iterator();it.hasNext();)
                     {
@@ -488,7 +488,7 @@ public class RCAFamily {
                         	attr_name+="/I/";
                         for(Iterator<Integer> it=intent.iterator();it.hasNext();)
                         {
-                            if(!attr_name.endsWith("("))
+                            if(!(attr_name.endsWith("(")||attr_name.endsWith("/")))
                                 attr_name+="&";
                             attr_name+=family.getTargetOf(rc).getOrder().getContext().getAttributeName(it.next());
                         }
@@ -500,6 +500,9 @@ public class RCAFamily {
             		}
             	}
             }
+            else {
+    			attr_name = rc.operator+"_"+rc.getRelationName() + "(" + family.getTargetOf(rc).getConceptName(concept) + ")";            			
+    		}
             Integer numattr = relAttrsIndex.get(attr_name);
             if (numattr != null) {
                 return numattr;
@@ -508,8 +511,27 @@ public class RCAFamily {
                 numattr = context.addAttribute(attr_name, extent);
                 relationalAttributes.put(numattr, rAttr);
                 relAttrsIndex.put(attr_name, numattr);
+                
+//                myGsh.getConceptIntent(concept).add(numattr);
+//                myGsh.getConceptReducedIntent(concept).add(numattr);
+                
                 return numattr;
             }
+        }
+        public int addRelationalAttribute2(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
+            ISet rIntent=family.getTargetOf(rc).getOrder().getConceptReducedIntent(concept);
+            ISet intent=family.getTargetOf(rc).getOrder().getConceptIntent(concept).clone();
+            intent.removeAll(rIntent);
+            String attr_name;
+    		attr_name = rc.operator+"_"+rc.getRelationName() + "(" + family.getTargetOf(rc).getConceptName(concept) + ")";            			
+            Integer numattr = relAttrsIndex.get(attr_name);
+            if (numattr == null) {
+                RelationalAttribute rAttr = new RelationalAttribute(concept, rc, attr_name);
+                numattr = context.addAttribute(attr_name, extent);
+                relationalAttributes.put(numattr, rAttr);
+                relAttrsIndex.put(attr_name, numattr);              
+            }
+            return numattr;
         }
 
         /**

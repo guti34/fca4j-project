@@ -241,7 +241,8 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 				JSONObject mainJson = new JSONObject();
 				mainJson.put("source", ctx.getName());
 				mainJson.put("algo", lat_algo.getDescription());
-				ConceptOrderJSONWriter.build(mainJson, result, ctx);
+//				ConceptOrderJSONWriter.build(mainJson, result, ctx);
+				mainJson.put("concepts",ConceptOrderJSONWriter.build(result,false,false));
 				mainJson.writeJSONString(writer);
 				writer.flush();
 				writer.close();
