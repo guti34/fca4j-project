@@ -43,6 +43,8 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
 import fr.lirmm.fca4j.core.RCAFamily.RelationalContext;
+import fr.lirmm.fca4j.util.AttributeRenamer;
+import fr.lirmm.fca4j.util.AttributeRenamer.MODE;
 
 /**
  * The Class RCFTWriter.
@@ -59,6 +61,19 @@ public class RCFTWriter {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public static File write(RCAFamily rcf, String outputPath, boolean compressed) throws IOException {
+    	return write(rcf,outputPath,compressed,MODE.SIMPLE);
+    }
+        /**
+         * Write.
+         *
+         * @param rcf the rcf
+         * @param outputPath the output path
+         * @param compressed the compressed
+         * @param mode renaming attributes mode
+         * @return the file
+         * @throws IOException Signals that an I/O exception has occurred.
+         */
+        public static File write(RCAFamily rcf, String outputPath, boolean compressed,MODE mode) throws IOException {
         Writer fw;
         File f = new File(outputPath);
         if (compressed) {
@@ -68,10 +83,10 @@ public class RCFTWriter {
             fw = new BufferedWriter(new FileWriter(f, false));
         }
         for (FormalContext fc : rcf.getFormalContexts()) {
-            writeFC(fw, fc.getContext());
+            writeFC(fw, rcf,fc.getContext(),mode);
         }
         for (RelationalContext rc : rcf.getRelationalContexts()) {
-            writeRC(fw, rc.getContext(), rc.getRelationName(), rc.getOperator().getName(), rcf.getSourceOf(rc).getName(), rcf.getTargetOf(rc).getName());
+            writeRC(fw, rcf,rc.getContext(), rc.getRelationName(), rc.getOperator().getName(), rcf.getSourceOf(rc).getName(), rcf.getTargetOf(rc).getName());
         }
         fw.close();
         return f;
@@ -84,14 +99,19 @@ public class RCFTWriter {
      * @param context the context
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    private static void writeFC(Writer writer, IBinaryContext context) throws IOException {
+    private static void writeFC(Writer writer, RCAFamily rcf, IBinaryContext context,MODE mode) throws IOException {
         //ecriture de l'en-tete du contexte formel
         writer.write("FormalContext " + context.getName() + "\n"
                 + "||");
 
         //ecriture de la premiere ligne du contexte, cad les attributs
         for (int numattr = 0; numattr < context.getAttributeCount(); numattr++) {
-            writer.write(context.getAttributeName(numattr) + "|");
+        	String attrName=context.getAttributeName(numattr);
+        	if(mode!=MODE.SIMPLE)
+        	{
+        		attrName=AttributeRenamer.build(rcf, attrName, mode,-1);
+        	}
+            writer.write(attrName + "|");
         }
         writer.write("\n");
 
@@ -123,7 +143,7 @@ public class RCFTWriter {
      * @param target the target
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    private static void writeRC(Writer writer, IBinaryContext context, String rname, String op, String source, String target) throws IOException {
+    private static void writeRC(Writer writer, RCAFamily rcf, IBinaryContext context, String rname, String op, String source, String target) throws IOException {
         //ecriture de l'en-tete du contexte relationnel
         writer.write("RelationalContext " + rname + "\n"
                 + "source " + source + "\n"
@@ -133,7 +153,8 @@ public class RCFTWriter {
 
         //ecriture de la premiere ligne du contexte, cad les attributs
         for (int numattr = 0; numattr < context.getAttributeCount(); numattr++) {
-            writer.write(context.getAttributeName(numattr) + "|");
+        	String attrName=context.getAttributeName(numattr);
+            writer.write(attrName + "|");
         }
         writer.write("\n");
         StringBuffer buffer = new StringBuffer();

@@ -315,6 +315,11 @@ public class RCAFamily {
         formalContexts.putAll(importFamily.formalContexts);
         relationalContexts.putAll(importFamily.relationalContexts);
     }
+    // find concept number from relational attribute name
+    public int getRelationalAttributeConcept(String attrName) {
+    	Integer numAttr=relAttrsIndex.get(attrName);
+    	return numAttr==null?-1:numAttr;
+    }
     
     /**
      * Gets the source of.
@@ -445,7 +450,7 @@ public class RCAFamily {
          * @param extent the extent
          * @return the attribute number
          */
-        public int addRelationalAttribute(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
+        public int addRelationalAttribute2(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
             ISet rIntent=family.getTargetOf(rc).getOrder().getConceptReducedIntent(concept);
             ISet intent=family.getTargetOf(rc).getOrder().getConceptIntent(concept).clone();
             intent.removeAll(rIntent);
@@ -518,7 +523,7 @@ public class RCAFamily {
                 return numattr;
             }
         }
-        public int addRelationalAttribute2(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
+        public int addRelationalAttribute(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
             ISet rIntent=family.getTargetOf(rc).getOrder().getConceptReducedIntent(concept);
             ISet intent=family.getTargetOf(rc).getOrder().getConceptIntent(concept).clone();
             intent.removeAll(rIntent);

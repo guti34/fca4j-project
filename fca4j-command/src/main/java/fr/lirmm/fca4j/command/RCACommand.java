@@ -69,7 +69,9 @@ import fr.lirmm.fca4j.core.RCAFamily.RelationalContext;
 import fr.lirmm.fca4j.core.operator.AbstractScalingOperator;
 import fr.lirmm.fca4j.core.operator.MyScalingOperatorFactory;
 import fr.lirmm.fca4j.iset.ISetContext;
+import fr.lirmm.fca4j.util.AttributeRenamer;
 import fr.lirmm.fca4j.util.Chrono;
+import fr.lirmm.fca4j.util.DotBuilder;
 import fr.lirmm.fca4j.util.JSONFormatter;
 
 /**
@@ -362,9 +364,22 @@ public class RCACommand extends Command {
 			exploMFca.computeStep();
 			chronoStep.stop("step");
 			boolean thisIsTheEnd = exploMFca.stopCondition() || step == maxStep;
+			AttributeRenamer.MODE mode=AttributeRenamer.MODE.SIMPLE;
+			if(nameWithFullIntent) mode=AttributeRenamer.MODE.FULL_INTENT;
+			else if(nameWithReducedIntent) mode=AttributeRenamer.MODE.REDUCED_INTENT;
+			else if(nameWithReducedIntent2) mode=AttributeRenamer.MODE.REDUCED_INTENT_FULL_WHEN_EMPTY;
 			if (thisIsTheEnd||produceDot) {
 				FileWriter fw0 = new FileWriter(resultFolder.getPath() + "/step" + step + ".dot");
-				exploMFca.generateDot(fw0);
+				DotBuilder.build(
+						fw0, 
+						family, 
+						exploMFca.getConceptOrderFamily(), 
+						true, 
+						true, 
+						true, 
+						true, 
+						true, 
+						mode);
 			}
 			int i = 0;
 			ArrayList<ConceptOrder> list_concept_orders = exploMFca.getConceptOrderFamily().getConceptOrders();
@@ -386,13 +401,13 @@ public class RCACommand extends Command {
 					String ext_name="extended";
 					switch (familyFormat) {
 					case RCFAL:
-						RCFALWriter.write(family, resultFolder.getPath() + "/" + familyName +ext_name+ ".rcfal");
+						RCFALWriter.write(family, resultFolder.getPath() + "/" + familyName +ext_name+ ".rcfal",mode);
 						break;
 					case RCFGZ:
-						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcfgz", true);
+						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcfgz", true,mode);
 						break;
 					case RCFT:
-						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcft", false);
+						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcft", false,mode);
 						break;
 					}
 				}
@@ -400,13 +415,13 @@ public class RCACommand extends Command {
 					String ext_name="_step"+step;
 					switch (familyFormat) {
 					case RCFAL:
-						RCFALWriter.write(family, resultFolder.getPath() + "/" + familyName +ext_name+ ".rcfal");
+						RCFALWriter.write(family, resultFolder.getPath() + "/" + familyName +ext_name+ ".rcfal",mode);
 						break;
 					case RCFGZ:
-						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcfgz", true);
+						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcfgz", true,mode);
 						break;
 					case RCFT:
-						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcft", false);
+						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name+ ".rcft", false,mode);
 						break;
 					}
 				}

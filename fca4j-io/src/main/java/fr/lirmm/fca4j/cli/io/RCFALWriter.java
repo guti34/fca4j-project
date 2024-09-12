@@ -38,6 +38,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import fr.lirmm.fca4j.core.RCAFamily;
+import fr.lirmm.fca4j.util.AttributeRenamer.MODE;
 
 /**
  * The Class RCFALWriter.
@@ -51,10 +52,13 @@ public class RCFALWriter {
      * @param outputPath the output path
      * @throws Exception the exception
      */
-    public static void write(RCAFamily rcf,String outputPath) throws Exception{
+    public static void write(RCAFamily rcf,String outputPath,MODE mode) throws Exception{
         File f = new File(outputPath);
         FileWriter fw = new FileWriter(f, false);
-        write(rcf,fw);
+        write(rcf,fw,mode);
+    }
+    public static void write(RCAFamily rcf,String outputPath) throws Exception{
+    	write(rcf,outputPath,MODE.SIMPLE);
     }
         
         /**
@@ -64,8 +68,11 @@ public class RCFALWriter {
          * @param writer the writer
          * @throws Exception the exception
          */
-        public static void write(RCAFamily rcf,Writer writer) throws Exception{
-         JSONObject json=family2JSON(rcf);
+    public static void write(RCAFamily rcf,Writer writer) throws Exception{
+    	write(rcf,writer,MODE.SIMPLE);
+    }
+        public static void write(RCAFamily rcf,Writer writer,MODE mode) throws Exception{
+         JSONObject json=family2JSON(rcf,mode);
        writer.append(json.toJSONString());
         writer.close();
     }
@@ -76,7 +83,7 @@ public class RCFALWriter {
      * @param rcf the rcf
      * @return the JSON object
      */
-    private static JSONObject family2JSON(RCAFamily rcf){
+    private static JSONObject family2JSON(RCAFamily rcf,MODE mode){
     JSONObject json=new JSONObject();
         json.put("familyName", rcf.getName());
         JSONArray arrayFC=new JSONArray();
