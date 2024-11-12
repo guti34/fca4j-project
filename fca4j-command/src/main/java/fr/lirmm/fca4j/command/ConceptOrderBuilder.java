@@ -35,28 +35,15 @@ import java.io.File;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 
-import fr.lirmm.fca4j.cli.io.GraphVizDotWriter;
-import fr.lirmm.fca4j.cli.io.GraphVizDotWriter.DisplayFormat;
 import fr.lirmm.fca4j.iset.ISetContext;
+import fr.lirmm.fca4j.util.GraphVizDotWriter;
+import fr.lirmm.fca4j.util.GraphVizDotWriter.DisplayFormat;
 
 /**
  * The Class ConceptOrderBuilder.
  */
 public abstract class ConceptOrderBuilder extends Command {
 
-	/**
-	 * The Enum DisplayMode.
-	 */
-	enum DisplayMode {
-		
-		/** The full. */
-		FULL, 
- /** The simplified. */
- SIMPLIFIED, 
- /** The minimal. */
- MINIMAL
-	};
-	
 	/**
 	 * The Enum ConceptOrderFormat.
 	 */
@@ -72,7 +59,7 @@ public abstract class ConceptOrderBuilder extends Command {
 	ConceptOrderFormat outputFormat;
 	
 	/** The display mode. */
-	DisplayMode displayMode=DisplayMode.SIMPLIFIED;
+	DisplayFormat displayMode=DisplayFormat.SIMPLIFIED;
 	
 	/** The dot file. */
 	File dotFile;
@@ -125,7 +112,7 @@ public abstract class ConceptOrderBuilder extends Command {
 				throw new Exception("the specified graphviz file path is not writable !");
 			try{
 				if(line.hasOption("d"))
-					displayMode=DisplayMode.valueOf(line.getOptionValue("d").toUpperCase());
+					displayMode=DisplayFormat.valueOf(line.getOptionValue("d").toUpperCase());
 			}catch(Exception e){
 				throw new Exception("display mode option not recognized: " + line.getOptionValue("d"));
 			}
@@ -157,26 +144,4 @@ public abstract class ConceptOrderBuilder extends Command {
 		}
 	}
 	
-	/**
-	 * Gets the display mode.
-	 *
-	 * @return the display mode
-	 * @throws Exception the exception
-	 */
-	protected DisplayFormat getDisplayMode() throws Exception
-	{
-        GraphVizDotWriter.DisplayFormat df;
-        switch (displayMode) {
-            case FULL:
-                df = DisplayFormat.FULL;
-                break;
-            case MINIMAL:
-                df = DisplayFormat.MINIMAL;
-                break;
-            case SIMPLIFIED:
-            default:
-                df = DisplayFormat.REDUCED;
-        }
-        return df;
-	}
 }

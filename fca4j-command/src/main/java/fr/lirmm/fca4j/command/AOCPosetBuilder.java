@@ -41,19 +41,18 @@ import org.apache.commons.cli.Option;
 import org.json.simple.JSONObject;
 
 import fr.lirmm.fca4j.algo.AOC_poset_Ares;
-import fr.lirmm.fca4j.algo.AOC_poset_Athena;
 import fr.lirmm.fca4j.algo.AOC_poset_Ceres;
 import fr.lirmm.fca4j.algo.AOC_poset_Hermes;
 import fr.lirmm.fca4j.algo.AOC_poset_Pluton;
 import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.ConceptOrderXMLWriter;
-import fr.lirmm.fca4j.cli.io.GraphVizDotWriter;
-import fr.lirmm.fca4j.cli.io.GraphVizDotWriter.DisplayFormat;
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
+import fr.lirmm.fca4j.util.GraphVizDotWriter;
+import fr.lirmm.fca4j.util.GraphVizDotWriter.DisplayFormat;
 
 /**
  * The Class AOCPosetBuilder.
@@ -244,13 +243,11 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		// graphviz
 		if (dotFile != null) {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(dotFile));
-			DisplayFormat df = getDisplayMode();
 			boolean displaySize = true;
-			boolean alignSibling = true;
+//			boolean alignSibling = true;
 			String senseLayout = "BT";
-			GraphVizDotWriter dotWriter = new GraphVizDotWriter(bw, result, result.getContext(), df, displaySize,
-					alignSibling, senseLayout);
-			dotWriter.write();
+			GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, displaySize,false,senseLayout);
+			dotWriter.write(bw, result );
 		}
 		// display chrono
 		System.out.println("duration: " + chrono.getResult(aoc_algo.getDescription()) + " ms");

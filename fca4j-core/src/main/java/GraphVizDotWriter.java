@@ -28,7 +28,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package fr.lirmm.fca4j.cli.io;
+
 
 import java.io.BufferedWriter;
 import java.util.Iterator;
@@ -91,10 +91,10 @@ REDUCED, /** The full. */
 	 * @param alignSibling the align sibling
 	 * @param orientation the orientation
 	 */
-	public GraphVizDotWriter(BufferedWriter buff, ConceptOrder lattice,IBinaryContext mbc,DisplayFormat df,boolean displaySize,boolean alignSibling, String orientation) {
+	public GraphVizDotWriter(BufferedWriter buff, ConceptOrder lattice,DisplayFormat df,boolean displaySize,boolean alignSibling, String orientation) {
 		this._buff=buff;
 		this.lattice = lattice;
-		this.mbc=mbc;
+		this.mbc=lattice.getContext();
 		this.df=df;
 		this.displaySize=displaySize;
 		this.useColor = true;

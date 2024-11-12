@@ -1,7 +1,5 @@
 package fr.lirmm.fca4j.algo;
 
-import java.util.Iterator;
-
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;

@@ -45,12 +45,12 @@ import fr.lirmm.fca4j.algo.Lattice_AddExtent;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.ConceptOrderXMLWriter;
-import fr.lirmm.fca4j.cli.io.GraphVizDotWriter;
-import fr.lirmm.fca4j.cli.io.GraphVizDotWriter.DisplayFormat;
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
+import fr.lirmm.fca4j.util.GraphVizDotWriter;
+import fr.lirmm.fca4j.util.GraphVizDotWriter.DisplayFormat;
 
 /**
  * The Class LatticeBuilder.
@@ -251,13 +251,11 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		// graphviz
 		if (dotFile != null) {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(dotFile));
-			DisplayFormat df = getDisplayMode();
 			boolean displaySize = true;
 			boolean alignSibling = true;
 			String senseLayout = "BT";
-			GraphVizDotWriter dotWriter = new GraphVizDotWriter(bw, result, result.getContext(), df, displaySize,
-					alignSibling, senseLayout);
-			dotWriter.write();
+			GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, displaySize,false,senseLayout);
+			dotWriter.write(bw, result );
 		}
 		// display chrono
 

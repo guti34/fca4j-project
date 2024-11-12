@@ -12,64 +12,68 @@ import fr.lirmm.fca4j.util.AttributeRenamer.MODE;
 
 public class DotBuilder {
 	protected final static String LINE_SEPARATOR = System.getProperty("line.separator");
+	
+	private static void buildOrder(BufferedWriter buffer,RCAFamily family,ConceptOrder conceptOrder,boolean displayConceptNumber,boolean displayIntent,boolean displayExtent,boolean useReducedIntent,boolean useReducedExtent,MODE mode)  throws IOException {
+        appendLine(buffer,"subgraph ", conceptOrder.getContext().getName(), " { ");
+        appendLine(buffer,"label=\"", conceptOrder.getContext().getName(), "\";");
+	for(Iterator<Integer> itConcept=conceptOrder.getBasicIterator(); itConcept.hasNext(); ) {
+                int c=itConcept.next();
+            append(buffer,Integer.toString(c), " ");
+            append(buffer,"[shape=record");
+            append(buffer,",label=\"{");
 
+            if (displayConceptNumber) {
+                append(buffer,"Concept_" + conceptOrder.getContext().getName() + "_" + c, "|");
+            }
+
+            if (displayIntent) {
+                Iterator<Integer> it;
+                if (useReducedIntent) {
+                    it = conceptOrder.getConceptReducedIntent(c).iterator();
+                } else {
+                    it = conceptOrder.getConceptIntent(c).iterator();
+                }
+                while (it.hasNext()) {
+                	String attrName=conceptOrder.getContext().getAttributeName(it.next());
+                if(mode!=MODE.SIMPLE || family==null) {
+                		attrName=AttributeRenamer.build(family,attrName,mode,c);
+                }
+                append(buffer,attrName, "\\n");
+                }
+            }
+
+            if (displayExtent) {
+
+                Iterator<Integer> it;
+                if (useReducedExtent) {
+                    it = conceptOrder.getConceptReducedExtent(c).iterator();
+                } else {
+                    it = conceptOrder.getConceptExtent(c).iterator();
+                }
+                append(buffer,"|");
+                while (it.hasNext()) {
+                    append(buffer,conceptOrder.getContext().getObjectName(it.next()), "\\n");
+                }
+            }
+            append(buffer,"}\"");
+            appendLine(buffer,"];");
+        }
+
+	for(Iterator<Integer> itConcept=conceptOrder.getBasicIterator(); itConcept.hasNext(); ) {
+                int c=itConcept.next();
+            Iterator<Integer> itc = conceptOrder.getLowerCoverIterator(c);
+            while (itc.hasNext()) {
+                appendLine(buffer,"\t", Integer.toString(itc.next()), " -> ", "" + c);
+            }
+        }
+        appendLine(buffer,"}");
+		
+	}
     public static void build(FileWriter buffer2, RCAFamily family,MyConceptOrderFamily conceptOrderFamily,boolean displayConceptNumber,boolean displayIntent,boolean displayExtent,boolean useReducedIntent,boolean useReducedExtent,MODE mode) throws IOException {
 		BufferedWriter buffer=new BufferedWriter(buffer2,128000);
         appendHeader(buffer);
         for (ConceptOrder conceptOrder : conceptOrderFamily.getConceptOrders()) {
-            appendLine(buffer,"subgraph ", conceptOrder.getContext().getName(), " { ");
-            appendLine(buffer,"label=\"", conceptOrder.getContext().getName(), "\";");
-		for(Iterator<Integer> itConcept=conceptOrder.getBasicIterator(); itConcept.hasNext(); ) {
-                    int c=itConcept.next();
-                append(buffer,Integer.toString(c), " ");
-                append(buffer,"[shape=record");
-                append(buffer,",label=\"{");
-
-                if (displayConceptNumber) {
-                    append(buffer,"Concept_" + conceptOrder.getContext().getName() + "_" + c, "|");
-                }
-
-                if (displayIntent) {
-                    Iterator<Integer> it;
-                    if (useReducedIntent) {
-                        it = conceptOrder.getConceptReducedIntent(c).iterator();
-                    } else {
-                        it = conceptOrder.getConceptIntent(c).iterator();
-                    }
-                    while (it.hasNext()) {
-                    	String attrName=conceptOrder.getContext().getAttributeName(it.next());
-                    if(mode!=MODE.SIMPLE) {
-                    		attrName=AttributeRenamer.build(family,attrName,mode,c);
-                    }
-                    append(buffer,attrName, "\\n");
-                    }
-                }
-
-                if (displayExtent) {
-
-                    Iterator<Integer> it;
-                    if (useReducedExtent) {
-                        it = conceptOrder.getConceptReducedExtent(c).iterator();
-                    } else {
-                        it = conceptOrder.getConceptExtent(c).iterator();
-                    }
-                    append(buffer,"|");
-                    while (it.hasNext()) {
-                        append(buffer,conceptOrder.getContext().getObjectName(it.next()), "\\n");
-                    }
-                }
-                append(buffer,"}\"");
-                appendLine(buffer,"];");
-            }
-
-		for(Iterator<Integer> itConcept=conceptOrder.getBasicIterator(); itConcept.hasNext(); ) {
-                    int c=itConcept.next();
-                Iterator<Integer> itc = conceptOrder.getLowerCoverIterator(c);
-                while (itc.hasNext()) {
-                    appendLine(buffer,"\t", Integer.toString(itc.next()), " -> ", "" + c);
-                }
-            }
-            appendLine(buffer,"}");
+        	buildOrder(buffer, family, conceptOrder, displayConceptNumber, displayIntent, displayExtent, useReducedIntent, useReducedExtent, mode);
         }
         
         appendFooter(buffer);

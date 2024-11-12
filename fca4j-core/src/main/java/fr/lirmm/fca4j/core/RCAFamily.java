@@ -33,6 +33,7 @@ package fr.lirmm.fca4j.core;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -55,6 +56,7 @@ public class RCAFamily {
     private boolean nameWithFullIntentRI=false;
     private boolean nameWithReducedIntent=true;
     private boolean nameWithReducedIntent2=false;
+    private boolean nativeOnly=false;
 
     private HashMap<String, Integer> relAttrsIndex = new HashMap<>();
     /**
@@ -121,7 +123,13 @@ public class RCAFamily {
     public void setNameWithFullIntentRI(boolean nameWithFullIntent) {
         this.nameWithFullIntentRI = nameWithFullIntent;
     }
-    
+    /**
+     * set option to limit the build of intents to native attributes when renaming
+     */
+    public void setNativeOnly(boolean nativeOnly)
+    {
+    	this.nativeOnly=nativeOnly;
+    }
     /**
      * Gets the formal context.
      *
@@ -441,89 +449,7 @@ public class RCAFamily {
             return relationalAttributes.get(numattr);
         }
 
-        /**
-         * Adds the relational attribute.
-         *
-         * @param family the family
-         * @param concept the concept
-         * @param rc the relational context
-         * @param extent the extent
-         * @return the attribute number
-         */
-        public int addRelationalAttribute2(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
-            ISet rIntent=family.getTargetOf(rc).getOrder().getConceptReducedIntent(concept);
-            ISet intent=family.getTargetOf(rc).getOrder().getConceptIntent(concept).clone();
-            intent.removeAll(rIntent);
-            String attr_name;
-            attr_name=rc.operator+"_"+rc.getRelationName() + "(";
-            // case 1: relation attribute name is built with full intent
-            if(nameWithFullIntentRI)
-            {
-                for(Iterator<Integer> it=rIntent.iterator();it.hasNext();)
-                {
-                    if(!attr_name.endsWith("("))
-                        attr_name+="&";
-                    attr_name+=family.getTargetOf(rc).getOrder().getContext().getAttributeName(it.next());
-                }
-                if(!intent.isEmpty())
-                	attr_name+="/I/";
-                for(Iterator<Integer> it=intent.iterator();it.hasNext();)
-                {
-                    if(!(attr_name.endsWith("(")||attr_name.endsWith("/")))
-                        attr_name+="&";
-                    attr_name+=family.getTargetOf(rc).getOrder().getContext().getAttributeName(it.next());
-                }
-               attr_name+=")";
-            	
-            }
-            // relation attribute name is built with reduced intent
-            else if(nameWithReducedIntent || nameWithReducedIntent2){
-            	if(!rIntent.isEmpty()) {
-                    for(Iterator<Integer> it=rIntent.iterator();it.hasNext();)
-                    {
-                        if(!attr_name.endsWith("("))
-                            attr_name+="&";
-                        attr_name+=family.getTargetOf(rc).getOrder().getContext().getAttributeName(it.next());
-                    }            		
-                    attr_name+=")";            			
-            	}else {
-            		// case 2: relation attribute name is built with inherited intent for object concepts (when reduced intent is empty)
-            		if(nameWithReducedIntent2) {
-                        if(!intent.isEmpty())
-                        	attr_name+="/I/";
-                        for(Iterator<Integer> it=intent.iterator();it.hasNext();)
-                        {
-                            if(!(attr_name.endsWith("(")||attr_name.endsWith("/")))
-                                attr_name+="&";
-                            attr_name+=family.getTargetOf(rc).getOrder().getContext().getAttributeName(it.next());
-                        }
-                        attr_name+=")";            			
-            		}
-            		// case 3: relation attribute name is built with concept name (when reduced intent is empty)
-            		else {
-            			attr_name = rc.operator+"_"+rc.getRelationName() + "(" + family.getTargetOf(rc).getConceptName(concept) + ")";            			
-            		}
-            	}
-            }
-            else {
-    			attr_name = rc.operator+"_"+rc.getRelationName() + "(" + family.getTargetOf(rc).getConceptName(concept) + ")";            			
-    		}
-            Integer numattr = relAttrsIndex.get(attr_name);
-            if (numattr != null) {
-                return numattr;
-            } else {
-                RelationalAttribute rAttr = new RelationalAttribute(concept, rc, attr_name);
-                numattr = context.addAttribute(attr_name, extent);
-                relationalAttributes.put(numattr, rAttr);
-                relAttrsIndex.put(attr_name, numattr);
-                
-//                myGsh.getConceptIntent(concept).add(numattr);
-//                myGsh.getConceptReducedIntent(concept).add(numattr);
-                
-                return numattr;
-            }
-        }
-        public int addRelationalAttribute(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
+         public int addRelationalAttribute(RCAFamily family, int concept, RelationalContext rc, ISet extent) {
             ISet rIntent=family.getTargetOf(rc).getOrder().getConceptReducedIntent(concept);
             ISet intent=family.getTargetOf(rc).getOrder().getConceptIntent(concept).clone();
             intent.removeAll(rIntent);
@@ -682,5 +608,85 @@ public class RCAFamily {
             list.add(relationalContexts.get(rcId));
         }
         return list;
+    }
+    public int cleanUnusedRelationalAttributes() {
+    	int total=0;
+    	for(FormalContext fc:formalContexts.values()) {
+    		total+=cleanUnusedRelationalAttributes(fc);
+    	}
+    	return total;    		
+    }
+    private int cleanUnusedRelationalAttributes(FormalContext fc) {
+    	int total=0;
+    	HashSet<Integer> attrToRemove=new HashSet<>();
+    	for(int numAttr=0;numAttr<fc.getContext().getAttributeCount();numAttr++)
+    	{    		
+    		String attrName=fc.getContext().getAttributeName(numAttr);
+    		// parse concept name
+    		int beg = attrName.indexOf("(C_");
+    		if (beg < 0)
+    			continue; // native attribute
+    		beg += 3;
+    		int end = beg;
+    		while (attrName.charAt(end) != '_') {
+    			end++;
+    		}
+    		String fcName = attrName.substring(beg, end);
+    		FormalContext fcTarget=formalContexts.get(fcName);
+    		beg = end + 1;
+    		end = attrName.indexOf(')', beg);
+    		String strConcept = attrName.substring(beg, end);
+    		int concept = Integer.valueOf(strConcept);
+    		
+    		if(!fcTarget.getOrder().getConcepts().contains(concept)) {
+    			attrToRemove.add(numAttr);
+    			System.out.println("remove "+attrName+" from "+fc.getName());
+    		}
+    	}
+    	for(int numAttr:attrToRemove)
+    	{
+    		fc.getContext().removeAttribute(numAttr);
+    		fc.relationalAttributes.remove(numAttr);
+    		total++;
+    	}
+    	return total;
+    }
+
+    private int cleanUnusedRelationalAttributes2(FormalContext fc) {
+    	int total=0;
+    	HashSet<Integer> attrToRemove=new HashSet<>();
+    	for(int numAttr:fc.relationalAttributes.keySet())
+    	{
+    		RelationalAttribute ra=fc.relationalAttributes.get(numAttr);
+    		String attrName=ra.getName();
+    		// parse concept name
+    		int beg = attrName.indexOf("(C_");
+    		if (beg < 0)
+    			continue; // native attribute
+    		beg += 3;
+    		int end = beg;
+    		while (attrName.charAt(end) != '_') {
+    			end++;
+    		}
+    		String fcName = attrName.substring(beg, end);
+    		FormalContext fcTarget=formalContexts.get(fcName);
+    		beg = end + 1;
+    		end = attrName.indexOf(')', beg);
+    		String strConcept = attrName.substring(beg, end);
+    		int concept = Integer.valueOf(strConcept);
+    		
+    		if(!fcTarget.getOrder().getConcepts().contains(concept)) {
+    			attrToRemove.add(numAttr);
+    			System.out.println("remove "+attrName+" from "+fc.getName());
+    		}
+    	}
+    	for(int numAttr:attrToRemove)
+    	{
+    		fc.getContext().removeAttribute(numAttr);
+    		fc.relationalAttributes.remove(numAttr);
+    		relAttrsIndex.remove(fc.getRelationalAttribute(numAttr).getName());
+    		total++;
+    	}
+    	return total;
     }
 }
