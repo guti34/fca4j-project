@@ -54,6 +54,7 @@ import fr.lirmm.fca4j.algo.ExploRCA;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
+import fr.lirmm.fca4j.cli.io.FamilyXMLWriter;
 import fr.lirmm.fca4j.cli.io.RCFALReader;
 import fr.lirmm.fca4j.cli.io.RCFALWriter;
 import fr.lirmm.fca4j.cli.io.RCFTReader;
@@ -180,7 +181,7 @@ public class RCACommand extends Command {
 			sb_algo_aoc.append("\n* " + algo.name());
 		}
 		options.addOption(
-				Option.builder("clean").desc("remove relational attributes concerning dispeared target concepts").build());
+				Option.builder("clean").desc("remove relational attributes concerning disappeared target concepts. Be careful, this option can cause the algorithm to loop").build());
 		options.addOption(
 				Option.builder("ra").desc("rename relational attributes using concept reduced intents").build());
 		options.addOption(Option.builder("rai").desc(
@@ -444,8 +445,6 @@ public class RCACommand extends Command {
 				String senseLayout = "BT";
 				GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, false,false,senseLayout);
 				dotWriter.write(fw0, family,exploMFca.getConceptOrderFamily(),true,mode );
-				
-//				DotBuilder.build(fw0, family, exploMFca.getConceptOrderFamily(), true, true, true, true, true, mode);
 			}
 			int i = 0;
 			ArrayList<ConceptOrder> list_concept_orders = exploMFca.getConceptOrderFamily().getConceptOrders();
@@ -518,7 +517,12 @@ public class RCACommand extends Command {
 			if (thisIsTheEnd) {
 				if (storeXml) {
 					FileWriter fw = new FileWriter(resultFolder.getPath() + "/step" + step + ".xml");
-					exploMFca.generateXml(fw, family, step);
+					
+					FamilyXMLWriter genXml = new FamilyXMLWriter(family, exploMFca.getConceptOrderFamily(), step, true);
+					genXml.generate();
+					genXml.writeDocument(fw, "UTF-8");
+					fw.close();
+//					exploMFca.generateXml(fw, family, step);
 				}
 
 				exploMFca.setEnd(true);

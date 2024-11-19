@@ -1,12 +1,9 @@
 package fr.lirmm.fca4j.util;
 
-import java.util.HashSet;
 import java.util.Iterator;
 
-import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
-import fr.lirmm.fca4j.core.RCAFamily.RelationalContext;
 import fr.lirmm.fca4j.iset.ISet;
 
 public class AttributeRenamer {
@@ -57,10 +54,6 @@ public class AttributeRenamer {
 			ISet intent = fc.getOrder().getConceptIntent(concept).clone();
 			intent.removeAll(rIntent);
 			conceptName = "";
-//			int intentNativeCount=0;
-//			for (Iterator<Integer> it = intent.iterator(); it.hasNext();) {
-//				if(!fc.isRelationalAttribute(it.next()))intentNativeCount++;
-//			}		
 
 			// build reduced intent
 			for (Iterator<Integer> it = rIntent.iterator(); it.hasNext();) {

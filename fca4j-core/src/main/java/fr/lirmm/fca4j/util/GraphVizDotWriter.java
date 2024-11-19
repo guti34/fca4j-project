@@ -36,8 +36,8 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import fr.lirmm.fca4j.algo.ExploRCA.MyConceptOrderFamily;
 import fr.lirmm.fca4j.core.ConceptOrder;
+import fr.lirmm.fca4j.core.ConceptOrderFamily;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.util.AttributeRenamer.MODE;
 
@@ -249,7 +249,7 @@ public class GraphVizDotWriter {
 	/**
 	 * Write.
 	 */
-	public void write(Writer buff, RCAFamily family, MyConceptOrderFamily conceptOrderFamily,
+	public void write(Writer buff, RCAFamily family, ConceptOrderFamily conceptOrderFamily,
 			boolean displayConceptNumber, AttributeRenamer.MODE renameMode) {
 		try {
 			StringBuffer sb = new StringBuffer();
