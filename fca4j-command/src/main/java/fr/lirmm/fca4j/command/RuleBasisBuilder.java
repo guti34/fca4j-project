@@ -49,10 +49,14 @@ import fr.lirmm.fca4j.algo.ClosureDirect;
 import fr.lirmm.fca4j.algo.ClosureDirectWithForkJoinPool;
 import fr.lirmm.fca4j.algo.ClosureStrategy;
 import fr.lirmm.fca4j.algo.ClosureWithHistory;
+import fr.lirmm.fca4j.algo.DBaseCalculator;
 import fr.lirmm.fca4j.algo.LinCbO;
 import fr.lirmm.fca4j.algo.LinCbOWithPruning;
+import fr.lirmm.fca4j.cli.io.RuleBasisReader;
+import fr.lirmm.fca4j.cli.io.SLFReader;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
+import fr.lirmm.fca4j.core.RuleBasis;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
@@ -167,7 +171,7 @@ public class RuleBasisBuilder extends Command {
 				.desc("two methods to perform the closure operation are available\n* BASIC (default)\n* WITH_HISTORY")
 				.hasArg().argName("CLOSURE").build());
 		// multithreading
-		options.addOption(Option.builder("t")// .longOpt("multithreading")
+		options.addOption(Option.builder("t")// .longOpt("multithreading"
 				.desc("multithreading options are:\n* MONO (default)\n* FORKJOINPOOL").hasArg()
 				.argName("POOL-MODE").build());
 		options.addOption(Option.builder("h")
@@ -560,4 +564,46 @@ public class RuleBasisBuilder extends Command {
 		}
 		return result;
 	}
+	public static void main(String[] args) throws IOException {
+//		test("example0.5.2");
+		test("PlantSpecies");
+	}
+	private static void test(String name) throws IOException  {
+		IBinaryContext context=SLFReader.read(new File("c:/projects/rules/PlantSpecies/"+name+".slf"));
+		System.out.println("***************************");
+		System.out.println("context="+context.getObjectCount()+"x"+context.getAttributeCount());
+		RuleBasis ruleBaseDQ=RuleBasisReader.read("c:/projects/rules/PlantSpecies/"+name+"DQ.txt",context);
+		RuleBasis ruleBaseDB=RuleBasisReader.read("c:/projects/rules/PlantSpecies/"+name+"DB.txt",context);
+		
+		DBaseCalculator calculator=new DBaseCalculator(context);
+		calculator.run();
+		printImplications2(calculator.getResult(),context);
+		RuleBasis ruleBaseDB2=new RuleBasis(calculator.getResult(),context);
+		
+		System.out.println("ruleBaseDQ<ruleBaseDB="+ruleBaseDQ.isIncludedIn(ruleBaseDB));
+		System.out.println("ruleBaseDB<ruleBaseDQ="+ruleBaseDB.isIncludedIn(ruleBaseDQ));
+		System.out.println("ruleBaseDB<ruleBaseDB2="+ruleBaseDB.isIncludedIn(ruleBaseDB2));
+		System.out.println("ruleBaseDB2<ruleBaseDB="+ruleBaseDB2.isIncludedIn(ruleBaseDB));
+		System.out.println("ruleBaseDB2<ruleBaseDQ="+ruleBaseDB2.isIncludedIn(ruleBaseDQ));
+		System.out.println("ruleBaseDB<ruleBaseDB2="+ruleBaseDB.isIncludedIn(ruleBaseDB2));
+		
+	}
+	private static void printImplications2(List<Implication> implications,IBinaryContext context) {
+		for (Implication implication : implications) {
+			System.out.printf("<%d> %s => %s\n", implication.getSupport().cardinality(), displayAttrs2(implication.getPremise(),context),
+					displayAttrs2(implication.getConclusion(),context));
+		}
+
+	}
+	private static String displayAttrs2(ISet set,IBinaryContext context) {
+		StringBuilder sb = new StringBuilder();
+		for (Iterator<Integer> it = set.iterator(); it.hasNext();) {
+			if (sb.length() != 0) {
+				sb.append(",");
+			}
+			sb.append(context.getAttributeName(it.next()));
+		}
+		return sb.toString();
+	}
+	
 }

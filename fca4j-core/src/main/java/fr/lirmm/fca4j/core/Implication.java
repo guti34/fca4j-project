@@ -37,68 +37,95 @@ import fr.lirmm.fca4j.iset.ISet;
  *
  * @author agutierr
  */
-    public class Implication {
+public class Implication {
 
-        ISet premise;
-        ISet conclusion;
-        ISet support;
+	ISet premise;
+	ISet conclusion;
+	ISet support;
+	int supportSize;
 
-        /**
-         * Instantiates a new implication.
-         *
-         * @param premise the premise
-         * @param conclusion the conclusion
-         * @param support the support
-         */
-        public Implication(ISet premise, ISet conclusion,ISet support) {
-            this.premise = premise;
-            this.conclusion = conclusion.newDifference(premise);
-            this.support=support;
+	/**
+	 * Instantiates a new implication.
+	 *
+	 * @param premise    the premise
+	 * @param conclusion the conclusion
+	 * @param support    the support
+	 */
+	public Implication(ISet premise, ISet conclusion, ISet support) {
+		this.premise = premise;
+		this.conclusion = conclusion.newDifference(premise);
+		this.support = support;
+		supportSize=support.cardinality();
+	}
+	/**
+	 * Instantiates a new implication.
+	 *
+	 * @param premise    the premise
+	 * @param conclusion the conclusion
+	 * @param supportSize    the support size
+	 */
+	public Implication(ISet premise, ISet conclusion, int supportSize) {
+		this.premise = premise;
+		this.conclusion = conclusion.newDifference(premise);
+		this.support = null;
+		this.supportSize=supportSize;
+	}
+
+	/**
+	 * Gets the support.
+	 *
+	 * @return the support
+	 */
+	public ISet getSupport() {
+		return support;
+	}
+	public int getSupportSize() {
+		if(support!=null) return support.cardinality();
+		else return supportSize;
+	}
+
+	/**
+	 * Sets the support.
+	 *
+	 * @param support the new support
+	 */
+	public void setSupport(ISet support) {
+		this.support = support;
+		this.supportSize=this.support.cardinality();
+	}
+
+	/**
+	 * Gets the premise.
+	 *
+	 * @return the premise
+	 */
+	public ISet getPremise() {
+		return premise;
+	}
+
+	/**
+	 * Gets the conclusion.
+	 *
+	 * @return the conclusion
+	 */
+	public ISet getConclusion() {
+		return conclusion;
+	}
+
+	public boolean isSubRuleOf(Implication other) {
+        	return  
+        			other.getPremise().containsAll(getPremise()) 
+        			&& getConclusion().containsAll(other.getConclusion());
+        	
         }
-        
-        /**
-         * Gets the support.
-         *
-         * @return the support
-         */
-        public ISet getSupport(){
-            return support;
-        }
-        
-        /**
-         * Sets the support.
-         *
-         * @param support the new support
-         */
-        public void setSupport(ISet support){
-        	this.support=support;
-        }
-        
-        /**
-         * Gets the premise.
-         *
-         * @return the premise
-         */
-        public ISet getPremise(){
-            return premise;
-        }
-        
-        /**
-         * Gets the conclusion.
-         *
-         * @return the conclusion
-         */
-        public ISet getConclusion(){
-            return conclusion;
-        }
-        
-        /**
-         * To string.
-         *
-         * @return the string
-         */
-        @Override
-        public String toString() {
-            return String.format("<%d> %s => %s",support.cardinality(),premise,conclusion );
-        }
-    }
+
+	/**
+	 * To string.
+	 *
+	 * @return the string
+	 */
+	@Override
+	public String toString() {
+		return String.format("<%d> %s => %s", support.cardinality(), premise, conclusion);
+	}
+}

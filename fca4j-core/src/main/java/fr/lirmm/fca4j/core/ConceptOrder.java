@@ -40,10 +40,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.jgrapht.Graph;
 import org.jgrapht.alg.TransitiveClosure;
 import org.jgrapht.alg.TransitiveReduction;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.graph.SimpleDirectedGraph;
+import org.jgrapht.traverse.BreadthFirstIterator;
+import org.jgrapht.traverse.DepthFirstIterator;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import fr.lirmm.fca4j.iset.ISet;
@@ -662,7 +666,7 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      * @return the bottom up iterator
      */
     public Iterator<Integer> getBottomUpIterator() {
-        return new TopologicalOrderIterator(hierarchy);
+        return new TopologicalOrderIterator<Integer, DefaultEdge>(hierarchy);
     }
 
     /**
@@ -672,12 +676,110 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      */
     public Iterator<Integer> getTopDownIterator() {
         ArrayList<Integer> vertices = new ArrayList<>();
-        for (Iterator<Integer> it = new TopologicalOrderIterator(hierarchy); it.hasNext();) {
+        for (Iterator<Integer> it = new TopologicalOrderIterator<>(hierarchy); it.hasNext();) {
             vertices.add(0, it.next());
         }
         return vertices.iterator();
     }
+    /**
+     * Gets the depth first concept iterator.
+     *
+     * @return the top down iterator
+     */
+    public Iterator<Integer> getDepthFirstIterator() {
+        ArrayList<Integer> vertices = new ArrayList<>();
+         Graph<Integer, DefaultEdge> reversedGraph = new EdgeReversedGraph<>(hierarchy);   
+        
+        for (Iterator<Integer> it = new DepthFirstIterator<>(reversedGraph); it.hasNext();) {
+            vertices.add(it.next());
+        }
+/*        System.out.println("depth first:");
+        for(int v:vertices) {
+        	for(int attr:getConceptReducedIntent(v).toList())
+        		System.out.print(getContext().getAttributeName(attr));
+        	System.out.println();
+        }
+*/        
+        return vertices.iterator();
+    }
+    /**
+     * Gets the depth first concept iterator.
+     *
+     * @return the top down iterator
+     */
+    public Iterator<Integer> getBreadthFirstIterator() {
+        ArrayList<Integer> vertices = new ArrayList<>();
+        Graph<Integer, DefaultEdge> reversedGraph = new EdgeReversedGraph<>(hierarchy);        
+        for (Iterator<Integer> it = new BreadthFirstIterator<>(reversedGraph,maximals.toList()); it.hasNext();) {
+            vertices.add(it.next());
+        }
+        return vertices.iterator();
+    }
+    /**
+     * Gets the topologic concept iterator.
+     *
+     * @return the top down iterator
+     */
+    public Iterator<Integer> getTopologicalIterator() {
+        ArrayList<Integer> vertices = new ArrayList<>();
+        Graph<Integer, DefaultEdge> reversedGraph = new EdgeReversedGraph<>(hierarchy);        
+        for (Iterator<Integer> it = new TopologicalOrderIterator<>(reversedGraph); it.hasNext();) {
+            vertices.add(it.next());
+        }
+        return vertices.iterator();
+    }
+    public List<Implication> getDepthFirstImplications(){
+    	ArrayList<Implication> implications=new ArrayList<>();
+    	for(Iterator<Integer> it=getDepthFirstIterator();it.hasNext();) {
+    		int concept=it.next();
+    		for(DefaultEdge edge:hierarchy.outgoingEdgesOf(concept))
+    		{
+    			ISet premise=getConceptReducedIntent(hierarchy.getEdgeSource(edge));
+    			if(!premise.isEmpty())
+    			{
+    				ISet conclusion=getConceptIntent(hierarchy.getEdgeTarget(edge));    		
+    				implications.add(new Implication(premise,conclusion,getConceptExtent(concept)));
 
+    			}
+    		}
+    	}
+    	return implications;
+    }
+    public List<Implication> getBreadthFirstImplications(){
+    	ArrayList<Implication> implications=new ArrayList<>();
+    	for(Iterator<Integer> it=getBreadthFirstIterator();it.hasNext();) {
+    		int concept=it.next();
+    		for(DefaultEdge edge:hierarchy.outgoingEdgesOf(concept))
+    		{
+    			ISet premise=getConceptReducedIntent(hierarchy.getEdgeSource(edge));
+    			if(!premise.isEmpty())
+    			{
+    				ISet conclusion=getConceptIntent(hierarchy.getEdgeTarget(edge));    		
+    				implications.add(new Implication(premise,conclusion,getConceptExtent(concept)));
+
+    			}
+    		}
+    	}
+    	return implications;
+    }
+    public List<Implication> getTopologicalImplications(){
+    	ArrayList<Implication> implications=new ArrayList<>();
+    	for(Iterator<Integer> it=getTopologicalIterator();it.hasNext();) {
+    		int concept=it.next();
+    		for(DefaultEdge edge:hierarchy.outgoingEdgesOf(concept))
+    		{
+    			ISet premise=getConceptReducedIntent(hierarchy.getEdgeSource(edge));
+    			if(!(premise.isEmpty()))
+    			{
+    				ISet conclusion=getConceptIntent(hierarchy.getEdgeTarget(edge));  
+//    				if(!conclusion.isEmpty())
+    					implications.add(new Implication(premise,conclusion,getConceptExtent(concept)));
+
+    			}
+    		}
+    	}
+    	return implications;
+    }
     /**
      * Gets the concept count.
      *

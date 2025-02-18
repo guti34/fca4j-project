@@ -31,10 +31,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package fr.lirmm.fca4j.command;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 
+import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.Implication;
+import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.GraphVizDotWriter;
 import fr.lirmm.fca4j.util.GraphVizDotWriter.DisplayFormat;
@@ -63,6 +69,12 @@ public abstract class ConceptOrderBuilder extends Command {
 	
 	/** The dot file. */
 	File dotFile;
+	/** The idf file. */
+	File idfFile;
+	/** The ibf file. */
+	File ibfFile;
+	/** The itp file. */
+	File itpFile;
 
 	/**
 	 * Instantiates a new concept order builder.
@@ -96,6 +108,20 @@ public abstract class ConceptOrderBuilder extends Command {
 				.desc("display format of the concepts for GraphViz. Available formats are:\n* FULL\n* SIMPLIFIED (default)\n* MINIMAL")
 				.hasArg().argName("DISPLAY-MODE").build());
 	}
+	/**
+	 * Declare Implications options.
+	 */
+	protected void declareImplicationsOptions() {
+		// depth first implications
+		options.addOption(
+				Option.builder("itp").desc("output file for implications in topological order").hasArg().argName("IMPFILE").build());
+		// depth first implications
+		options.addOption(
+				Option.builder("idf").desc("output file for implications in depth first order").hasArg().argName("IMPFILE").build());
+		// breadth first implications
+		options.addOption(
+				Option.builder("ibf").desc("output file for implications in breadth first order").hasArg().argName("IMPFILE").build());
+	}
 
 	/**
 	 * Check dot file.
@@ -118,6 +144,54 @@ public abstract class ConceptOrderBuilder extends Command {
 			}
 		} else
 			dotFile = null;
+	}
+	/**
+	 * Check itp file.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
+	protected void checkITPFile(CommandLine line)  throws Exception{
+		if (line.hasOption("itp")) {
+			itpFile = new File(line.getOptionValue("itp"));
+			if (!itpFile.exists()) {
+				itpFile.createNewFile();
+			} else if (!itpFile.canWrite())
+				throw new Exception("the specified implication file path (itp) is not writable !");
+		} else
+			itpFile = null;
+	}
+	/**
+	 * Check idf file.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
+	protected void checkIDFFile(CommandLine line)  throws Exception{
+		if (line.hasOption("idf")) {
+			idfFile = new File(line.getOptionValue("idf"));
+			if (!idfFile.exists()) {
+				idfFile.createNewFile();
+			} else if (!idfFile.canWrite())
+				throw new Exception("the specified implication file path (idf) is not writable !");
+		} else
+			idfFile = null;
+	}
+	/**
+	 * Check ibf file.
+	 *
+	 * @param line the command line
+	 * @throws Exception the exception
+	 */
+	protected void checkIBFFile(CommandLine line)  throws Exception{
+		if (line.hasOption("ibf")) {
+			ibfFile = new File(line.getOptionValue("ibf"));
+			if (!ibfFile.exists()) {
+				ibfFile.createNewFile();
+			} else if (!ibfFile.canWrite())
+				throw new Exception("the specified implication file path (ibf) is not writable !");
+		} else
+			ibfFile = null;
 	}
 	
 	/**
@@ -142,6 +216,35 @@ public abstract class ConceptOrderBuilder extends Command {
 			else
 				throw new Exception("output format must be specified for file " + outFileName);
 		}
+	}
+	/**
+	 * Prints the implications.
+	 *
+	 * @param printWriter the print writer
+	 * @param implications the implications
+	 */
+	protected void printImplications(PrintWriter printWriter,List<Implication> implications, IBinaryContext ctx) {
+		for (Implication implication : implications) {
+			printWriter.printf("<%d> %s => %s\n", implication.getSupport().cardinality(), displayAttrs(implication.getPremise(),ctx),
+					displayAttrs(implication.getConclusion(),ctx));
+		}
+
+	}
+	/**
+	 * Display attributes.
+	 *
+	 * @param set the set
+	 * @return the string
+	 */
+	protected String displayAttrs(ISet set,IBinaryContext ctx) {
+		StringBuilder sb = new StringBuilder();
+		for (Iterator<Integer> it = set.iterator(); it.hasNext();) {
+			if (sb.length() != 0) {
+				sb.append(",");
+			}
+			sb.append(ctx.getAttributeName(it.next()));
+		}
+		return sb.toString();
 	}
 	
 }

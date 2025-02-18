@@ -1,0 +1,11 @@
+digraph G { 
+	rankdir=BT;
+0 [shape=record,style=filled,label="{ (I: 2, E: 1)||o1\n}"];
+1 [shape=record,style=filled,label="{ (I: 2, E: 1)|d\n|o2\n}"];
+2 [shape=record,style=filled,label="{ (I: 1, E: 2)|a\n|o3\n}"];
+3 [shape=record,style=filled,label="{ (I: 1, E: 1)|b\n|o4\n}"];
+4 [shape=record,style=filled,fillcolor=lightblue,label="{ (I: 1, E: 2)|c\n|}"];
+	0 -> 2
+	0 -> 4
+	1 -> 4
+}

@@ -34,6 +34,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -121,6 +122,8 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		declareOutputFormat();
 		// graphviz
 		declareGraphvizOptions();
+		// implications
+		declareImplicationsOptions();
 		// implementation
 		declareImplementation(false);
 		// common options
@@ -162,6 +165,9 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 			outputFile = null;
 		checkOutputFormat(line, outputFileName);
 		checkDotFile(line);
+		checkIDFFile(line);
+		checkIBFFile(line);
+		checkITPFile(line);
 		checkImplementation(line);
 		if (line.hasOption("a")) {
 			try {
@@ -248,6 +254,27 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 			String senseLayout = "BT";
 			GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, displaySize,false,senseLayout);
 			dotWriter.write(bw, result );
+		}
+		// implications (topological sort)
+		if (itpFile != null) {
+			PrintWriter pw = new PrintWriter(new FileWriter(itpFile));
+			printImplications(pw, result.getTopologicalImplications(),result.getContext());
+			pw.flush();
+			pw.close();
+		}
+		// implications (depth first)
+		if (idfFile != null) {
+			PrintWriter pw = new PrintWriter(new FileWriter(idfFile));
+			printImplications(pw, result.getDepthFirstImplications(),result.getContext());
+			pw.flush();
+			pw.close();
+		}
+		// implications (breadth first)
+		if (ibfFile != null) {
+			PrintWriter pw = new PrintWriter(new FileWriter(ibfFile));
+			printImplications(pw, result.getBreadthFirstImplications(),result.getContext());
+			pw.flush();
+			pw.close();
 		}
 		// display chrono
 		System.out.println("duration: " + chrono.getResult(aoc_algo.getDescription()) + " ms");

@@ -194,16 +194,17 @@ public abstract class ExploRCA {
 					if (clean) {
 						ArrayList<ConceptExtentKey> missingExtentList = new ArrayList<>();
 						for (ConceptExtentKey key : conceptExtentsList.get(formalContext.getName()).keySet()) {
+							boolean found=false;
 							for (int c : conceptOrder.getConcepts()) {
 								if (conceptOrder.getConceptExtent(c).equals(key.extent)) {
-									missingExtentList.add(key);
+									found=true;
 									break;
-								}
+								}								
 							}
+							if(!found) missingExtentList.add(key);
 						}
 						for (ConceptExtentKey key : missingExtentList) {
 							conceptExtentsList.get(formalContext.getName()).remove(key);
-//                    	conceptExtentsNumStep.get(formalContext.getName()).remove(key);
 						}
 					}
 				}
