@@ -109,7 +109,7 @@ public class RCFTWriter {
         	String attrName=context.getAttributeName(numattr);
         	if(mode!=MODE.SIMPLE)
         	{
-        		attrName=AttributeRenamer.build(rcf, attrName, mode,-1);
+        		attrName=AttributeRenamer.build(rcf, attrName, mode,-1,null);
         	}
             writer.write(attrName + "|");
         }

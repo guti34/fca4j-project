@@ -30,7 +30,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package fr.lirmm.fca4j.algo;
 
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -46,6 +45,7 @@ import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
 import fr.lirmm.fca4j.core.RCAFamily.RelationalContext;
 import fr.lirmm.fca4j.core.operator.AbstractScalingOperator;
 import fr.lirmm.fca4j.iset.ISet;
+import fr.lirmm.fca4j.util.ConceptOrderFinder;
 
 /**
  * The Class ExploRCA.
@@ -78,7 +78,7 @@ public abstract class ExploRCA {
 	/**
 	 * current concept order family
 	 */
-	protected Stack<ConceptOrderFamily> conceptOrderFamilies;
+	protected ArrayList<ConceptOrderFamily> conceptOrderFamilies;
 	/**
 	 */
 //	private StringBuffer trace;
@@ -92,7 +92,7 @@ public abstract class ExploRCA {
 		this.clean=clean;
 //		trace = new StringBuffer();
 		this.relationalContextFamily = rcf;
-		this.conceptOrderFamilies = new Stack<>();
+		this.conceptOrderFamilies = new ArrayList<>();
 		numstep = 0;
 		conceptExtentsList = new HashMap<>();
 		conceptExtentsNumStep = new HashMap<>();
@@ -115,7 +115,7 @@ public abstract class ExploRCA {
 		} else {
 			extendContexts(relationalContextFamily);
 		}
-		conceptOrderFamilies.push(generateConceptOrders());
+		conceptOrderFamilies.add(generateConceptOrders());
 		numstep++;
 	}
 
@@ -189,8 +189,8 @@ public abstract class ExploRCA {
 
 				// remove registered extent key for missing concepts
 				if (conceptExtentsList.get(formalContext.getName()).size() != conceptOrder.getConceptCount()) {
-					System.out.println("POURQUOI ? registered=" + conceptExtentsList.get(formalContext.getName()).size()
-							+ " new order=" + conceptOrder.getConceptCount());
+					int nbGhost=conceptExtentsList.get(formalContext.getName()).size()-conceptOrder.getConceptCount();
+					System.out.println("GHOST CONCEPTS FOUND =" + nbGhost);
 					if (clean) {
 						ArrayList<ConceptExtentKey> missingExtentList = new ArrayList<>();
 						for (ConceptExtentKey key : conceptExtentsList.get(formalContext.getName()).keySet()) {
@@ -306,7 +306,8 @@ public abstract class ExploRCA {
 	 * @return the concept order family
 	 */
 	public ConceptOrderFamily getConceptOrderFamily() {
-		return conceptOrderFamilies.peek();
+		if(conceptOrderFamilies.isEmpty()) return null;
+		else return conceptOrderFamilies.get(conceptOrderFamilies.size()-1);
 	}
 
 	/*
@@ -381,7 +382,20 @@ public abstract class ExploRCA {
 			return null;
 		}
 	}
-
+	public class GhostFinder implements ConceptOrderFinder {
+	public ConceptOrder findConceptOrder(String formalContext,int numConcept) {
+		for(int step=conceptOrderFamilies.size()-1;step>=0;step--)
+		{
+			ConceptOrderFamily orderFamily=conceptOrderFamilies.get(step);
+			for(ConceptOrder order:orderFamily.getConceptOrders())
+				if(order.getContext().getName().equals(formalContext) && order.getConcepts().contains(numConcept))
+					return order;
+		}
+		return null;
+	}
+	}	/**
+	 * Find original concept order of a ghost concept
+	 */
 	/**
 	 * The Class ConceptExtentKey.
 	 */
@@ -431,6 +445,10 @@ public abstract class ExploRCA {
 			return this.extent.hashCode();
 		}
 
+	}
+	public ConceptOrderFinder createConceptFinder() {
+		// TODO Auto-generated method stub
+		return new GhostFinder();
 	}
 
 }

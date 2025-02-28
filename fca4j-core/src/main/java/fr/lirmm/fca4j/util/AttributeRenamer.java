@@ -27,10 +27,12 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/package fr.lirmm.fca4j.util;
+*/
+package fr.lirmm.fca4j.util;
 
 import java.util.Iterator;
 
+import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
 import fr.lirmm.fca4j.iset.ISet;
@@ -42,12 +44,14 @@ public class AttributeRenamer {
 		REDUCED_INTENT_FULL_WHEN_EMPTY_NA
 	};
 
-	public static String build(RCAFamily family, String attrName, MODE mode, int currentConcept) {
-		ISet visited=family.getFactory().createSet();
-		if(currentConcept>=0)visited.add(currentConcept);
-		return build(family,attrName,mode,currentConcept,visited);
+	public static String build(RCAFamily family, String attrName, MODE mode, int currentConcept, ConceptOrderFinder conceptOrderFinder) {
+		ISet visited = family.getFactory().createSet();
+		if (currentConcept >= 0)
+			visited.add(currentConcept);
+		return build(family, attrName, mode, currentConcept, visited,conceptOrderFinder);
 	}
-		private static String build(RCAFamily family, String attrName, MODE mode, int currentConcept,ISet visited) {
+
+	private static String build(RCAFamily family, String attrName, MODE mode, int currentConcept, ISet visited, ConceptOrderFinder conceptOrderFinder) {
 		// parse concept name
 		int beg = attrName.indexOf("(C_");
 		if (beg < 0)
@@ -62,23 +66,52 @@ public class AttributeRenamer {
 		end = attrName.indexOf(')', beg);
 		String strConcept = attrName.substring(beg, end);
 		int concept = Integer.valueOf(strConcept);
-		if (visited.contains(concept)) {
-			return attrName;
-		}else visited.add(concept);
 		FormalContext fc = family.getFormalContext(fcName);
+		if (concept == currentConcept) {
+			attrName = attrName.replace("C_" + fcName + "_" + concept, "_SELF_");
+			return attrName;
+		}
+		boolean ghostConcept=!fc.getOrder().getConcepts().contains(concept) && concept>=0 && conceptOrderFinder!=null;
+		if (visited.contains(concept) || ghostConcept) {
+				String conceptName = null;
+				ISet extentToDisplay;
+				ConceptOrder conceptOrder;
+				if(ghostConcept) 
+					conceptOrder=conceptOrderFinder.findConceptOrder(fcName, concept);					
+				else conceptOrder=fc.getOrder();
+				extentToDisplay= conceptOrder.getConceptReducedExtent(concept);
+				if (extentToDisplay.isEmpty()) {
+					extentToDisplay = conceptOrder.getConceptExtent(concept);
+					conceptName = "_OBJ_/INH/";
+				} else
+					conceptName = "_OBJ_/";
+				// build extent
+				boolean first = true;
+				for (Iterator<Integer> it = extentToDisplay.iterator(); it.hasNext();) {
+					int numObj = it.next();
+					if (!first)
+						conceptName += "&";
+					else
+						first = false;
+					conceptName += fc.getContext().getObjectName(numObj);
+				}
+				attrName = attrName.replace("C_" + fcName + "_" + concept, conceptName);
+				return attrName;
+		} else {
+			if(concept>=0)
+				visited.add(concept);	
+		}
 		// build attribute name
-//		if(currentConcept<0)
-//			throw new NullPointerException("concept="+concept);
-		if (concept != currentConcept && mode != MODE.SIMPLE && fc.getOrder().getConcepts().contains(concept)) {
-//			System.out.println("concept="+concept+" currentConcept="+currentConcept);
+		if (mode != MODE.SIMPLE) {
 			String conceptName = buildConceptName(family, fc, concept, mode,
-					currentConcept < 0 ? concept : currentConcept,visited);
+					currentConcept < 0 ? concept : currentConcept, visited,conceptOrderFinder);
 			attrName = attrName.replace("C_" + fcName + "_" + concept, conceptName);
 		}
 		return attrName;
 	}
+
 	private static String buildConceptName(RCAFamily family, FormalContext fc, int concept, MODE mode,
-			int currentConcept,ISet visited) {
+			int currentConcept, ISet visited, ConceptOrderFinder conceptOrderFinder) {
 		ISet rIntent = fc.getOrder().getConceptReducedIntent(concept);
 		int rIntentNativeCount = 0;
 		for (Iterator<Integer> it = rIntent.iterator(); it.hasNext();) {
@@ -103,25 +136,26 @@ public class AttributeRenamer {
 				if (conceptName.length() > 0)
 					conceptName += "&";
 				String attrName = fc.getContext().getAttributeName(numAttr);
-				conceptName += build(family, attrName, mode, currentConcept,visited);
+				conceptName += build(family, attrName, mode, currentConcept, visited,conceptOrderFinder);
 			}
 			// build inherited intent
 			if (mode == MODE.FULL_INTENT || mode == MODE.FULL_INTENT_NA
 					|| (mode == MODE.REDUCED_INTENT_FULL_WHEN_EMPTY && rIntent.isEmpty())
 					|| (mode == MODE.REDUCED_INTENT_FULL_WHEN_EMPTY_NA && rIntent.isEmpty())) {
-				if (!intent.isEmpty()) { 
-					conceptName += "/I/";
-				for (Iterator<Integer> it = intent.iterator(); it.hasNext();) {
-					int numAttr = it.next();
-					if ((mode == MODE.FULL_INTENT_NA || mode == MODE.REDUCED_INTENT_FULL_WHEN_EMPTY_NA)
-							&& fc.isRelationalAttribute(numAttr))
-						continue;
-					if (!(conceptName.length() == 0 || conceptName.endsWith("/")))
-						conceptName += "&";
-					String attrName = fc.getContext().getAttributeName(numAttr);
-					conceptName += build(family, attrName, mode, -1,visited);
-				}
-				}
+				if (!intent.isEmpty()) {
+					conceptName += "/_INH_/";
+					for (Iterator<Integer> it = intent.iterator(); it.hasNext();) {
+						int numAttr = it.next();
+						if ((mode == MODE.FULL_INTENT_NA || mode == MODE.REDUCED_INTENT_FULL_WHEN_EMPTY_NA)
+								&& fc.isRelationalAttribute(numAttr))
+							continue;
+						if (!(conceptName.length() == 0 || conceptName.endsWith("/")))
+							conceptName += "&";
+						String attrName = fc.getContext().getAttributeName(numAttr);
+						conceptName += build(family, attrName, mode, -1, visited,conceptOrderFinder);
+					}
+				} else
+					conceptName = "_ALL_OBJECTS_";
 			}
 		}
 		return conceptName;

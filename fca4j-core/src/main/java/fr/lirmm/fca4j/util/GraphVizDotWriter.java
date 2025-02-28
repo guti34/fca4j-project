@@ -80,6 +80,10 @@ public class GraphVizDotWriter {
 	/** The orientation. */
 	private String orientation;
 	
+	/** 
+	 * conceptOrder finder to retrieve ghost concepts in RCA process
+	 */
+	private ConceptOrderFinder conceptOrderFinder=null;
 
 	/**
 	 * Instantiates a new graph viz dot writer.
@@ -93,11 +97,15 @@ public class GraphVizDotWriter {
 	 * @param orientation  the orientation
 	 */
 	public GraphVizDotWriter(DisplayFormat df, boolean displaySize, boolean displayConceptNumber, String orientation) {
+		this(df,displaySize,displayConceptNumber,orientation,null);
+	}
+		public GraphVizDotWriter(DisplayFormat df, boolean displaySize, boolean displayConceptNumber, String orientation, ConceptOrderFinder conceptOrderFinder) {
 		this.df = df;
 		this.displaySize = displaySize;
 		this.displayConceptNumber = displayConceptNumber;
 		this.useColor = true;
 		this.orientation = orientation;
+		this.conceptOrderFinder=conceptOrderFinder;
 	}
 
 	/**
@@ -139,7 +147,7 @@ public class GraphVizDotWriter {
 				if (mode == MODE.SIMPLE)
 					sb.append(attrName + "\\n");
 				else
-					sb.append(AttributeRenamer.build(family, attrName, mode, concept) + "\\n");
+					sb.append(AttributeRenamer.build(family, attrName, mode, concept,conceptOrderFinder) + "\\n");
 			}
 			sb.append("|");
 			for (Iterator<Integer> it2 = lattice.getConceptReducedExtent(concept).iterator(); it2.hasNext();)
@@ -154,7 +162,7 @@ public class GraphVizDotWriter {
 					sb.append(attrName + "\\n");
 				else {
 					int stopConcept=attrToConcept.get(numattr);
-					sb.append(AttributeRenamer.build(family, attrName, mode, stopConcept) + "\\n");
+					sb.append(AttributeRenamer.build(family, attrName, mode, stopConcept,conceptOrderFinder) + "\\n");
 				}
 			}
 			sb.append("|");
