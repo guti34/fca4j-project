@@ -40,10 +40,23 @@ import fr.lirmm.fca4j.iset.ISet;
 public class AttributeRenamer {
 
 	public static enum MODE {
-		SIMPLE, FULL_INTENT, FULL_INTENT_NA, REDUCED_INTENT, REDUCED_INTENT_NA, REDUCED_INTENT_FULL_WHEN_EMPTY,
-		REDUCED_INTENT_FULL_WHEN_EMPTY_NA
+		SIMPLE, // default
+		FULL_INTENT, // option -ri
+		FULL_INTENT_NA, // option -ri -na
+		REDUCED_INTENT, // option -ra
+		REDUCED_INTENT_NA, // option -ra -na
+		REDUCED_INTENT_FULL_WHEN_EMPTY, // option -rai
+		REDUCED_INTENT_FULL_WHEN_EMPTY_NA // option -rai -na
 	};
-
+/**
+ * 
+ * @param family
+ * @param attrName initial attribute name to be renamed
+ * @param mode  renaming mode
+ * @param currentConcept  concerned concept
+ * @param conceptOrderFinder  an action able to retrieve a disappeared concept in previously computed concept orders
+ * @return
+ */
 	public static String build(RCAFamily family, String attrName, MODE mode, int currentConcept,
 			ConceptOrderFinder conceptOrderFinder) {
 		ISet visited = family.getFactory().createSet();
@@ -51,7 +64,16 @@ public class AttributeRenamer {
 			visited.add(currentConcept);
 		return build(family, attrName, mode, currentConcept, visited, conceptOrderFinder);
 	}
-
+/**
+ * 
+ * @param family
+ * @param attrName
+ * @param mode renaming mode
+ * @param currentConcept
+ * @param visited a collection of already visited concepts in construction, used to provide a stop condition
+ * @param conceptOrderFinder an action able to retrieve a disappeared concept in previously computed concept orders
+ * @return
+ */
 	private static String build(RCAFamily family, String attrName, MODE mode, int currentConcept, ISet visited,
 			ConceptOrderFinder conceptOrderFinder) {
 		// parse concept name
@@ -96,6 +118,17 @@ public class AttributeRenamer {
 		return attrName;
 	}
 
+/**
+ * 
+ * @param family
+ * @param fc
+ * @param concept
+ * @param mode renaming mode
+ * @param currentConcept
+ * @param visited a collection of already visited concepts in construction, used to provide a stop condition
+ * @param conceptOrderFinder an action able to retrieve a disappeared concept in previously computed concept orders
+ * @return
+ */
 	private static String buildConceptNameWithIntent(RCAFamily family, FormalContext fc, int concept, MODE mode,
 			int currentConcept, ISet visited, ConceptOrderFinder conceptOrderFinder) {
 		ISet rIntent = fc.getOrder().getConceptReducedIntent(concept);
@@ -149,6 +182,14 @@ public class AttributeRenamer {
 		}
 		return conceptName;
 	}
+	/**
+	 * 
+	 * @param attrName
+	 * @param fc
+	 * @param conceptOrder
+	 * @param concept
+	 * @return
+	 */
 
 	private static String buildConceptNameWithExtent(String attrName, FormalContext fc, ConceptOrder conceptOrder,
 			int concept) {
