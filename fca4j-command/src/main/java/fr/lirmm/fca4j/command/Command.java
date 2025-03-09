@@ -60,6 +60,8 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.iset.ISetFactory;
+import fr.lirmm.fca4j.util.AttributeRenamer;
+import fr.lirmm.fca4j.util.ConceptOrderFinder;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -570,17 +572,17 @@ public abstract class Command {
 	 * @param familyFormat the family format
 	 * @throws Exception the exception
 	 */
-	public void writeFamily(RCAFamily family, String outputPath,FamilyFormat familyFormat) throws Exception {
+	public void writeFamily(RCAFamily family, String outputPath,FamilyFormat familyFormat,ConceptOrderFinder conceptOrderFinder) throws Exception {
 		// write
 		switch (familyFormat) {
 		case RCFAL:
-			RCFALWriter.write(family, outputPath);
+			RCFALWriter.write(family, outputPath,conceptOrderFinder);
 			break;
 		case RCFGZ:
-			RCFTWriter.write(family, outputPath, true);
+			RCFTWriter.write(family, outputPath, true,conceptOrderFinder);
 			break;
 		case RCFT:
-			RCFTWriter.write(family, outputPath, false);
+			RCFTWriter.write(family, outputPath, false,conceptOrderFinder);
 			break;
 		default:
 			throw new Exception("unknown family output format ?");

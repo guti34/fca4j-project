@@ -276,7 +276,7 @@ public class FamilyCommand extends Command {
 				family.addFormalContext(ctx, null);
 				msg="formal context "+ctxName+" is added";
 			}
-			writeFamily(family, familyFile.getPath(), familyFormat);
+			writeFamily(family, familyFile.getPath(), familyFormat,null);
 			break;
 		}
 		case EXPORT: {
@@ -316,7 +316,7 @@ public class FamilyCommand extends Command {
 				family.renameRelationalContext(rc, newName);
 				msg="relational context renamed: "+ctxName+" -> "+newName;
 			}
-			writeFamily(family, familyFile.getPath(), familyFormat);
+			writeFamily(family, familyFile.getPath(), familyFormat,null);
 			break;
 		}
 		case REMOVE: {
@@ -338,7 +338,7 @@ public class FamilyCommand extends Command {
 				}
 				msg="relational context "+ctxName+" removed";
 			}
-			writeFamily(family, familyFile.getPath(), familyFormat);
+			writeFamily(family, familyFile.getPath(), familyFormat,null);
 			break;
 		}
 		}

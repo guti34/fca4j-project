@@ -330,16 +330,12 @@ public abstract class ExploRCA {
 		for (Iterator<Integer> it = order.getBasicIterator(); it.hasNext();/* numConcept++ */) {
 			int concept = it.next();
 			ConceptExtentKey cek = new ConceptExtentKey(order.getConceptExtent(concept));
-//            System.out.println("cek="+cek.hashCode()+ " extent size="+cek.extent.cardinality());
-//            System.out.println("extent="+order.getConceptExtent(concept)+cek.hashCode());
-//            ConceptExtentKey cek=new ConceptExtentKey(computeExtent(order,concept));
 			if (extents.containsKey(cek)) {
 				int existingC = extents.get(cek);
 				renames.put(concept, existingC);
 			} else {
 				// choose next id for new concept
 				numConcept += 1;
-//                int newConceptId=generateNewConceptId(formalContext);
 				extents.put(cek, numConcept);
 				numSteps.put(cek, numstep);
 				newConcept = true;

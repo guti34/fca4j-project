@@ -467,15 +467,15 @@ public class RCACommand extends Command {
 					switch (familyFormat) {
 					case RCFAL:
 						RCFALWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name + ".rcfal",
-								mode);
+								mode,exploMFca.createConceptFinder());
 						break;
 					case RCFGZ:
 						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name + ".rcfgz", true,
-								mode);
+								mode,exploMFca.createConceptFinder());
 						break;
 					case RCFT:
 						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name + ".rcft", false,
-								mode);
+								mode,exploMFca.createConceptFinder());
 						break;
 					}
 				}
@@ -484,15 +484,15 @@ public class RCACommand extends Command {
 					switch (familyFormat) {
 					case RCFAL:
 						RCFALWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name + ".rcfal",
-								mode);
+								mode,exploMFca.createConceptFinder());
 						break;
 					case RCFGZ:
 						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name + ".rcfgz", true,
-								mode);
+								mode,exploMFca.createConceptFinder());
 						break;
 					case RCFT:
 						RCFTWriter.write(family, resultFolder.getPath() + "/" + familyName + ext_name + ".rcft", false,
-								mode);
+								mode,exploMFca.createConceptFinder());
 						break;
 					}
 				}

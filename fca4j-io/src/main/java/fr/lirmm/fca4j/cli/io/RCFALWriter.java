@@ -39,6 +39,7 @@ import org.json.simple.JSONObject;
 
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.util.AttributeRenamer.MODE;
+import fr.lirmm.fca4j.util.ConceptOrderFinder;
 
 /**
  * The Class RCFALWriter.
@@ -52,13 +53,13 @@ public class RCFALWriter {
      * @param outputPath the output path
      * @throws Exception the exception
      */
-    public static void write(RCAFamily rcf,String outputPath,MODE mode) throws Exception{
+    public static void write(RCAFamily rcf,String outputPath,MODE mode,ConceptOrderFinder conceptOrderFinder) throws Exception{
         File f = new File(outputPath);
         FileWriter fw = new FileWriter(f, false);
-        write(rcf,fw,mode);
+        write(rcf,fw,mode,conceptOrderFinder);
     }
-    public static void write(RCAFamily rcf,String outputPath) throws Exception{
-    	write(rcf,outputPath,MODE.SIMPLE);
+    public static void write(RCAFamily rcf,String outputPath,ConceptOrderFinder conceptOrderFinder) throws Exception{
+    	write(rcf,outputPath,MODE.SIMPLE,conceptOrderFinder);
     }
         
         /**
@@ -68,11 +69,11 @@ public class RCFALWriter {
          * @param writer the writer
          * @throws Exception the exception
          */
-    public static void write(RCAFamily rcf,Writer writer) throws Exception{
-    	write(rcf,writer,MODE.SIMPLE);
+    public static void write(RCAFamily rcf,Writer writer,ConceptOrderFinder conceptOrderFinder) throws Exception{
+    	write(rcf,writer,MODE.SIMPLE,conceptOrderFinder);
     }
-        public static void write(RCAFamily rcf,Writer writer,MODE mode) throws Exception{
-         JSONObject json=family2JSON(rcf,mode);
+        public static void write(RCAFamily rcf,Writer writer,MODE mode,ConceptOrderFinder conceptOrderFinder) throws Exception{
+         JSONObject json=family2JSON(rcf,mode,conceptOrderFinder);
        writer.append(json.toJSONString());
         writer.close();
     }
@@ -83,7 +84,7 @@ public class RCFALWriter {
      * @param rcf the rcf
      * @return the JSON object
      */
-    private static JSONObject family2JSON(RCAFamily rcf,MODE mode){
+    private static JSONObject family2JSON(RCAFamily rcf,MODE mode,ConceptOrderFinder conceptOrderFinder){
     JSONObject json=new JSONObject();
         json.put("familyName", rcf.getName());
         JSONArray arrayFC=new JSONArray();
