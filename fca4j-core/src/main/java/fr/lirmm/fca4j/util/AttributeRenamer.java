@@ -98,6 +98,7 @@ public class AttributeRenamer {
 		// detect ghost concepts
 		boolean ghostConcepts = !(fc.getOrder().getConcepts().contains(concept)) && concept >= 0
 				&& conceptOrderFinder != null;
+		// verify stop criteria: already visited or disappeared
 		if (visited.contains(concept) || ghostConcepts) {
 			ConceptOrder conceptOrder;
 			if (ghostConcepts)
@@ -200,7 +201,9 @@ public class AttributeRenamer {
 			extentToDisplay = conceptOrder.getConceptExtent(concept);
 			if(extentToDisplay.isEmpty())
 				conceptName="_ALL_ATTRIBUTES_";
-			else conceptName = "/_OBJ_/_INH_/";
+			else {
+				conceptName = "/_OBJ_/_INH_/";
+			}
 		} else
 			conceptName = "/_OBJ_/";
 		// build extent
