@@ -309,7 +309,11 @@ public class RCACommand extends Command {
 					"invalid parameter for stopping execution after LIMIT steps  (-x option) specify a positive integer");
 		}
 		}
-		
+		else if(clean)
+		{
+			throw new Exception(
+					"The -clean option can cause an infinite loop. For this you must use the -x option to limit the number of steps in the algorithm.");			
+		}
 		nameWithReducedIntent = line.hasOption("ra");
 		nameWithFullIntent = line.hasOption("ri");
 		if (nameWithFullIntent)

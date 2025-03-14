@@ -39,6 +39,7 @@ import java.util.Iterator;
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.ConceptOrderFamily;
 import fr.lirmm.fca4j.core.RCAFamily;
+import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.util.AttributeRenamer.MODE;
 
 /**
@@ -155,7 +156,11 @@ public class GraphVizDotWriter {
 			break;
 		case FULL:
 			sb.append("|");
-			for (Iterator<Integer> it2 = lattice.getConceptIntent(concept).iterator(); it2.hasNext();) {
+			ISet rIntent=lattice.getConceptReducedIntent(concept);
+			ISet remainingIntent=lattice.getConceptIntent(concept).clone();
+			remainingIntent.removeAll(rIntent);
+			// display reduced intent
+			for (Iterator<Integer> it2 = rIntent.iterator(); it2.hasNext();) {
 				int numattr = it2.next();
 				String attrName = lattice.getContext().getAttributeName(numattr);
 				if (mode == MODE.SIMPLE)
@@ -165,6 +170,20 @@ public class GraphVizDotWriter {
 					sb.append(AttributeRenamer.build(family, attrName, mode, stopConcept,conceptOrderFinder) + "\\n");
 				}
 			}
+			if(!remainingIntent.isEmpty())
+				sb.append("_INH_"+"\\n");
+			// display inherited intent
+			for (Iterator<Integer> it2 = remainingIntent.iterator(); it2.hasNext();) {
+				int numattr = it2.next();
+				String attrName = lattice.getContext().getAttributeName(numattr);
+				if (mode == MODE.SIMPLE)
+					sb.append(attrName + "\\n");
+				else {
+					int stopConcept=attrToConcept.get(numattr);
+					sb.append(AttributeRenamer.build(family, attrName, mode, stopConcept,conceptOrderFinder) + "\\n");
+				}
+			}
+			
 			sb.append("|");
 			for (Iterator<Integer> it2 = lattice.getConceptExtent(concept).iterator(); it2.hasNext();)
 				sb.append(lattice.getContext().getObjectName(it2.next()) + "\\n");

@@ -98,7 +98,7 @@ public class AttributeRenamer {
 		// detect ghost concepts
 		boolean ghostConcepts = !(fc.getOrder().getConcepts().contains(concept)) && concept >= 0
 				&& conceptOrderFinder != null;
-		// verify stop criteria: already visited or disappeared
+		// verify stop criteria: already visited or disappeared (ghost)
 		if (visited.contains(concept) || ghostConcepts) {
 			ConceptOrder conceptOrder;
 			if (ghostConcepts)
@@ -166,7 +166,13 @@ public class AttributeRenamer {
 				if (intent.isEmpty()) {
 					conceptName = "_ALL_OBJECTS_";
 				} else if (!remainingIntent.isEmpty()) {
-					conceptName += "/_INH_/";
+					// keyword when all attributes are inherited
+					if(remainingIntent.cardinality()==fc.getContext().getAttributeCount())
+					{
+						conceptName="_ALL_ATTRIBUTES_";
+						remainingIntent=fc.getContext().getFactory().createSet();
+					}
+					else conceptName += "/_INH_/";
 					for (Iterator<Integer> it = remainingIntent.iterator(); it.hasNext();) {
 						int numAttr = it.next();
 						if ((mode == MODE.FULL_INTENT_NA || mode == MODE.REDUCED_INTENT_FULL_WHEN_EMPTY_NA)
@@ -202,7 +208,13 @@ public class AttributeRenamer {
 			if(extentToDisplay.isEmpty())
 				conceptName="_ALL_ATTRIBUTES_";
 			else {
-				conceptName = "/_OBJ_/_INH_/";
+				// keyword when all objects are inherited
+				if(extentToDisplay.cardinality()==fc.getContext().getObjectCount())
+				{
+					conceptName="_ALL_OBJECTS_";
+					extentToDisplay=fc.getContext().getFactory().createSet(); // clear extension to display
+				}
+				else conceptName = "/_OBJ_/_INH_/";
 			}
 		} else
 			conceptName = "/_OBJ_/";
