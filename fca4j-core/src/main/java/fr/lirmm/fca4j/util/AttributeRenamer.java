@@ -115,6 +115,7 @@ public class AttributeRenamer {
 			String conceptName = buildConceptNameWithIntent(family, fc, concept, mode,
 					currentConcept < 0 ? concept : currentConcept, visited, conceptOrderFinder);
 			attrName = attrName.replace("C_" + fcName + "_" + concept, conceptName);
+			visited.remove(concept);
 		}
 		return attrName;
 	}
@@ -216,8 +217,9 @@ public class AttributeRenamer {
 				}
 				else conceptName = "/_OBJ_/_INH_/";
 			}
-		} else
+		} else {
 			conceptName = "/_OBJ_/";
+		}
 		// build extent
 		boolean first = true;
 		for (Iterator<Integer> it = extentToDisplay.iterator(); it.hasNext();) {

@@ -185,8 +185,23 @@ public class GraphVizDotWriter {
 			}
 			
 			sb.append("|");
-			for (Iterator<Integer> it2 = lattice.getConceptExtent(concept).iterator(); it2.hasNext();)
-				sb.append(lattice.getContext().getObjectName(it2.next()) + "\\n");
+			ISet rExtent=lattice.getConceptReducedExtent(concept);
+			ISet remainingExtent=lattice.getConceptExtent(concept).clone();
+			remainingExtent.removeAll(rExtent);
+			// display reduced extent
+			for (Iterator<Integer> it2 = rExtent.iterator(); it2.hasNext();) {
+				int numobj = it2.next();
+				String objName = lattice.getContext().getObjectName(numobj);
+					sb.append(objName + "\\n");
+			}
+			if(!remainingExtent.isEmpty())
+				sb.append("_INH_"+"\\n");
+			// display inherited extent
+			for (Iterator<Integer> it2 = remainingExtent.iterator(); it2.hasNext();) {
+				int numobj = it2.next();
+				String objName = lattice.getContext().getObjectName(numobj);
+					sb.append(objName + "\\n");
+			}
 			break;
 		case MINIMAL:
 			sb.append("\\n");
