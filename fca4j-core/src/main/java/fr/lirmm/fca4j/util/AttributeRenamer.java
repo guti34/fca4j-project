@@ -40,23 +40,32 @@ import fr.lirmm.fca4j.iset.ISet;
 public class AttributeRenamer {
 
 	public static enum MODE {
-		SIMPLE, // default
-		FULL_INTENT, // option -ri
-		FULL_INTENT_NA, // option -ri -na
-		REDUCED_INTENT, // option -ra
-		REDUCED_INTENT_NA, // option -ra -na
-		REDUCED_INTENT_FULL_WHEN_EMPTY, // option -rai
-		REDUCED_INTENT_FULL_WHEN_EMPTY_NA // option -rai -na
+		SIMPLE, // default original concept are used (of the form
+				// C_FormalContextName_ConceptNumber)
+		FULL_INTENT, // option -ri rename relational attributes using concept full intents
+		FULL_INTENT_NA, // option -ri -na rename relational attributes using concept full intents but
+						// only with native attributes
+		REDUCED_INTENT, // option -ra rename relational attributes using concept reduced intents
+		REDUCED_INTENT_NA, // option -ra -na rename relational attributes using concept reduced intents but
+							// only with native attributes
+		REDUCED_INTENT_FULL_WHEN_EMPTY, // option -rai rename relational attributes using concept full intents only when
+										// reduced intent is empty (object concepts)
+		REDUCED_INTENT_FULL_WHEN_EMPTY_NA // option -rai -na rename relational attributes using concept full intents
+											// only when reduced intent is empty (object concepts) but only with native
+											// attributes
 	};
-/**
- * 
- * @param family
- * @param attrName initial attribute name to be renamed
- * @param mode  renaming mode
- * @param currentConcept  concerned concept
- * @param conceptOrderFinder  an action able to retrieve a disappeared concept in previously computed concept orders
- * @return
- */
+
+	/**
+	 * This public function rewrite the original relational attribute name
+	 * 
+	 * @param family
+	 * @param attrName           initial attribute name to be renamed
+	 * @param mode               renaming mode
+	 * @param currentConcept     concerned concept
+	 * @param conceptOrderFinder an action able to retrieve a disappeared concept in
+	 *                           previously computed concept orders
+	 * @return                   the rewritten attribute name
+	 */
 	public static String build(RCAFamily family, String attrName, MODE mode, int currentConcept,
 			ConceptOrderFinder conceptOrderFinder) {
 		ISet visited = family.getFactory().createSet();
@@ -64,19 +73,26 @@ public class AttributeRenamer {
 			visited.add(currentConcept);
 		return build(family, attrName, mode, currentConcept, visited, conceptOrderFinder);
 	}
-/**
- * 
- * @param family
- * @param attrName
- * @param mode renaming mode
- * @param currentConcept
- * @param visited a collection of already visited concepts in construction, used to provide a stop condition
- * @param conceptOrderFinder an action able to retrieve a disappeared concept in previously computed concept orders
- * @return
- */
+
+	/**
+	 * This function is called by the public build function to rewrite the original
+	 * relational attribute name by rewriting concepts of the form
+	 * C_FormalContextName_Number with the intent or extent of the concept
+	 * 
+	 * @param family             the relational family
+	 * @param attrName	         attribute name
+	 * @param mode               renaming mode
+	 * @param currentConcept     the current concerned concept
+	 * @param visited            a collection of already visited concepts in
+	 *                           construction, used to provide a stop condition
+	 * @param conceptOrderFinder an action able to retrieve a disappeared concept in
+	 *                           previously computed concept orders
+	 * @return	                 the rewritten attribute name
+	 */
 	private static String build(RCAFamily family, String attrName, MODE mode, int currentConcept, ISet visited,
 			ConceptOrderFinder conceptOrderFinder) {
-		// parse concept name
+		// parse concept name to retrieve the name of the formal context and the number
+		// of the concept
 		int beg = attrName.indexOf("(C_");
 		if (beg < 0)
 			return attrName; // native attribute
@@ -95,10 +111,12 @@ public class AttributeRenamer {
 			attrName = attrName.replace("C_" + fcName + "_" + concept, "_SELF_");
 			return attrName;
 		}
-		// detect ghost concepts
+		// detect ghost concepts: a concept of a previous step which has disappeared
 		boolean ghostConcepts = !(fc.getOrder().getConcepts().contains(concept)) && concept >= 0
 				&& conceptOrderFinder != null;
-		// verify stop criteria: already visited or disappeared (ghost)
+		// verify stop criteria: The concept has already been explored and may cause an
+		// infinite loop in the construction process or the concept from a previous step
+		// in this case the concept name is built with the concept extent
 		if (visited.contains(concept) || ghostConcepts) {
 			ConceptOrder conceptOrder;
 			if (ghostConcepts)
@@ -120,30 +138,38 @@ public class AttributeRenamer {
 		return attrName;
 	}
 
-/**
- * 
- * @param family
- * @param fc
- * @param concept
- * @param mode renaming mode
- * @param currentConcept
- * @param visited a collection of already visited concepts in construction, used to provide a stop condition
- * @param conceptOrderFinder an action able to retrieve a disappeared concept in previously computed concept orders
- * @return
- */
+	/**
+	 * This function build concept name from the concept intent
+	 * 
+	 * @param family
+	 * @param fc
+	 * @param concept
+	 * @param mode               renaming mode
+	 * @param currentConcept
+	 * @param visited            a collection of already visited concepts in
+	 *                           construction, used to provide a stop condition
+	 * @param conceptOrderFinder an action able to retrieve a disappeared concept in
+	 *                           previously computed concept orders
+	 * @return
+	 */
 	private static String buildConceptNameWithIntent(RCAFamily family, FormalContext fc, int concept, MODE mode,
 			int currentConcept, ISet visited, ConceptOrderFinder conceptOrderFinder) {
+		// work with intent to build the concept name
 		ISet rIntent = fc.getOrder().getConceptReducedIntent(concept);
+		// count the native attributes of the concept
 		int rIntentNativeCount = 0;
 		for (Iterator<Integer> it = rIntent.iterator(); it.hasNext();) {
 			if (!fc.isRelationalAttribute(it.next()))
 				rIntentNativeCount++;
 		}
 		String conceptName;
+		// build the concept from the reduced intent (-ra option)
 		if ((rIntent.isEmpty() && mode == MODE.REDUCED_INTENT)
 				|| (rIntentNativeCount == 0 && mode == MODE.REDUCED_INTENT_NA)) {
 			conceptName = fc.getConceptName(concept);
-		} else {
+		} else // build the concept from reduced or entire intent depending on option (-rai or
+				// -ri)
+		{
 			ISet intent = fc.getOrder().getConceptIntent(concept).clone();
 			ISet remainingIntent = intent.clone();
 			remainingIntent.removeAll(rIntent);
@@ -168,12 +194,12 @@ public class AttributeRenamer {
 					conceptName = "_ALL_OBJECTS_";
 				} else if (!remainingIntent.isEmpty()) {
 					// keyword when all attributes are inherited
-					if(remainingIntent.cardinality()==fc.getContext().getAttributeCount())
-					{
-						conceptName="_ALL_ATTRIBUTES_";
-						remainingIntent=fc.getContext().getFactory().createSet();
-					}
-					else conceptName += "/_INH_/";
+					if (remainingIntent.cardinality() == fc.getContext().getAttributeCount()) {
+						conceptName = "_ALL_ATTRIBUTES_";
+						remainingIntent = fc.getContext().getFactory().createSet();
+					} else
+						conceptName += "/_INH_/";
+					// build the concept name from chosen intent
 					for (Iterator<Integer> it = remainingIntent.iterator(); it.hasNext();) {
 						int numAttr = it.next();
 						if ((mode == MODE.FULL_INTENT_NA || mode == MODE.REDUCED_INTENT_FULL_WHEN_EMPTY_NA)
@@ -190,12 +216,16 @@ public class AttributeRenamer {
 		}
 		return conceptName;
 	}
+
 	/**
+	 * This function build the concept name from its extent. used when the concept
+	 * name cannot be built from intent (current concept has disapeared or a cycle
+	 * exist in intent construction)
 	 * 
-	 * @param attrName
-	 * @param fc
-	 * @param conceptOrder
-	 * @param concept
+	 * @param attrName     attribute name
+	 * @param fc           formal context
+	 * @param conceptOrder concept order (aoc-poset or lattice)
+	 * @param concept      concerned concept
 	 * @return
 	 */
 
@@ -203,24 +233,30 @@ public class AttributeRenamer {
 			int concept) {
 		String conceptName = null;
 		ISet extentToDisplay;
+		// work with extent to build the concept name
 		extentToDisplay = conceptOrder.getConceptReducedExtent(concept);
+		// work with global extent when the reduced extent is empty
 		if (extentToDisplay.isEmpty()) {
 			extentToDisplay = conceptOrder.getConceptExtent(concept);
-			if(extentToDisplay.isEmpty())
-				conceptName="_ALL_ATTRIBUTES_";
-			else {
-				// keyword when all objects are inherited
-				if(extentToDisplay.cardinality()==fc.getContext().getObjectCount())
-				{
-					conceptName="_ALL_OBJECTS_";
-					extentToDisplay=fc.getContext().getFactory().createSet(); // clear extension to display
+			// _ALL_ATTRIBUTES_ keyword is used when global extent is empty
+			if (extentToDisplay.isEmpty())
+				conceptName = "_ALL_ATTRIBUTES_";
+			else // use inherited objects
+			{
+				// _ALL_OBJECTS_ keyword when all objects are inherited
+				if (extentToDisplay.cardinality() == fc.getContext().getObjectCount()) {
+					conceptName = "_ALL_OBJECTS_";
+					extentToDisplay = fc.getContext().getFactory().createSet(); // clear extension to display
 				}
-				else conceptName = "/_OBJ_/_INH_/";
+				// otherwise display inherited objects
+				else
+					conceptName = "/_OBJ_/_INH_/";
 			}
-		} else {
+		} else // display reduced extent
+		{
 			conceptName = "/_OBJ_/";
 		}
-		// build extent
+		// build concept name with chosen extent
 		boolean first = true;
 		for (Iterator<Integer> it = extentToDisplay.iterator(); it.hasNext();) {
 			int numObj = it.next();
@@ -230,6 +266,7 @@ public class AttributeRenamer {
 				first = false;
 			conceptName += fc.getContext().getObjectName(numObj);
 		}
+		// replace native concept name by the built name from extent
 		attrName = attrName.replace("C_" + fc.getName() + "_" + concept, conceptName);
 		return attrName;
 
