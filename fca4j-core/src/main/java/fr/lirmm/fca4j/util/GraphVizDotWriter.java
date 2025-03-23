@@ -171,7 +171,7 @@ public class GraphVizDotWriter {
 				}
 			}
 			if(!remainingIntent.isEmpty())
-				sb.append("_INH_"+"\\n");
+				sb.append("_INH_ATT_"+"\\n");
 			// display inherited intent
 			for (Iterator<Integer> it2 = remainingIntent.iterator(); it2.hasNext();) {
 				int numattr = it2.next();
@@ -195,7 +195,7 @@ public class GraphVizDotWriter {
 					sb.append(objName + "\\n");
 			}
 			if(!remainingExtent.isEmpty())
-				sb.append("_INH_"+"\\n");
+				sb.append("_INH_OBJ_"+"\\n");
 			// display inherited extent
 			for (Iterator<Integer> it2 = remainingExtent.iterator(); it2.hasNext();) {
 				int numobj = it2.next();
