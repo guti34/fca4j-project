@@ -124,7 +124,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		// graphviz
 		declareGraphvizOptions();
 		// implications
-		declareImplicationsOptions();
+//		declareImplicationsOptions();
 		// implementation
 		declareImplementation(false);
 		// common options
@@ -172,7 +172,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		checkImplementation(line);
 		if (line.hasOption("a")) {
 			try {
-				algo = AlgoLattice.valueOf(line.getOptionValue("a"));
+				algo = AlgoLattice.valueOf(line.getOptionValue("a").toUpperCase());
 			} catch (IllegalArgumentException e) {
 			}
 			if (algo == null)

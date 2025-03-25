@@ -267,7 +267,7 @@ public class RCACommand extends Command {
 		
 		if (line.hasOption("a")) {
 			try {
-				algo = AlgoRCA.valueOf(line.getOptionValue("a"));
+				algo = AlgoRCA.valueOf(line.getOptionValue("a").toUpperCase());
 			} catch (IllegalArgumentException e) {
 			}
 			if (algo == null)

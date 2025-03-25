@@ -123,7 +123,7 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		// graphviz
 		declareGraphvizOptions();
 		// implications
-		declareImplicationsOptions();
+//		declareImplicationsOptions();
 		// implementation
 		declareImplementation(false);
 		// common options
