@@ -37,7 +37,7 @@ import fr.lirmm.fca4j.iset.ISet;
  *
  * @author agutierr
  */
-public class Implication {
+public class Implication  implements Cloneable {
 
 	ISet premise;
 	ISet conclusion;
@@ -126,6 +126,22 @@ public class Implication {
 	 */
 	@Override
 	public String toString() {
-		return String.format("<%d> %s => %s", support.cardinality(), premise, conclusion);
+		int s=(support==null)?supportSize:support.cardinality();
+		return String.format("<%d> %s => %s", s, premise, conclusion);
 	}
+    /**
+    *
+    * @return a clone
+    */
+   public Implication clone() {
+	   if(support==null)
+		   return new Implication(premise.clone(), conclusion.clone(), supportSize);
+	   else return new Implication(premise.clone(), conclusion.clone(), support.clone());
+	   
+   }
+   @Override
+   public int hashCode() {
+	   return String.format("%s => %s", premise, conclusion).hashCode();
+   }
+
 }

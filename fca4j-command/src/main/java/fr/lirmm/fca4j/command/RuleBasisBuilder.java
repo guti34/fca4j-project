@@ -50,6 +50,7 @@ import fr.lirmm.fca4j.algo.ClosureDirectWithForkJoinPool;
 import fr.lirmm.fca4j.algo.ClosureStrategy;
 import fr.lirmm.fca4j.algo.ClosureWithHistory;
 import fr.lirmm.fca4j.algo.DBaseCalculator;
+import fr.lirmm.fca4j.algo.DBaseCalculator2;
 import fr.lirmm.fca4j.algo.LinCbO;
 import fr.lirmm.fca4j.algo.LinCbOWithPruning;
 import fr.lirmm.fca4j.cli.io.RuleBasisReader;
@@ -565,9 +566,30 @@ public class RuleBasisBuilder extends Command {
 		return result;
 	}
 	public static void main(String[] args) throws IOException {
-//		test("example0.5.2");
-		test("PlantSpecies");
+		test2("example0.5.2");
+//		test2("PlantSpecies");
 	}
+	private static void test2(String name) throws IOException  {
+		IBinaryContext context=SLFReader.read(new File("c:/projects/rules/dbasis/"+name+".slf"));
+		System.out.println("***************************");
+		System.out.println("context="+context.getObjectCount()+"x"+context.getAttributeCount());
+		RuleBasis ruleBaseDB=RuleBasisReader.read("c:/projects/rules/dbasis/"+name+"DB.txt",context);
+		RuleBasis ruleBaseDQ=RuleBasisReader.read("c:/projects/rules/dbasis/"+name+"DQ.txt",context);
+		
+		DBaseCalculator2 calculator=new DBaseCalculator2(context);
+		calculator.run();
+		printImplications2(calculator.getResult(),context);
+		RuleBasis ruleBaseDB2=new RuleBasis(calculator.getResult(),context);
+		
+		System.out.println("ruleBaseDQ<ruleBaseDB="+ruleBaseDQ.isIncludedIn(ruleBaseDB));
+		System.out.println("ruleBaseDB<ruleBaseDQ="+ruleBaseDB.isIncludedIn(ruleBaseDQ));
+		System.out.println("ruleBaseDB<ruleBaseDB2="+ruleBaseDB.isIncludedIn(ruleBaseDB2));
+		System.out.println("ruleBaseDB2<ruleBaseDB="+ruleBaseDB2.isIncludedIn(ruleBaseDB));
+		System.out.println("ruleBaseDB2<ruleBaseDQ="+ruleBaseDB2.isIncludedIn(ruleBaseDQ));
+		System.out.println("ruleBaseDB<ruleBaseDB2="+ruleBaseDB.isIncludedIn(ruleBaseDB2));
+		
+	}
+
 	private static void test(String name) throws IOException  {
 		IBinaryContext context=SLFReader.read(new File("c:/projects/rules/PlantSpecies/"+name+".slf"));
 		System.out.println("***************************");
