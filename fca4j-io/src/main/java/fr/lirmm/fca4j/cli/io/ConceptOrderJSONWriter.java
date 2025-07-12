@@ -33,6 +33,7 @@ package fr.lirmm.fca4j.cli.io;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -51,60 +52,56 @@ public class ConceptOrderJSONWriter {
 	/**
 	 * Builds the.
 	 *
-	 * @param json the json
+	 * @param json         the json
 	 * @param conceptOrder the concept order
-	 * @param matrix the matrix
+	 * @param matrix       the matrix
 	 */
-/*	public static JSONArray build(ConceptOrder conceptOrder) {
-		JSONArray conceptArray = new JSONArray();
-		IBinaryContext matrix = conceptOrder.getContext();
-		for (Iterator<Integer> it = conceptOrder.getTopDownIterator(); it.hasNext();) {
-			int concept = it.next();
-			JSONObject conceptJson = new JSONObject();
-			conceptJson.put("id", concept);
-			conceptArray.add(conceptJson);
-			// populate intent
-			JSONArray attributesArray = new JSONArray();
-			conceptJson.put("attributes", attributesArray);
-			for (Iterator<Integer> itIntent = conceptOrder.getConceptReducedIntent(concept).iterator(); itIntent
-					.hasNext();) {
-				String attrName = matrix.getObjectName(itIntent.next());
-				attributesArray.add(attrName);
-			}
-
-			// populate extent
-			JSONArray objectArray = new JSONArray();
-			conceptJson.put("objects", objectArray);
-			for (Iterator<Integer> itExtent = conceptOrder.getConceptReducedExtent(concept).iterator(); itExtent
-					.hasNext();) {
-				String objName = matrix.getObjectName(itExtent.next());
-				objectArray.add(objName);
-			}
-			// populate children
-			JSONArray children = new JSONArray();
-			for (Iterator<Integer> itChildren = conceptOrder.getLowerCover(concept).iterator(); itChildren.hasNext();) {
-				children.add(itChildren.next());
-			}
-			conceptJson.put("children", children);
-		}
-		return conceptArray;
-	}
-*/
+	/*
+	 * public static JSONArray build(ConceptOrder conceptOrder) { JSONArray
+	 * conceptArray = new JSONArray(); IBinaryContext matrix =
+	 * conceptOrder.getContext(); for (Iterator<Integer> it =
+	 * conceptOrder.getTopDownIterator(); it.hasNext();) { int concept = it.next();
+	 * JSONObject conceptJson = new JSONObject(); conceptJson.put("id", concept);
+	 * conceptArray.add(conceptJson); // populate intent JSONArray attributesArray =
+	 * new JSONArray(); conceptJson.put("attributes", attributesArray); for
+	 * (Iterator<Integer> itIntent =
+	 * conceptOrder.getConceptReducedIntent(concept).iterator(); itIntent
+	 * .hasNext();) { String attrName = matrix.getObjectName(itIntent.next());
+	 * attributesArray.add(attrName); }
+	 * 
+	 * // populate extent JSONArray objectArray = new JSONArray();
+	 * conceptJson.put("objects", objectArray); for (Iterator<Integer> itExtent =
+	 * conceptOrder.getConceptReducedExtent(concept).iterator(); itExtent
+	 * .hasNext();) { String objName = matrix.getObjectName(itExtent.next());
+	 * objectArray.add(objName); } // populate children JSONArray children = new
+	 * JSONArray(); for (Iterator<Integer> itChildren =
+	 * conceptOrder.getLowerCover(concept).iterator(); itChildren.hasNext();) {
+	 * children.add(itChildren.next()); } conceptJson.put("children", children); }
+	 * return conceptArray; }
+	 */
 	/**
 	 * Generate JSON.
 	 *
-	 * @param family           the rca family
-	 * @param conceptOrder     the concept order
+	 * @param family       the rca family
+	 * @param conceptOrder the concept order
 	 */
-	public static JSONArray build(IConceptOrder conceptOrder,
-			boolean fullIntents, boolean fullExtents) {
-		JSONArray conceptJsonArray=new JSONArray();
+	public static JSONArray build(IConceptOrder conceptOrder, boolean fullIntents, boolean fullExtents) {
+		return build(conceptOrder, fullIntents, fullExtents, false);
+	}
+
+	public static JSONArray build(IConceptOrder conceptOrder, boolean fullIntents, boolean fullExtents,
+			boolean distances) {
+		JSONArray conceptJsonArray = new JSONArray();
 		IBinaryContext matrix = conceptOrder.getContext();
 		for (Iterator<Integer> it = conceptOrder.getTopDownIterator(); it.hasNext();) {
 			int concept = it.next();
 			JSONObject conceptJson = new JSONObject();
 			conceptJson.put("id", concept);
 			conceptJson.put("context", matrix.getName());
+			if (distances) {
+				conceptJson.put("distanceToTop", distanceToTop(conceptOrder, concept));
+				conceptJson.put("distanceToBottom", distanceToBottom(conceptOrder, concept));
+			}
 			conceptJsonArray.add(conceptJson);
 			// populate reduced intent
 			JSONObject attributesJson = new JSONObject();
@@ -112,7 +109,7 @@ public class ConceptOrderJSONWriter {
 			for (Iterator<Integer> itIntent = conceptOrder.getConceptReducedIntent(concept).iterator(); itIntent
 					.hasNext();) {
 				String attrName = matrix.getAttributeName(itIntent.next());
-				generateAttribute(attributesJson,attrName );
+				generateAttribute(attributesJson, attrName);
 			}
 			if (fullIntents) {
 				// populate full intent
@@ -121,7 +118,7 @@ public class ConceptOrderJSONWriter {
 				for (Iterator<Integer> itIntent = conceptOrder.getConceptIntent(concept).iterator(); itIntent
 						.hasNext();) {
 					String attrName = matrix.getAttributeName(itIntent.next());
-					generateAttribute(fullIntentJson,attrName );
+					generateAttribute(fullIntentJson, attrName);
 				}
 			}
 			// populate extent
@@ -158,7 +155,30 @@ public class ConceptOrderJSONWriter {
 		return conceptJsonArray;
 
 	}
-	private static void generateAttribute(JSONObject attributesJson,String attrName ) {
+
+	private static int distanceToTop(IConceptOrder order, int concept) {
+		int dist = Integer.MAX_VALUE;
+		for (Iterator<Integer> it = order.getMaximals().iterator(); it.hasNext();) {
+			int top = it.next();
+			List<Integer> path = order.getShortestPath(concept, top);
+			if (path != null && path.size() < dist)
+				dist = path.size();
+		}
+		return dist - 1;
+	}
+
+	private static int distanceToBottom(IConceptOrder order, int concept) {
+		int dist = Integer.MAX_VALUE;
+		for (Iterator<Integer> it = order.getMinimals().iterator(); it.hasNext();) {
+			int bottom = it.next();
+			List<Integer> path = order.getShortestPath(bottom, concept);
+			if (path != null && path.size() < dist)
+				dist = path.size();
+		}
+		return dist - 1;
+	}
+
+	private static void generateAttribute(JSONObject attributesJson, String attrName) {
 		int index = attrName.indexOf("(C_");
 		if (index > 0) {
 			String attrRelName = attrName.substring(0, index);
@@ -202,28 +222,29 @@ public class ConceptOrderJSONWriter {
 		} else {
 			try {
 				attributesJson.put(attrName, attrName);
-/*				int underscore = attrName.indexOf("_");
-				String key = attrName.substring(0, underscore);
-				String value = attrName.substring(underscore + 1);
-				attributesJson.put(key, value);
-*/			} catch (Exception e) {
+				/*
+				 * int underscore = attrName.indexOf("_"); String key = attrName.substring(0,
+				 * underscore); String value = attrName.substring(underscore + 1);
+				 * attributesJson.put(key, value);
+				 */ } catch (Exception e) {
 				attributesJson.put(attrName, attrName);
 			}
 		}
 
 	}
+
 	/**
 	 * Write.
 	 *
-	 * @param buff the buff
+	 * @param buff         the buff
 	 * @param conceptOrder the concept order
-	 * @param matrix the matrix
+	 * @param matrix       the matrix
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public static void write(BufferedWriter buff, ConceptOrder conceptOrder, IBinaryContext matrix) throws IOException {
 		JSONObject mainJson = new JSONObject();
 		mainJson.put("source", matrix.getName());
-		mainJson.put("concepts",build( conceptOrder, false, false));
+		mainJson.put("concepts", build(conceptOrder, false, false));
 		mainJson.writeJSONString(buff);
 		buff.flush();
 		buff.close();

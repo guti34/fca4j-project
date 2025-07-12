@@ -41,8 +41,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
 import org.jgrapht.alg.TransitiveClosure;
 import org.jgrapht.alg.TransitiveReduction;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -992,4 +994,10 @@ public void exportJSON(Writer writer){
     	}
     	rintents=newRIntents;
 }
+    public List<Integer> getShortestPath(int vertex1,int vertex2){
+        DijkstraShortestPath<Integer, DefaultEdge> dijkstraAlg = new DijkstraShortestPath<>(hierarchy);
+        GraphPath path=dijkstraAlg.getPath(vertex1, vertex2);
+        return path==null ? null : path.getVertexList();
+
+    }
 }

@@ -33,6 +33,7 @@ package fr.lirmm.fca4j.command;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.List;
@@ -48,6 +49,7 @@ import fr.lirmm.fca4j.algo.AOC_poset_Pluton;
 import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.ConceptOrderXMLWriter;
+import fr.lirmm.fca4j.cli.io.SLFReader;
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetContext;
@@ -285,5 +287,16 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		}
 		return result;
 	}
-
+	public static void main(String[] args) throws IOException {
+		inspect("association");
+		inspect("attribute");
+		inspect("class");
+		inspect("operation");
+		inspect("role");
+		
+	}
+	protected static void inspect(String name)  throws IOException{
+		IBinaryContext context_class=SLFReader.read(new File("c:/projects/FontaineDuTheil/"+name+".slf"));
+		
+	}
 }

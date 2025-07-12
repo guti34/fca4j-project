@@ -111,6 +111,7 @@ public class RCFTWriter {
         	String attrName=context.getAttributeName(numattr);
         	if(mode!=MODE.SIMPLE)
         	{
+//        		System.out.println("rename from rcft: "+attrName);
         		attrName=AttributeRenamer.build(rcf, attrName, mode,-1,conceptOrderFinder);
         	}
             writer.write(attrName + "|");

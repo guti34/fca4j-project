@@ -143,5 +143,8 @@ public class Implication  implements Cloneable {
    public int hashCode() {
 	   return String.format("%s => %s", premise, conclusion).hashCode();
    }
-
+   @Override
+   public boolean equals(Object other) {
+	   return hashCode()==other.hashCode();
+   }
 }

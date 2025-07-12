@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package fr.lirmm.fca4j.core;
 
 import java.util.Iterator;
+import java.util.List;
 
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
@@ -275,4 +276,12 @@ public interface IConceptOrder {
      * @return the concept order
      */
     public ConceptOrder clone(ISetFactory newFactory);
+    /**
+     * Get the shortest path between deux concept
+     * @param vertex1
+     * @param vertex2
+     * @return the path or null if no path exist
+     */
+    public List<Integer> getShortestPath(int vertex1,int vertex2);
+
 }

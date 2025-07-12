@@ -407,6 +407,8 @@ public class RCACommand extends Command {
 		StringBuilder results = new StringBuilder();
 		JSONArray conceptArray = null;
 		while (!exploMFca.isEnd()) {
+			// create json concept Array
+			conceptArray = new JSONArray();
 
 			// on trace l'�tape courante
 			trace.append("\n" + exploMFca.getNumStep() + "\n");
@@ -502,13 +504,8 @@ public class RCACommand extends Command {
 				}
 
 				// store concepts in json file
-				if (thisIsTheEnd) {
-					if (conceptArray == null) {
-						// create json concept Array
-						conceptArray = new JSONArray();
-					}
-					conceptArray.addAll(ConceptOrderJSONWriter.build(cPoset, fullIntents, fullExtents));
-//					generateJSON(family, conceptArray, cPoset,fullIntents,fullExtents);
+				if (thisIsTheEnd || produceJSon) {
+					conceptArray.addAll(ConceptOrderJSONWriter.build(cPoset, fullIntents, fullExtents,true));
 				}
 				i++;
 			}

@@ -50,7 +50,19 @@ import fr.lirmm.fca4j.algo.ClosureDirectWithForkJoinPool;
 import fr.lirmm.fca4j.algo.ClosureStrategy;
 import fr.lirmm.fca4j.algo.ClosureWithHistory;
 import fr.lirmm.fca4j.algo.DBaseCalculator;
-import fr.lirmm.fca4j.algo.DBaseCalculator2;
+import fr.lirmm.fca4j.algo.DBaseCalculator10;
+import fr.lirmm.fca4j.algo.DBaseCalculator11;
+import fr.lirmm.fca4j.algo.DBaseCalculator12;
+import fr.lirmm.fca4j.algo.DBaseCalculator13;
+import fr.lirmm.fca4j.algo.DBaseCalculator14;
+import fr.lirmm.fca4j.algo.DBaseCalculator15;
+import fr.lirmm.fca4j.algo.DBaseCalculator16;
+import fr.lirmm.fca4j.algo.DBaseCalculator3;
+import fr.lirmm.fca4j.algo.DBaseCalculator4;
+import fr.lirmm.fca4j.algo.DBaseCalculator5;
+import fr.lirmm.fca4j.algo.DBaseCalculator6;
+import fr.lirmm.fca4j.algo.DBaseCalculator7;
+import fr.lirmm.fca4j.algo.DBaseCalculator8;
 import fr.lirmm.fca4j.algo.LinCbO;
 import fr.lirmm.fca4j.algo.LinCbOWithPruning;
 import fr.lirmm.fca4j.cli.io.RuleBasisReader;
@@ -61,6 +73,7 @@ import fr.lirmm.fca4j.core.RuleBasis;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
+import fr.lirmm.fca4j.util.RuleUtilities;
 
 /**
  * The Class RuleBasisBuilder.
@@ -355,7 +368,7 @@ public class RuleBasisBuilder extends Command {
             for (int support : map.keySet()) {
                 FileWriter fileWriter = new FileWriter(folder.getPath() + File.separator + ctx.getName() + support + "Rules.txt");
                 PrintWriter printWriter = new PrintWriter(fileWriter);
-                printImplications(printWriter, map.get(support));
+                RuleUtilities.printImplications(printWriter, map.get(support),ctx);
                 printWriter.close();
             }
         StringBuilder sb = new StringBuilder();
@@ -364,20 +377,6 @@ public class RuleBasisBuilder extends Command {
         }
     }
 	
-	/**
-	 * Prints the implications.
-	 *
-	 * @param printWriter the print writer
-	 * @param implications the implications
-	 */
-	private void printImplications(PrintWriter printWriter, List<Implication> implications) {
-		for (Implication implication : implications) {
-			printWriter.printf("<%d> %s => %s\n", implication.getSupport().cardinality(), displayAttrs(implication.getPremise()),
-					displayAttrs(implication.getConclusion()));
-		}
-
-	}
-
 	/**
 	 * Prints sorted implications.
 	 *
@@ -396,28 +395,11 @@ public class RuleBasisBuilder extends Command {
 			list.add(implication);
 		}
 		for (int support : map.keySet()) {
-			printImplications(printWriter, map.get(support));
+			RuleUtilities.printImplications(printWriter, map.get(support),ctx);
 
 		}
 	}
 
-	/**
-	 * Display attributes.
-	 *
-	 * @param set the set
-	 * @return the string
-	 */
-	private String displayAttrs(ISet set) {
-		StringBuilder sb = new StringBuilder();
-		for (Iterator<Integer> it = set.iterator(); it.hasNext();) {
-			if (sb.length() != 0) {
-				sb.append(",");
-			}
-			sb.append(ctx.getAttributeName(it.next()));
-		}
-		return sb.toString();
-	}
-	
 	/**
 	 * Prints the report.
 	 *
@@ -554,7 +536,7 @@ public class RuleBasisBuilder extends Command {
 		if (sortedPrint)
 			printSortedImplications(pw, result);
 		else
-			printImplications(pw, result);		
+			RuleUtilities.printImplications(pw, result,ctx);		
 		pw.flush();
 		pw.close();
 		
@@ -566,9 +548,24 @@ public class RuleBasisBuilder extends Command {
 		return result;
 	}
 	public static void main(String[] args) throws IOException {
-		test2("example0.5.2");
+//		test2("example0.5.2");
 //		test2("PlantSpecies");
+//		test2("exemple16");
+//		test2("exemple");
+//		test2("dbasis_10x22");
+//		test2("dbasis_10x21r");
+		test2("ProtectedOrganism");
+//		test3();
 	}
+/*	private static void test3() throws IOException  {
+		IBinaryContext context=SLFReader.read(new File("C:\\projects\\yulin\\ModeleSamediWithoutIds\\result_aoc-poset2\\ProtSystemExtended.slf"));
+		RuleBasis ruleBaseAocPoset=RuleBasisReader.read("C:\\projects\\yulin\\Relational2\\result_aoc-poset\\rules_aoc-poset.txt",context);
+		RuleBasis ruleBaseLattice=RuleBasisReader.read("C:\\projects\\yulin\\\\Relational2\\result_lattice\\rules_lattice.txt",context);
+		System.out.println("ruleBaseAocPoset<ruleBaseLattice="+RuleUtilities.isIncludedIn(ruleBaseAocPoset.getImplications(),ruleBaseLattice.getImplications()));
+		System.out.println("ruleBaseLattice<ruleBaseAocPoset="+RuleUtilities.isIncludedIn(ruleBaseLattice.getImplications(),ruleBaseAocPoset.getImplications()));
+	
+	}
+*/
 	private static void test2(String name) throws IOException  {
 		IBinaryContext context=SLFReader.read(new File("c:/projects/rules/dbasis/"+name+".slf"));
 		System.out.println("***************************");
@@ -576,18 +573,24 @@ public class RuleBasisBuilder extends Command {
 		RuleBasis ruleBaseDB=RuleBasisReader.read("c:/projects/rules/dbasis/"+name+"DB.txt",context);
 		RuleBasis ruleBaseDQ=RuleBasisReader.read("c:/projects/rules/dbasis/"+name+"DQ.txt",context);
 		
-		DBaseCalculator2 calculator=new DBaseCalculator2(context);
+		DBaseCalculator16 calculator=new DBaseCalculator16(context);
+//		DBaseCalculator15 calculator=new DBaseCalculator15(context);
 		calculator.run();
-		printImplications2(calculator.getResult(),context);
+		PrintWriter pw=new PrintWriter("c:/projects/rules/dbasis/"+name+"DB2.txt");
+		RuleUtilities.printImplications(pw,calculator.getResult(),context);
 		RuleBasis ruleBaseDB2=new RuleBasis(calculator.getResult(),context);
 		
-		System.out.println("ruleBaseDQ<ruleBaseDB="+ruleBaseDQ.isIncludedIn(ruleBaseDB));
-		System.out.println("ruleBaseDB<ruleBaseDQ="+ruleBaseDB.isIncludedIn(ruleBaseDQ));
-		System.out.println("ruleBaseDB<ruleBaseDB2="+ruleBaseDB.isIncludedIn(ruleBaseDB2));
-		System.out.println("ruleBaseDB2<ruleBaseDB="+ruleBaseDB2.isIncludedIn(ruleBaseDB));
-		System.out.println("ruleBaseDB2<ruleBaseDQ="+ruleBaseDB2.isIncludedIn(ruleBaseDQ));
-		System.out.println("ruleBaseDB<ruleBaseDB2="+ruleBaseDB.isIncludedIn(ruleBaseDB2));
-		
+//		System.out.println("ruleBaseDQ<ruleBaseDB="+RuleUtilities.isIncludedIn(ruleBaseDQ.getImplications(),ruleBaseDB.getImplications()));
+//		System.out.println("ruleBaseDB<ruleBaseDQ="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDQ.getImplications()));
+		System.out.println("ruleBaseDQ<ruleBaseDB2="+RuleUtilities.isIncludedIn(ruleBaseDQ.getImplications(),ruleBaseDB2.getImplications()));
+		System.out.println("ruleBaseDB2<ruleBaseDQ="+RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(),ruleBaseDQ.getImplications()));
+		System.out.println("ruleBaseDB2<ruleBaseDB="+RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(),ruleBaseDB.getImplications()));
+		System.out.println("ruleBaseDB<ruleBaseDB2="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDB2.getImplications()));
+//		List<ISet> dqClosures=RuleUtilities.generateClosures(ruleBaseDQ.getImplications(), context.getFactory());
+//		List<ISet> dbClosures=RuleUtilities.generateClosures(ruleBaseDB.getImplications(), context.getFactory());
+//		System.out.println("DQ is direct= "+RuleUtilities.isDirect(ruleBaseDQ.getImplications(),context.getFactory()));
+//		System.out.println("DB is direct= "+RuleUtilities.isDirect(ruleBaseDB.getImplications(),context.getFactory()));
+		System.out.println("DB2 is direct= "+RuleUtilities.isDirect(ruleBaseDB2.getImplications(),context.getFactory()));
 	}
 
 	private static void test(String name) throws IOException  {
@@ -599,33 +602,16 @@ public class RuleBasisBuilder extends Command {
 		
 		DBaseCalculator calculator=new DBaseCalculator(context);
 		calculator.run();
-		printImplications2(calculator.getResult(),context);
+		RuleUtilities.printImplications(calculator.getResult(),context);
 		RuleBasis ruleBaseDB2=new RuleBasis(calculator.getResult(),context);
 		
-		System.out.println("ruleBaseDQ<ruleBaseDB="+ruleBaseDQ.isIncludedIn(ruleBaseDB));
-		System.out.println("ruleBaseDB<ruleBaseDQ="+ruleBaseDB.isIncludedIn(ruleBaseDQ));
-		System.out.println("ruleBaseDB<ruleBaseDB2="+ruleBaseDB.isIncludedIn(ruleBaseDB2));
-		System.out.println("ruleBaseDB2<ruleBaseDB="+ruleBaseDB2.isIncludedIn(ruleBaseDB));
-		System.out.println("ruleBaseDB2<ruleBaseDQ="+ruleBaseDB2.isIncludedIn(ruleBaseDQ));
-		System.out.println("ruleBaseDB<ruleBaseDB2="+ruleBaseDB.isIncludedIn(ruleBaseDB2));
+		System.out.println("ruleBaseDQ<ruleBaseDB="+RuleUtilities.isIncludedIn(ruleBaseDQ.getImplications(),ruleBaseDB.getImplications()));
+		System.out.println("ruleBaseDB<ruleBaseDQ="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDQ.getImplications()));
+		System.out.println("ruleBaseDB<ruleBaseDB2="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDB2.getImplications()));
+		System.out.println("ruleBaseDB2<ruleBaseDB="+RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(),ruleBaseDB.getImplications()));
+		System.out.println("ruleBaseDB2<ruleBaseDQ="+RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(),ruleBaseDQ.getImplications()));
+		System.out.println("ruleBaseDB<ruleBaseDB2="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDB2.getImplications()));
 		
-	}
-	private static void printImplications2(List<Implication> implications,IBinaryContext context) {
-		for (Implication implication : implications) {
-			System.out.printf("<%d> %s => %s\n", implication.getSupport().cardinality(), displayAttrs2(implication.getPremise(),context),
-					displayAttrs2(implication.getConclusion(),context));
-		}
-
-	}
-	private static String displayAttrs2(ISet set,IBinaryContext context) {
-		StringBuilder sb = new StringBuilder();
-		for (Iterator<Integer> it = set.iterator(); it.hasNext();) {
-			if (sb.length() != 0) {
-				sb.append(",");
-			}
-			sb.append(context.getAttributeName(it.next()));
-		}
-		return sb.toString();
 	}
 	
 }

@@ -30,7 +30,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package fr.lirmm.fca4j.util;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
@@ -66,14 +74,55 @@ public class AttributeRenamer {
 	 *                           previously computed concept orders
 	 * @return                   the rewritten attribute name
 	 */
+/*static int counter=0;
+static int profondeur=0;
+static int maxConceptName=0;
+static HashMap<Integer,String> conceptNames=new HashMap<>();
+
 	public static String build(RCAFamily family, String attrName, MODE mode, int currentConcept,
 			ConceptOrderFinder conceptOrderFinder) {
+		counter=0;
+		profondeur=0;
+		System.out.println("renaming "+attrName);
 		ISet visited = family.getFactory().createSet();
-		if (currentConcept >= 0)
+		if (currentConcept >= 0) {
 			visited.add(currentConcept);
+		}
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        Callable<String> task = () -> {
+            return build(family, attrName, mode, currentConcept, visited, conceptOrderFinder);
+        };
+
+        Future<String> future = executor.submit(task);
+        String result="";
+        try {
+            // On attend 2 secondes pour le résultat
+            result = future.get(5, TimeUnit.SECONDS);
+         } catch (TimeoutException e) {
+            System.out.println("************************Timeout atteint, on annule la tâche.counter="+counter);
+            future.cancel(true); // Interruption si possible
+             result="TIMEOUT";
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            System.out.println("ERROR counter="+counter);
+        } finally {
+            executor.shutdownNow();
+        }
+
+		System.out.println("counter="+counter+" profondeur="+profondeur+"max concept name="+maxConceptName);
+		return result;
+	}
+*/	
+	public static String build(RCAFamily family, String attrName, MODE mode, int currentConcept,
+			ConceptOrderFinder conceptOrderFinder) {
+		System.out.println("renaming "+attrName);
+		ISet visited = family.getFactory().createSet();
+		if (currentConcept >= 0) {
+			visited.add(currentConcept);
+		}
 		return build(family, attrName, mode, currentConcept, visited, conceptOrderFinder);
 	}
-
 	/**
 	 * This function is called by the public build function to rewrite the original
 	 * relational attribute name by rewriting concepts of the form
@@ -91,6 +140,7 @@ public class AttributeRenamer {
 	 */
 	private static String build(RCAFamily family, String attrName, MODE mode, int currentConcept, ISet visited,
 			ConceptOrderFinder conceptOrderFinder) {
+//		counter++;
 		// parse concept name to retrieve the name of the formal context and the number
 		// of the concept
 		int beg = attrName.indexOf("(C_");
@@ -126,7 +176,11 @@ public class AttributeRenamer {
 			return buildConceptNameWithExtent(attrName, fc, conceptOrder, concept);
 		} else {
 			if (concept >= 0)
+			{
 				visited.add(concept);
+//				if(visited.cardinality()>profondeur)
+//					profondeur=visited.cardinality();
+			}
 		}
 		// build attribute name
 		if (mode != MODE.SIMPLE) {
@@ -134,6 +188,7 @@ public class AttributeRenamer {
 					currentConcept < 0 ? concept : currentConcept, visited, conceptOrderFinder);
 			attrName = attrName.replace("C_" + fcName + "_" + concept, conceptName);
 			visited.remove(concept);
+//			System.out.println("visited="+visited.cardinality());
 		}
 		return attrName;
 	}
@@ -154,6 +209,8 @@ public class AttributeRenamer {
 	 */
 	private static String buildConceptNameWithIntent(RCAFamily family, FormalContext fc, int concept, MODE mode,
 			int currentConcept, ISet visited, ConceptOrderFinder conceptOrderFinder) {
+//		if(conceptNames.containsKey(concept))
+//			return conceptNames.get(concept);
 		// work with intent to build the concept name
 		ISet rIntent = fc.getOrder().getConceptReducedIntent(concept);
 		// count the native attributes of the concept
@@ -197,7 +254,7 @@ public class AttributeRenamer {
 					if (remainingIntent.cardinality() == fc.getContext().getAttributeCount()) {
 						conceptName = "_ALL_ATTRIBUTES_";
 						remainingIntent = fc.getContext().getFactory().createSet();
-					} else
+					} else 
 						conceptName += "/_INH_/";
 					// build the concept name from chosen intent
 					for (Iterator<Integer> it = remainingIntent.iterator(); it.hasNext();) {
@@ -212,8 +269,11 @@ public class AttributeRenamer {
 					}
 				}
 
-			}
+			}			
 		}
+//		if(!conceptNames.containsKey(concept)) conceptNames.put(concept,conceptName);
+//		if(conceptName.length()>maxConceptName)
+//			maxConceptName=conceptName.length();
 		return conceptName;
 	}
 

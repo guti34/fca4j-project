@@ -21,6 +21,7 @@ import fr.lirmm.fca4j.core.RuleBasis;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
+import fr.lirmm.fca4j.util.RuleUtilities;
 
 public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 
@@ -80,12 +81,6 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 
 		// Étape 2 : Réduire les implications pour obtenir une D-base minimale
 		List<Implication> minimalDBase = new ArrayList<>();
-		Comparator<Implication> comparator = new Comparator<Implication>() {
-			@Override
-			public int compare(Implication a1, Implication a2) {
-				return Integer.compare(a1.getPremise().cardinality(), a2.getPremise().cardinality());
-			}
-		};
 		List<Implication> sortedList = new ArrayList<>(dBase);
 		// Sort implication by cardinality
 		Collections.sort(sortedList, new Comparator<Implication>() {
@@ -96,10 +91,10 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 		});
 
 		for (Implication dep : sortedList) {
-			ISet closure = computeClosure(dep.getPremise(), minimalDBase);
+			ISet closure = RuleUtilities.computeClosure(dep.getPremise(), minimalDBase);
 			ISet minimalConclusion = dep.getConclusion().newDifference(closure);
 
-			if (!isDerivable(minimalConclusion, dep.getPremise(), minimalDBase)) {
+			if (!RuleUtilities.isDerivable(minimalConclusion, dep.getPremise(), minimalDBase)) {
 //				if (!isDerivable(minimalConclusion, closure, minimalDBase)) {
 				minimalDBase.add(new Implication(dep.getPremise(), minimalConclusion, dep.getSupport()));
 			}
@@ -164,10 +159,10 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 		// Étape 2 : Réduire les implications pour obtenir une D-base minimale
 		List<Implication> minimalDBase = new ArrayList<>();
 		for (Implication dep : results) {
-			ISet closure = computeClosure(dep.getPremise(), minimalDBase);
+			ISet closure = RuleUtilities.computeClosure(dep.getPremise(), minimalDBase);
 			ISet minimalConclusion = dep.getConclusion().newDifference(closure);
 
-			if (!isDerivable(minimalConclusion, dep.getPremise(), minimalDBase)) {
+			if (!RuleUtilities.isDerivable(minimalConclusion, dep.getPremise(), minimalDBase)) {
 				minimalDBase.add(new Implication(dep.getPremise(), minimalConclusion, dep.getSupport()));
 			}
 		}
@@ -176,46 +171,6 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 
 	}
 
-	/**
-	 * Calcule la fermeture d'un ensemble d'attributs sous un ensemble
-	 * d'implications.
-	 *
-	 * @param attributes   Ensemble d'attributs de départ.
-	 * @param dependencies Liste des implications à appliquer.
-	 * @return La fermeture de l'ensemble d'attributs.
-	 */
-	private ISet computeClosure(ISet attributes, List<Implication> dependencies) {
-		ISet closure = attributes.clone();
-		boolean changed;
-
-		do {
-			changed = false;
-			for (Implication dep : dependencies) {
-				if (closure.containsAll(dep.getPremise())) {
-					if (!closure.containsAll(dep.getConclusion())) {
-						closure.addAll(dep.getConclusion());
-						changed = true;
-					}
-				}
-			}
-		} while (changed);
-
-		return closure;
-	}
-
-	/**
-	 * Verify if an attribute set can be deduced from a base attribute set and a set
-	 * of implications d'implications.
-	 *
-	 * @param attributes   Attribute set to verify
-	 * @param base         Initial attribute set (prémise).
-	 * @param dependencies A list of implications.
-	 * @return true if the set can be deduced.
-	 */
-	private boolean isDerivable(ISet attributes, ISet base, List<Implication> dependencies) {
-		ISet closure = computeClosure(base, dependencies);
-		return closure.containsAll(attributes);
-	}
 
 	private ISet getExtent(ISet intent) {
 		ISet result = context.getFactory().createSet();

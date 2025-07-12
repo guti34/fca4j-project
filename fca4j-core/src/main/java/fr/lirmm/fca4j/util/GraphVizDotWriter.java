@@ -147,8 +147,10 @@ public class GraphVizDotWriter {
 				String attrName = lattice.getContext().getAttributeName(numattr);
 				if (mode == MODE.SIMPLE)
 					sb.append(attrName + "\\n");
-				else
+				else {
+//					System.out.println("rename:"+attrName);
 					sb.append(AttributeRenamer.build(family, attrName, mode, concept,conceptOrderFinder) + "\\n");
+				}
 			}
 			sb.append("|");
 			for (Iterator<Integer> it2 = lattice.getConceptReducedExtent(concept).iterator(); it2.hasNext();)

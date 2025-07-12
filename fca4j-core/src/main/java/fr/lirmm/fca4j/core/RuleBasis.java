@@ -87,40 +87,6 @@ public class RuleBasis {
 		return otherBasis.isGraphIncluded(this.ruleGraph, otherBasis.ruleGraph)
 				&& otherBasis.isGraphIncluded(otherBasis.ruleGraph,this.ruleGraph );
 	}
-	public boolean isIncludedIn(RuleBasis otherBasis)
-	{
-		for (Implication dep : getImplications()) {
-			ISet closure = computeClosure(dep.getPremise(), otherBasis.getImplications());
-			ISet minimalConclusion = dep.getConclusion().newDifference(closure);
-
-			if (!isDerivable(minimalConclusion, dep.getPremise(), otherBasis.getImplications())) {
-				return false;
-			}
-		}
-		return true;
-	}
-	private boolean isDerivable(ISet attributes, ISet base, List<Implication> dependencies) {
-		ISet closure = computeClosure(base, dependencies);
-		return closure.containsAll(attributes);
-	}
-	private ISet computeClosure(ISet attributes, List<Implication> dependencies) {
-		ISet closure = attributes.clone();
-		boolean changed;
-
-		do {
-			changed = false;
-			for (Implication dep : dependencies) {
-				if (closure.containsAll(dep.getPremise())) {
-					if (!closure.containsAll(dep.getConclusion())) {
-						closure.addAll(dep.getConclusion());
-						changed = true;
-					}
-				}
-			}
-		} while (changed);
-
-		return closure;
-	}
 // ne fonctionne pas !
 	public boolean isIncludedIn2(RuleBasis otherBasis)
 	{
