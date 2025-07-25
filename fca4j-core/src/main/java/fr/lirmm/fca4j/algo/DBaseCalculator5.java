@@ -2,6 +2,8 @@ package fr.lirmm.fca4j.algo;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -35,12 +37,13 @@ public class DBaseCalculator5 implements AbstractAlgo<List<Implication>> {
 	    ClosureDirect closureEngine=new ClosureDirect(context);
 		LinCbO linCbO = new LinCbO(context, chrono,closureEngine , false);
 		linCbO.run();
+		System.out.println("linCbo done");
 		List<Implication> dgBasis = linCbO.getResult();
 		List<Implication> dBasis = new ArrayList<>();
+		int counter=0;
         for (Implication dg : dgBasis) {
             ClosureTracer tracer = new ClosureTracer(dBasis);
             ISet closure = tracer.computeClosure(dg.getPremise());
-            System.out.println("DG implication="+dg);
             for(Iterator<Integer> it=dg.getConclusion().iterator();it.hasNext();) {
             	int conclusion=it.next();
 	            if (!closure.contains(conclusion)) {
@@ -53,7 +56,15 @@ public class DBaseCalculator5 implements AbstractAlgo<List<Implication>> {
 	            }
             }
         }
-		implications = dBasis;
+		// Sort implication by cardinality
+		Collections.sort(dBasis, new Comparator<Implication>() {
+			@Override
+			public int compare(Implication a1, Implication a2) {
+				return Integer.compare(a1.getPremise().cardinality(), a2.getPremise().cardinality());
+			}
+		});
+
+        implications = dBasis;
 	}
 
 	
@@ -104,7 +115,7 @@ public class DBaseCalculator5 implements AbstractAlgo<List<Implication>> {
 	        while (!justification2.isEmpty()) {
 	            Implication current = justification2.pop();
 	            if (visited.containsAll(current.getConclusion())) continue;
-//	            visited.add(current.getConclusion().iterator().next());
+	            visited.add(current.getConclusion().iterator().next());
 
 	    		if(reducedIntent.containsAll(current.getPremise())&& reducedIntent.containsAll(current.getConclusion())) {
 				    		reducedIntent.removeAll(current.getConclusion());

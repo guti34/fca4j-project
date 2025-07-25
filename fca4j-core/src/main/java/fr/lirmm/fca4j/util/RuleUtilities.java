@@ -117,6 +117,7 @@ public class RuleUtilities {
 			List<ISet> powerSet = generatePowerSet(last, factory);
 			for (ISet set : powerSet) {
 				if (!isDirect(set, implications)) {
+//					System.out.println(set);
 					count++;
 				}
 			}

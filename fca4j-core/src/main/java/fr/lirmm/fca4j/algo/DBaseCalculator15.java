@@ -20,6 +20,7 @@ import java.util.TreeSet;
 
 import org.jgrapht.alg.util.Pair;
 
+import fr.lirmm.fca4j.algo.DBaseV16.ClosureEngine;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.core.RuleBasis;
@@ -63,13 +64,14 @@ public class DBaseCalculator15 implements AbstractAlgo<List<Implication>> {
 	public String getDescription() {
 		return "DBase";
 	}
-
-	public List<Implication> computeDBasis() {
-
+	public List<Implication> buildInitBase() {
 		LinCbO linCbO = new LinCbO(context, chrono, new ClosureDirect(context), false);
 		linCbO.run();
-		dqBasis = linCbO.getResult();
 		System.out.println("lincbo done");
+		return linCbO.getResult();		
+	}
+	public List<Implication> computeDBasis() {
+		dqBasis=buildInitBase();
 		List<Implication> dBasis = new ArrayList<>();
 
 		for (int target = 0; target < context.getAttributeCount(); target++) {
@@ -79,7 +81,9 @@ public class DBaseCalculator15 implements AbstractAlgo<List<Implication>> {
 			System.out.println("minGens="+minGens.size());
 			chrono.stop("computeMinimalGenerators");
 			chrono.start("extractCovers");
+			System.out.println("mingens cardinality="+minGens.size());
 			Set<ISet> covers = extractCovers(minGens);
+			System.out.println("covers="+covers.size());
 			chrono.stop("extractCovers");
 
 			for (ISet premise : covers) {
@@ -95,7 +99,14 @@ public class DBaseCalculator15 implements AbstractAlgo<List<Implication>> {
 				return Integer.compare(a1.getPremise().cardinality(), a2.getPremise().cardinality());
 			}
 		});
-		return dBasis;
+		// filter redundants
+		System.out.println("dBasis before"+dBasis.size());
+	chrono.start("filter redundancy");
+	List<Implication> directBase= buildDirectBase(dBasis);
+		System.out.println("dBasis after"+directBase.size());
+	chrono.stop("filter redundancy");
+	return directBase;
+//		return dBasis;
 		// ⚠️ Optional: order D-basis according to dependency depth (topological sort)
 //	        return sortImplications(dBasis);
 
@@ -166,6 +177,81 @@ public class DBaseCalculator15 implements AbstractAlgo<List<Implication>> {
 
 	    public Set<ISet> getAll() {
 	        return generators;
+	    }
+	}
+	public List<Implication> buildDirectBase(List<Implication> candidateBase) {
+	    ClosureEngine engine = new ClosureEngine();
+	    List<Implication> directBase = new ArrayList<>();
+
+	    // On suppose que les implications sont triées par taille de prémisse
+	    candidateBase.sort(Comparator.comparingInt(impl -> impl.getPremise().cardinality()));
+
+	    for (Implication impl : candidateBase) {
+	        ISet closure = engine.computeClosure(impl.getPremise());
+
+	        if (!closure.containsAll(impl.getConclusion())||!RuleUtilities.isDirect(impl.getConclusion(), engine.getBase())) {
+	            engine.add(impl);
+	            directBase.add(impl);
+	        }
+	        // Sinon : l'implication est redondante et déjà couverte par la base actuelle
+	    }
+
+	    return directBase;
+	}
+	public class ClosureEngine {
+	    private final Map<Integer, List<Implication>> indexByAttribute = new HashMap<>();
+	    private final List<Implication> base = new ArrayList<>();
+
+	    public ClosureEngine() {
+	    }
+
+	    public void add(Implication impl) {
+	        base.add(impl);
+	        for (Iterator<Integer> it = impl.getPremise().iterator(); it.hasNext();) {
+	            int attr = it.next();
+	            indexByAttribute.computeIfAbsent(attr, k -> new ArrayList<>()).add(impl);
+	        }
+	    }
+
+	    public ISet computeClosure(ISet input) {
+	        ISet closure = input.clone();
+	        Deque<Integer> frontier = new ArrayDeque<>();
+	        Set<Integer> visited = new HashSet<>();
+
+	        for (Iterator<Integer> it = closure.iterator(); it.hasNext();) {
+	            int attr = it.next();
+	            frontier.add(attr);
+	            visited.add(attr);
+	        }
+
+	        while (!frontier.isEmpty()) {
+	            int current = frontier.poll();
+	            List<Implication> candidates = indexByAttribute.get(current);
+	            if (candidates == null) continue;
+
+	            for (Implication impl : candidates) {
+	                if (!closure.containsAll(impl.getPremise())) continue;
+	                int conclusion = impl.getConclusion().first();
+	                if (!closure.contains(conclusion)) {
+	                    closure.add(conclusion);
+	                    if (!visited.contains(conclusion)) {
+	                        frontier.add(conclusion);
+	                        visited.add(conclusion);
+	                    }
+	                }
+	            }
+	        }
+
+	        return closure;
+	    }
+
+	    public boolean implies(ISet premise, ISet conclusion) {
+	        ISet closure = computeClosure(premise);
+	        return closure.containsAll(conclusion);
+	    }
+
+	    public List<Implication> getBase() {
+	        return base;
 	    }
 	}
 }

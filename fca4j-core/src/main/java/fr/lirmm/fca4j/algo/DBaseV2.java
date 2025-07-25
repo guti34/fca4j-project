@@ -23,7 +23,7 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.RuleUtilities;
 
-public class DBaseCalculator2 implements AbstractAlgo<List<Implication>> {
+public class DBaseV2 implements AbstractAlgo<List<Implication>> {
 	ISet supportBidon;
 	protected int minSupport = 0;
 	/** The matrix. */
@@ -35,7 +35,7 @@ public class DBaseCalculator2 implements AbstractAlgo<List<Implication>> {
 	/** The implications. */
 	protected List<Implication> implications;
 
-	public DBaseCalculator2(IBinaryContext context) {
+	public DBaseV2(IBinaryContext context) {
 		this.context = context;
 		this.implications = new ArrayList<>();
 	    supportBidon=context.getFactory().createSet();
@@ -117,7 +117,7 @@ public class DBaseCalculator2 implements AbstractAlgo<List<Implication>> {
 	                }
 	            }
 	        } while (changed);
-	        
+System.out.println("Σsr= "+dqBasis.size());	        
 System.out.println("Complétion de Σsr pour obtenir Σdsr");
 	        // Stage 3 : 
             List<Implication> sigmaDsr = new ArrayList<>();
@@ -148,7 +148,9 @@ System.out.println("Complétion de Σsr pour obtenir Σdsr");
 	                }
 	            }
 	        }
-        	System.out.println("sigmaDsr="+sigmaDsr.size());
+System.out.println("sigmaDsr="+sigmaDsr.size());
+//return sigmaDsr;
+
 	        // Stage 4 : Optimisation de Σdsr pour obtenir Σdo
 	        List<Implication> sigmaDo = new ArrayList<>();
 	        for (Implication impl : sigmaDsr) {
@@ -169,8 +171,11 @@ System.out.println("Complétion de Σsr pour obtenir Σdsr");
 //	                addImplication(new Implication(A, B,supportBidon),sigmaDo);
 	            }
 	        }
-        	System.out.println("sigmaDo="+sigmaDo.size());
-			// Étape 2 : Réduire les implications pour obtenir une D-base minimale
+	        
+System.out.println("sigmaDo="+sigmaDo.size());
+return sigmaDo;
+
+/*			// Étape 2 : Réduire les implications pour obtenir une D-base minimale
 			List<Implication> minimalDBase = new ArrayList<>();
 			List<Implication> sortedList = new ArrayList<>(sigmaDo);
 			// Sort implication by cardinality
@@ -193,7 +198,7 @@ System.out.println("Complétion de Σsr pour obtenir Σdsr");
         	System.out.println("minimalDBase="+minimalDBase.size());
         
 		return minimalDBase;
-	}
+*/	}
 	boolean equals(Implication implA,Implication implB) {
         return implA.getPremise().equals(implB.getPremise())&&implA.getConclusion().equals(implB.getConclusion());
 		

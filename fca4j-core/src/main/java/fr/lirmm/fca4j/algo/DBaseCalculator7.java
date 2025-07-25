@@ -35,16 +35,22 @@ public class DBaseCalculator7 implements AbstractAlgo<List<Implication>> {
 
 	@Override
 	public void run() {
-		DBaseCalculator2 calculator2=new DBaseCalculator2(context);
-		calculator2.run();
-		List<Implication> list=new ArrayList<>(calculator2.getResult());
-		computeBaseWithHittingSets(list);
-		implications=list;
-/*		for(Iterator<Implication> it=RuleUtilities.iteratorImplications(list);it.hasNext();)
-		{
-			implications.add(it.next());
-		}
-*/	}
+		DBaseCalculator15 calculator = new DBaseCalculator15(context) {
+			public List<Implication> buildInitBase() {
+				DBaseV16 calculator2 = new DBaseV16(context);
+				calculator2.run();
+				return new ArrayList<>(calculator2.getResult());
+			}
+		};
+	calculator.run();
+
+	List<Implication> list=new ArrayList<>(calculator.getResult());
+	implications=list;
+	/*
+	 * for(Iterator<Implication>
+	 * it=RuleUtilities.iteratorImplications(list);it.hasNext();) {
+	 * implications.add(it.next()); }
+	 */ }
 
 	@Override
 	public List<Implication> getResult() {
@@ -56,7 +62,6 @@ public class DBaseCalculator7 implements AbstractAlgo<List<Implication>> {
 		return "DBase";
 	}
 
-
 	List<Implication> computeBaseWithHittingSets(List<Implication> base) {
 		for (int b = 0; b < context.getAttributeCount(); b++) {
 			List<ISet> Fb = computeNegativeSupports(b);
@@ -67,7 +72,7 @@ public class DBaseCalculator7 implements AbstractAlgo<List<Implication>> {
 			for (ISet premise : algo.getResult()) {
 
 				// Vérifie si b est déjà déductible de A via les implications déjà générées
-				if (isValidImplication(premise, b) /*&& !RuleUtilities.computeClosure(premise, base).contains(b)*/) {
+				if (isValidImplication(premise, b) /* && !RuleUtilities.computeClosure(premise, base).contains(b) */) {
 					base.add(new Implication(premise, conclusion.clone(), 0));
 				}
 

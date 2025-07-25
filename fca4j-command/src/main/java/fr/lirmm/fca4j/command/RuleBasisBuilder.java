@@ -55,16 +55,24 @@ import fr.lirmm.fca4j.algo.DBaseCalculator11;
 import fr.lirmm.fca4j.algo.DBaseCalculator12;
 import fr.lirmm.fca4j.algo.DBaseCalculator13;
 import fr.lirmm.fca4j.algo.DBaseCalculator14;
+import fr.lirmm.fca4j.algo.DBaseCalculator14_16;
 import fr.lirmm.fca4j.algo.DBaseCalculator15;
-import fr.lirmm.fca4j.algo.DBaseCalculator16;
+import fr.lirmm.fca4j.algo.DBaseV16;
+import fr.lirmm.fca4j.algo.DBaseCalculator17;
+import fr.lirmm.fca4j.algo.DBaseCalculator18;
+import fr.lirmm.fca4j.algo.DBaseCalculator2_16;
+import fr.lirmm.fca4j.algo.DBaseV2;
 import fr.lirmm.fca4j.algo.DBaseCalculator3;
 import fr.lirmm.fca4j.algo.DBaseCalculator4;
 import fr.lirmm.fca4j.algo.DBaseCalculator5;
+import fr.lirmm.fca4j.algo.DBaseCalculator5_16;
 import fr.lirmm.fca4j.algo.DBaseCalculator6;
 import fr.lirmm.fca4j.algo.DBaseCalculator7;
 import fr.lirmm.fca4j.algo.DBaseCalculator8;
+import fr.lirmm.fca4j.algo.DBaseCalculator9;
 import fr.lirmm.fca4j.algo.LinCbO;
 import fr.lirmm.fca4j.algo.LinCbOWithPruning;
+import fr.lirmm.fca4j.algo.DBaseV16.ClosureEngine;
 import fr.lirmm.fca4j.cli.io.RuleBasisReader;
 import fr.lirmm.fca4j.cli.io.SLFReader;
 import fr.lirmm.fca4j.core.IBinaryContext;
@@ -548,33 +556,45 @@ public class RuleBasisBuilder extends Command {
 		return result;
 	}
 	public static void main(String[] args) throws IOException {
-//		test2("example0.5.2");
-//		test2("PlantSpecies");
-//		test2("exemple16");
-//		test2("exemple");
-//		test2("dbasis_10x22");
-//		test2("dbasis_10x21r");
-		test2("ProtectedOrganism");
+//		test("example0.5.2");
+//		test("PlantSpecies");
+//		test("exemple16");
+//		test("exemple");
+		test("dbasis_10x22");
+//		test("dbasis_10x21r");
+//		test("ProtectedOrganism");
 //		test3();
 	}
-/*	private static void test3() throws IOException  {
-		IBinaryContext context=SLFReader.read(new File("C:\\projects\\yulin\\ModeleSamediWithoutIds\\result_aoc-poset2\\ProtSystemExtended.slf"));
-		RuleBasis ruleBaseAocPoset=RuleBasisReader.read("C:\\projects\\yulin\\Relational2\\result_aoc-poset\\rules_aoc-poset.txt",context);
-		RuleBasis ruleBaseLattice=RuleBasisReader.read("C:\\projects\\yulin\\\\Relational2\\result_lattice\\rules_lattice.txt",context);
-		System.out.println("ruleBaseAocPoset<ruleBaseLattice="+RuleUtilities.isIncludedIn(ruleBaseAocPoset.getImplications(),ruleBaseLattice.getImplications()));
-		System.out.println("ruleBaseLattice<ruleBaseAocPoset="+RuleUtilities.isIncludedIn(ruleBaseLattice.getImplications(),ruleBaseAocPoset.getImplications()));
-	
+	private static void test3() throws IOException  {
+		IBinaryContext context=SLFReader.read(new File("c:/projects/rules/dbasis/dbasis_10x22.slf"));
+		RuleBasis ruleBaseDB02=RuleBasisReader.read("c:/projects/rules/dbasis/dbasis_10x22DB2_02.txt",context);
+		RuleBasis ruleBaseDB15=RuleBasisReader.read("c:/projects/rules/dbasis/dbasis_10x22DB2_15.txt",context);
+		RuleBasis ruleBaseDB16=RuleBasisReader.read("c:/projects/rules/dbasis/dbasis_10x22DB2_16.txt",context);
+		RuleBasis ruleBaseDB=RuleBasisReader.read("c:/projects/rules/dbasis/dbasis_10x22DB.txt",context);
+		RuleBasis ruleBaseDB05=RuleBasisReader.read("c:/projects/rules/dbasis/dbasis_10x22DB2_05.txt",context);
+		System.out.println("ruleBaseDB02<ruleBase15="+RuleUtilities.isIncludedIn(ruleBaseDB02.getImplications(),ruleBaseDB15.getImplications()));
+		System.out.println("ruleBaseDB15<ruleBase02="+RuleUtilities.isIncludedIn(ruleBaseDB15.getImplications(),ruleBaseDB02.getImplications()));
+
 	}
-*/
-	private static void test2(String name) throws IOException  {
+
+	private static void test(String name) throws IOException  {
 		IBinaryContext context=SLFReader.read(new File("c:/projects/rules/dbasis/"+name+".slf"));
 		System.out.println("***************************");
 		System.out.println("context="+context.getObjectCount()+"x"+context.getAttributeCount());
 		RuleBasis ruleBaseDB=RuleBasisReader.read("c:/projects/rules/dbasis/"+name+"DB.txt",context);
 		RuleBasis ruleBaseDQ=RuleBasisReader.read("c:/projects/rules/dbasis/"+name+"DQ.txt",context);
 		
-		DBaseCalculator16 calculator=new DBaseCalculator16(context);
+//		DBaseV2 calculator=new DBaseV2(context);
+		DBaseV16 calculator=new DBaseV16(context);
+//		DBaseCalculator3 calculator=new DBaseCalculator3(context);
+//		DBaseCalculator4 calculator=new DBaseCalculator4(context);
+//		DBaseCalculator5 calculator=new DBaseCalculator5(context);
+//		DBaseCalculator7 calculator=new DBaseCalculator7(context);
 //		DBaseCalculator15 calculator=new DBaseCalculator15(context);
+//		DBaseCalculator17 calculator=new DBaseCalculator17(context);
+//		DBaseCalculator2_16 calculator=new DBaseCalculator2_16(context);
+//		DBaseCalculator14_16 calculator=new DBaseCalculator14_16(context);
+//		DBaseCalculator5_16 calculator=new DBaseCalculator5_16(context);
 		calculator.run();
 		PrintWriter pw=new PrintWriter("c:/projects/rules/dbasis/"+name+"DB2.txt");
 		RuleUtilities.printImplications(pw,calculator.getResult(),context);
@@ -586,32 +606,58 @@ public class RuleBasisBuilder extends Command {
 		System.out.println("ruleBaseDB2<ruleBaseDQ="+RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(),ruleBaseDQ.getImplications()));
 		System.out.println("ruleBaseDB2<ruleBaseDB="+RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(),ruleBaseDB.getImplications()));
 		System.out.println("ruleBaseDB<ruleBaseDB2="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDB2.getImplications()));
+		DirectnessTester directTester= new DirectnessTester(calculator.getResult());
 //		List<ISet> dqClosures=RuleUtilities.generateClosures(ruleBaseDQ.getImplications(), context.getFactory());
 //		List<ISet> dbClosures=RuleUtilities.generateClosures(ruleBaseDB.getImplications(), context.getFactory());
 //		System.out.println("DQ is direct= "+RuleUtilities.isDirect(ruleBaseDQ.getImplications(),context.getFactory()));
 //		System.out.println("DB is direct= "+RuleUtilities.isDirect(ruleBaseDB.getImplications(),context.getFactory()));
+		System.out.println("DB2 is direct= "+directTester.isDirect());
 		System.out.println("DB2 is direct= "+RuleUtilities.isDirect(ruleBaseDB2.getImplications(),context.getFactory()));
 	}
+	public static class DirectnessTester {
 
-	private static void test(String name) throws IOException  {
-		IBinaryContext context=SLFReader.read(new File("c:/projects/rules/PlantSpecies/"+name+".slf"));
-		System.out.println("***************************");
-		System.out.println("context="+context.getObjectCount()+"x"+context.getAttributeCount());
-		RuleBasis ruleBaseDQ=RuleBasisReader.read("c:/projects/rules/PlantSpecies/"+name+"DQ.txt",context);
-		RuleBasis ruleBaseDB=RuleBasisReader.read("c:/projects/rules/PlantSpecies/"+name+"DB.txt",context);
-		
-		DBaseCalculator calculator=new DBaseCalculator(context);
-		calculator.run();
-		RuleUtilities.printImplications(calculator.getResult(),context);
-		RuleBasis ruleBaseDB2=new RuleBasis(calculator.getResult(),context);
-		
-		System.out.println("ruleBaseDQ<ruleBaseDB="+RuleUtilities.isIncludedIn(ruleBaseDQ.getImplications(),ruleBaseDB.getImplications()));
-		System.out.println("ruleBaseDB<ruleBaseDQ="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDQ.getImplications()));
-		System.out.println("ruleBaseDB<ruleBaseDB2="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDB2.getImplications()));
-		System.out.println("ruleBaseDB2<ruleBaseDB="+RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(),ruleBaseDB.getImplications()));
-		System.out.println("ruleBaseDB2<ruleBaseDQ="+RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(),ruleBaseDQ.getImplications()));
-		System.out.println("ruleBaseDB<ruleBaseDB2="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDB2.getImplications()));
-		
+	    private final List<Implication> base;
+
+	    public DirectnessTester(List<Implication> base) {
+	        this.base = base;
+	    }
+
+	    public boolean isDirect() {
+	        for (Implication impl : base) {
+	            ISet premise = impl.getPremise();
+
+	            // Fermeture complète par itérations (standard)
+	            ISet fullClosure = computeFullClosure(premise);
+
+	            // Fermeture en une seule passe
+	            ISet onePassClosure = premise.clone();
+	            for (Implication rule : base) {
+	                if (onePassClosure.containsAll(rule.getPremise())) {
+	                    onePassClosure.addAll(rule.getConclusion());
+	                }
+	            }
+
+	            if (!fullClosure.equals(onePassClosure)) {
+	                // Pas direct : une implication indirecte a été nécessaire
+	                return false;
+	            }
+	        }
+	        return true;
+	    }
+
+	    private ISet computeFullClosure(ISet premise) {
+	        ISet closure = premise.clone();
+	        boolean changed;
+	        do {
+	            changed = false;
+	            for (Implication impl : base) {
+	                if (closure.containsAll(impl.getPremise()) && !closure.containsAll(impl.getConclusion())) {
+	                    closure.addAll(impl.getConclusion());
+	                    changed = true;
+	                }
+	            }
+	        } while (changed);
+	        return closure;
+	    }
 	}
-	
 }

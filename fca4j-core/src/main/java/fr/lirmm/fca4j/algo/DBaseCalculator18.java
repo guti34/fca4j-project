@@ -20,6 +20,7 @@ import java.util.TreeSet;
 
 import org.jgrapht.alg.util.Pair;
 
+import fr.lirmm.fca4j.core.BinaryContext;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.core.RuleBasis;
@@ -28,7 +29,7 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.RuleUtilities;
 
-public class DBaseCalculator16 implements AbstractAlgo<List<Implication>> {
+public class DBaseCalculator18 implements AbstractAlgo<List<Implication>> {
 	protected int minSupport = 0;
 	/** The matrix. */
 	protected IBinaryContext context; // ressource de depart
@@ -40,17 +41,17 @@ public class DBaseCalculator16 implements AbstractAlgo<List<Implication>> {
 	/** The implications. */
 	protected List<Implication> implications;
 
-	public DBaseCalculator16(IBinaryContext context) {
+	public DBaseCalculator18(IBinaryContext context) {
 		this.context = context;
 		closureEngine = new ClosureDirect(context);
 	}
 
 	@Override
 	public void run() {
+		// compute d-basis
 		implications = computeDBasis();
-		for(String serie:chrono.getSerieNames())
-		{		
-		System.out.println(serie + chrono.getResult(serie));
+		for (String serie : chrono.getSerieNames()) {
+			System.out.println(serie + " time: " + chrono.getResult(serie));
 		}
 	}
 
@@ -93,42 +94,24 @@ public class DBaseCalculator16 implements AbstractAlgo<List<Implication>> {
 			Set<ISet> covers = extractCovers(minGens);
 			chrono.stop("extractCovers");
 			System.out.println("covers=" + covers.size());
-			chrono.start("verify validity");
-			for (ISet premise : covers) {
-				if (isValidImplication(premise, target)) {
-					ISet conclusion = context.getFactory().createSet();
-					conclusion.add(target);
-					dBasis.add(new Implication(premise, conclusion, 0));
-				}
+			List<Implication> filtered = new ArrayList<>();
+			for(ISet premise:covers) {	
+				
+				ISet conclusion = context.getFactory().createSet();
+				conclusion.add(target);
+				dBasis.add(new Implication(premise, conclusion, 0));
 			}
-			chrono.stop("verify validity");
 		}
-		// Sort implication by cardinality
-		Collections.sort(dBasis, new Comparator<Implication>() {
-			@Override
-			public int compare(Implication a1, Implication a2) {
-				return Integer.compare(a1.getPremise().cardinality(), a2.getPremise().cardinality());
-			}
-		});
 		// filter redundants
 		chrono.start("filter redundancy");
-		List<Implication> dBasisFiltered = new ArrayList<>();
-		for (Implication imp : dBasis) {
-			if (!RuleUtilities.isDerivable(imp.getConclusion().iterator().next(), imp.getPremise(), dBasisFiltered))
-				dBasisFiltered.add(imp);
-		}
+		// build dqBasis
+		LinCbO linCbO = new LinCbO(context, chrono, new ClosureDirect(context), false);
+		linCbO.run();
+		List<Implication> dqBasis = linCbO.getResult();
+		
+		dBasis=minimizeImplications(dBasis, dqBasis);
 		chrono.stop("filter redundancy");
-		return dBasisFiltered;
-
-	}
-
-	boolean isValidImplication(ISet premise, int conclusion) {
-		for (int obj = 0; obj < context.getObjectCount(); obj++) {
-			ISet intent = context.getIntent(obj);
-			if (intent.containsAll(premise) && !intent.contains(conclusion))
-				return false;
-		}
-		return true;
+		return dBasis;
 	}
 
 	public Set<ISet> extractCovers(Set<ISet> minGenerators) {
@@ -176,14 +159,6 @@ public class DBaseCalculator16 implements AbstractAlgo<List<Implication>> {
 		return result;
 	}
 
-	private boolean isMinimal(ISet candidate, Iterable<ISet> set) {
-		for (ISet existing : set) {
-			if (existing.containsAll(candidate))
-				return false;
-		}
-		return true;
-	}
-
 	private void generateTransversals(List<ISet> hypergraph, int index, ISet current, Set<ISet> result) {
 		// Si tous les hyperarêtes sont frappées : on a un transversal
 		if (index == hypergraph.size()) {
@@ -208,4 +183,57 @@ public class DBaseCalculator16 implements AbstractAlgo<List<Implication>> {
 			current.remove(attr);
 		}
 	}
-}
+	public List<Implication> minimizeImplications(List<Implication> raw, List<Implication> dqBasis) {
+	    List<Implication> result = new ArrayList<>();
+	    ClosureEngine engine = new ClosureEngine(dqBasis); // contient uniquement les implications déjà validées
+
+	    for (Implication impl : raw) {
+	        ISet premise = impl.getPremise();
+	        int conclusion = impl.getConclusion().first(); // ou impl.getConclusion().first() si singleton
+
+	        ISet closure = engine.closureOf(premise);
+
+	        if (!closure.contains(conclusion)) {
+	            result.add(impl);
+	            dqBasis.add(impl); // mise à jour dynamique de la base
+	            engine.addImplication(impl); // mettre à jour le moteur
+	        }
+	        // sinon : redondante → ignorée
+	    }
+
+	    return result;
+	}	
+	public class ClosureEngine {
+	    private final List<Implication> basis;
+
+	    public ClosureEngine(List<Implication> initialBasis) {
+	        this.basis = new ArrayList<>(initialBasis);
+	    }
+
+	    public void addImplication(Implication impl) {
+	        basis.add(impl);
+	    }
+
+	    /**
+	     * Calcule la fermeture d'un ensemble selon la base actuelle.
+	     */
+	    public ISet closureOf(ISet attributes) {
+	        ISet closure = attributes.clone();
+	        boolean changed;
+
+	        do {
+	            changed = false;
+	            for (Implication impl : basis) {
+	                if (closure.containsAll(impl.getPremise())) {
+	                    ISet conclusion = impl.getConclusion();
+	                    if (!closure.containsAll(conclusion)) {
+	                        closure.addAll(conclusion);
+	                        changed = true;
+	                    }
+	                }
+	            }
+	        } while (changed);
+
+	        return closure;
+	    }
+	}}
