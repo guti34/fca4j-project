@@ -198,7 +198,7 @@ public class Main {
 		formatter.printWrapped(pw, HelpFormatter.DEFAULT_WIDTH, 5, s);
 		formatter.setOptionComparator(null);
 		formatter.printHelp(
-				pw, HelpFormatter.DEFAULT_WIDTH, "java -jar fca4j-cli.jar " + cmd.name().toUpperCase() + " <"
+				pw, HelpFormatter.DEFAULT_WIDTH, "java -jar fca4j.jar " + cmd.name().toUpperCase() + " <"
 						+ cmd.getArgName1() + "> [<" + cmd.getArgName2() + ">] [options]\n\noptions:\n",
 				"", cmd.getOptions(), 5, 0, "", false);
 
@@ -208,7 +208,7 @@ public class Main {
 			formatter.printWrapped(pw, HelpFormatter.DEFAULT_WIDTH, "\nexamples:\n\n");
 			for (String[] example : examples) {
 				formatter.printWrapped(pw, 2 * HelpFormatter.DEFAULT_WIDTH,
-						"java -jar fca4j-cli.jar " + cmd.name().toUpperCase() + " " + example[1] + "\n");
+						"java -jar fca4j.jar " + cmd.name().toUpperCase() + " " + example[1] + "\n");
 				formatter.printWrapped(pw, HelpFormatter.DEFAULT_WIDTH, 10, "    means:" + example[2] + "\n\n");
 			}
 		}
@@ -227,7 +227,7 @@ public class Main {
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.setOptionComparator(null);
 		formatter.printUsage(pw, 74,
-				"java -jar fca4j-cli.jar <command> <input> [<output>] [options]\n\navailable commands are:\n\n");
+				"java -jar fca4j.jar <command> <input> [<output>] [options]\n\navailable commands are:\n\n");
 		String text = "";
 		for (Command cmd : commands) {
 			text += cmd.name() + "\t" + cmd.description() + "\n\n";

@@ -102,7 +102,7 @@ public class DBasisBuilder extends Command {
 	 * @param setContext the set context
 	 */
 	public DBasisBuilder(ISetContext setContext) {
-		super("dbasis", "compute the d-basis: the ordered direct list of implications", setContext);
+		super("dbasis", "compute the ordered direct basis of implications (D-Basis)", setContext);
 	}
 
 	/**
