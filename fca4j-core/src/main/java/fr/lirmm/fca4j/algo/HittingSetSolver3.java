@@ -45,6 +45,9 @@ public class HittingSetSolver3 implements AbstractAlgo<Set<ISet>> {
 		this(binCtx, null);
 		this.family=family;
 	}
+	private ISet createEmptySet() {
+		return context.getFactory().createSet();
+	}
 	@Override
 	public void run() {
 		if(family!=null) {
@@ -60,7 +63,7 @@ public class HittingSetSolver3 implements AbstractAlgo<Set<ISet>> {
 	 * @return The set of all minimal hitting sets
 	 */
 	public void computeMinimalHittingSets(Set<ISet> currentFamily,Set<ISet> myResult) {
-		computeMinimalHittingSets(context.getFactory().createSet(),currentFamily, myResult);
+		computeMinimalHittingSets(createEmptySet(),currentFamily, myResult);
 	}
 		/**
 		 * Compute the minimal hitting sets for a family of subsets.

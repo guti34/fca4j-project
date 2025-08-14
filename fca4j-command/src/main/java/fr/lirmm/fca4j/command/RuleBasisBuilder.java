@@ -36,7 +36,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -49,36 +50,14 @@ import fr.lirmm.fca4j.algo.ClosureDirect;
 import fr.lirmm.fca4j.algo.ClosureDirectWithForkJoinPool;
 import fr.lirmm.fca4j.algo.ClosureStrategy;
 import fr.lirmm.fca4j.algo.ClosureWithHistory;
-import fr.lirmm.fca4j.algo.DBaseCalculator;
-import fr.lirmm.fca4j.algo.DBaseCalculator10;
-import fr.lirmm.fca4j.algo.DBaseCalculator11;
-import fr.lirmm.fca4j.algo.DBaseCalculator12;
-import fr.lirmm.fca4j.algo.DBaseCalculator13;
-import fr.lirmm.fca4j.algo.DBaseCalculator14;
-import fr.lirmm.fca4j.algo.DBaseCalculator14_16;
-import fr.lirmm.fca4j.algo.DBaseCalculator15;
-import fr.lirmm.fca4j.algo.DBaseV16;
-import fr.lirmm.fca4j.algo.DBaseCalculator17;
-import fr.lirmm.fca4j.algo.DBaseCalculator18;
-import fr.lirmm.fca4j.algo.DBaseCalculator2_16;
-import fr.lirmm.fca4j.algo.DBaseV2;
-import fr.lirmm.fca4j.algo.DBaseCalculator3;
-import fr.lirmm.fca4j.algo.DBaseCalculator4;
-import fr.lirmm.fca4j.algo.DBaseCalculator5;
-import fr.lirmm.fca4j.algo.DBaseCalculator5_16;
-import fr.lirmm.fca4j.algo.DBaseCalculator6;
-import fr.lirmm.fca4j.algo.DBaseCalculator7;
-import fr.lirmm.fca4j.algo.DBaseCalculator8;
-import fr.lirmm.fca4j.algo.DBaseCalculator9;
+import fr.lirmm.fca4j.algo.DBaseV18;
 import fr.lirmm.fca4j.algo.LinCbO;
 import fr.lirmm.fca4j.algo.LinCbOWithPruning;
-import fr.lirmm.fca4j.algo.DBaseV16.ClosureEngine;
 import fr.lirmm.fca4j.cli.io.RuleBasisReader;
 import fr.lirmm.fca4j.cli.io.SLFReader;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.core.RuleBasis;
-import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.RuleUtilities;
@@ -87,81 +66,81 @@ import fr.lirmm.fca4j.util.RuleUtilities;
  * The Class RuleBasisBuilder.
  */
 public class RuleBasisBuilder extends Command {
-	
+
 	/** The Constant DEFAULT_THRESHOLD. */
-	public final static int DEFAULT_THRESHOLD=50;
-	
+	public final static int DEFAULT_THRESHOLD = 50;
+
 	/** The output file. */
 	protected File outputFile;
-	
+
 	/** The input file. */
 	protected File inputFile;
-	
+
 	/** The report file. */
 	protected File reportFile;
-	
+
 	/** if report exist. */
-	protected boolean reportExist=false;
-	
+	protected boolean reportExist = false;
+
 	/** The result folder. */
 	protected File resultFolder;
-	
+
 	/** The binary context. */
 	protected IBinaryContext ctx;
-	
+
 	/** The closure type. */
 	protected ClosureType closureType;
-	
+
 	/** The pool mode. */
 	protected PoolMode poolMode;
-	
+
 	/** The algorithm. */
 	protected AlgoRuleBasis algo;
-	
+
 	/** for sorted print. */
 	protected boolean sortedPrint = true;
-	
+
 	/** The input format. */
 	protected ContextFormat inputFormat;
-	
+
 	/** The threshold. */
-	protected int threshold=DEFAULT_THRESHOLD;
-	
+	protected int threshold = DEFAULT_THRESHOLD;
+
 	/** with clarification. */
-	protected boolean withClarification=false;
-	
+	protected boolean withClarification = false;
+
 	/**
 	 * The Enum ClosureType.
 	 */
 	public enum ClosureType {
-		
-		 /** The basic closure. */
-		 BASIC, 
-		 /** The closure using history. */
-		 WITH_HISTORY
+
+		/** The basic closure. */
+		BASIC,
+		/** The closure using history. */
+		WITH_HISTORY
 	};
 
 	/**
 	 * The Enum PoolMode.
 	 */
 	public enum PoolMode {
-		
-	 /** The mono thred mode. */
-	 MONO, 
-	 /** The forkjoinpool mode. */
-	 FORKJOINPOOL
-	 //, EXECUTOR_SERVICE
+
+		/** The mono thred mode. */
+		MONO,
+		/** The forkjoinpool mode. */
+		FORKJOINPOOL
+		// , EXECUTOR_SERVICE
 	};
 
 	/**
 	 * The Enum AlgoRuleBasis.
 	 */
 	public enum AlgoRuleBasis {
-		
-		 /** The lincbo algorithm. */
-		 LINCBO, 
-		 /** The lincbopruning algorithm. */
-		 LINCBOPRUNING
+
+		/** The lincbo algorithm. */
+		LINCBO,
+		/** The lincbopruning algorithm. */
+		LINCBOPRUNING
 	};
 
 	/**
@@ -170,7 +149,7 @@ public class RuleBasisBuilder extends Command {
 	 * @param setContext the set context
 	 */
 	public RuleBasisBuilder(ISetContext setContext) {
-		super("rulebasis", "compute the canonical basis of implications (Duquenne-Guigues)",setContext);
+		super("rulebasis", "compute the canonical basis of implications (Duquenne-Guigues)", setContext);
 	}
 
 	/**
@@ -178,8 +157,9 @@ public class RuleBasisBuilder extends Command {
 	 */
 	@Override
 	void createOptions() {
-		options.addOption(
-				Option.builder("clarify").desc("this option can speed up the execution by basing the calculation on the clarified context").build());
+		options.addOption(Option.builder("clarify")
+				.desc("this option can speed up the execution by basing the calculation on the clarified context")
+				.build());
 		StringBuilder sb_algo = new StringBuilder();
 		for (AlgoRuleBasis algo : AlgoRuleBasis.values()) {
 			sb_algo.append("\n* " + algo.name());
@@ -194,24 +174,23 @@ public class RuleBasisBuilder extends Command {
 				.hasArg().argName("CLOSURE").build());
 		// multithreading
 		options.addOption(Option.builder("t")// .longOpt("multithreading"
-				.desc("multithreading options are:\n* MONO (default)\n* FORKJOINPOOL").hasArg()
-				.argName("POOL-MODE").build());
-		options.addOption(Option.builder("h")
-				.desc("multithreading limit size of work for a task default=50 ").hasArg()
+				.desc("multithreading options are:\n* MONO (default)\n* FORKJOINPOOL").hasArg().argName("POOL-MODE")
+				.build());
+		options.addOption(Option.builder("h").desc("multithreading limit size of work for a task default=50 ").hasArg()
 				.argName("THRESHOLD").build());
 		options.addOption(Option.builder("b").desc("sort implications by ascending support").build());
 		// output report
-		options.addOption(
-				Option.builder("r").desc("generate report about algorithm execution").hasArg().argName("REPORTFILE").build());
+		options.addOption(Option.builder("r").desc("generate report about algorithm execution").hasArg()
+				.argName("REPORTFILE").build());
 		// folder output with 1 file by support
-		options.addOption(
-				Option.builder("folder").desc("folder to generate a file by support for results").hasArg().argName("PATH").build());
+		options.addOption(Option.builder("folder").desc("folder to generate a file by support for results").hasArg()
+				.argName("PATH").build());
 		// input format
-		declareContextFormat("i","INPUT-FORMAT");
+		declareContextFormat("i", "INPUT-FORMAT");
 		// output format
 		options.addOption(Option.builder("o").desc("supported formats are:\n* TXT (default)\n* JSON\n* XML\n* DATALOG")
 				.hasArg().argName("OUTPUT-FORMAT").build());
-		
+
 		// implementation
 		declareImplementation(true);
 		// common options
@@ -225,7 +204,7 @@ public class RuleBasisBuilder extends Command {
 	 * @throws Exception the exception
 	 */
 	public void checkOptions(CommandLine line) throws Exception {
-		withClarification=line.hasOption("clarify");
+		withClarification = line.hasOption("clarify");
 		List<String> args = line.getArgList();
 		// System.out.println(args);
 		for (String arg : args) {
@@ -252,20 +231,20 @@ public class RuleBasisBuilder extends Command {
 				throw new Exception("the specified output file path for the result is not writable !");
 		} else
 			outputFile = null;
-		if(line.hasOption("folder")){
-		String folderPath = line.getOptionValue("folder");
-		resultFolder = new File(folderPath);
-		if (!resultFolder.exists()) {
-			try {
-				if (!resultFolder.mkdirs())
-					throw new Exception();
-			} catch (Exception e) {
-				throw new Exception("folder " + folderPath + " cannot be created. " + e.getMessage());
+		if (line.hasOption("folder")) {
+			String folderPath = line.getOptionValue("folder");
+			resultFolder = new File(folderPath);
+			if (!resultFolder.exists()) {
+				try {
+					if (!resultFolder.mkdirs())
+						throw new Exception();
+				} catch (Exception e) {
+					throw new Exception("folder " + folderPath + " cannot be created. " + e.getMessage());
+				}
 			}
-		}
-		if (!resultFolder.isDirectory()) {
-			throw new Exception("path " + folderPath + " to store results is not a directory");
-		}
+			if (!resultFolder.isDirectory()) {
+				throw new Exception("path " + folderPath + " to store results is not a directory");
+			}
 		}
 		checkImplementation(line);
 		// closure strategy
@@ -288,21 +267,19 @@ public class RuleBasisBuilder extends Command {
 				throw new Exception("not recognized thread pool mode: " + line.getOptionValue("t"));
 		} else
 			poolMode = PoolMode.MONO;
-		if(poolMode!=PoolMode.MONO && closureType==ClosureType.WITH_HISTORY)
-		{
+		if (poolMode != PoolMode.MONO && closureType == ClosureType.WITH_HISTORY) {
 			throw new Exception("closure with history is not compatible with thread pool mode: " + poolMode);
 		}
-		if(line.hasOption("h")){
+		if (line.hasOption("h")) {
 			String thresholdString = line.getOptionValue("h");
 			try {
 				threshold = Integer.parseInt(thresholdString);
 				if (threshold < 1)
 					throw new Exception();
 			} catch (Exception e) {
-				throw new Exception(
-						"invalid threshold value for multithreading: "+thresholdString);
+				throw new Exception("invalid threshold value for multithreading: " + thresholdString);
 			}
-			
+
 		}
 		if (line.hasOption("a")) {
 			try {
@@ -321,10 +298,11 @@ public class RuleBasisBuilder extends Command {
 				reportFile.createNewFile();
 			} else if (!reportFile.canWrite())
 				throw new Exception("the specified report file path is not writable !");
-			else reportExist=true;
+			else
+				reportExist = true;
 		} else
 			reportFile = null;
-		
+
 		// separator
 		checkSeparator(line);
 		// verbose
@@ -340,13 +318,13 @@ public class RuleBasisBuilder extends Command {
 
 		// choose Closure strategy
 		switch (closureType) {
-		case WITH_HISTORY: 
-				return new ClosureWithHistory(ctx);		
+		case WITH_HISTORY:
+			return new ClosureWithHistory(ctx);
 		case BASIC:
 		default: {
 			switch (poolMode) {
 			case FORKJOINPOOL:
-				return new ClosureDirectWithForkJoinPool(ctx,threshold);
+				return new ClosureDirectWithForkJoinPool(ctx, threshold);
 			case MONO:
 			default:
 				return new ClosureDirect(ctx);
@@ -355,40 +333,41 @@ public class RuleBasisBuilder extends Command {
 		}
 	}
 
-    /**
-     * Prints by support.
-     *
-     * @param folder the folder
-     * @param implications the implications
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    private void printBySupport(File folder,List<Implication> implications) throws IOException {
-        TreeMap<Integer, List<Implication>> map = new TreeMap<>();
+	/**
+	 * Prints by support.
+	 *
+	 * @param folder       the folder
+	 * @param implications the implications
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	private void printBySupport(File folder, List<Implication> implications) throws IOException {
+		TreeMap<Integer, List<Implication>> map = new TreeMap<>();
 
-        for (Implication implication : implications) {
-            List<Implication> list = map.get(implication.getSupport().cardinality());
-            if (list == null) {
-                list = new ArrayList<>();
-                map.put(implication.getSupport().cardinality(), list);
-            }
-            list.add(implication);
-        }
-            for (int support : map.keySet()) {
-                FileWriter fileWriter = new FileWriter(folder.getPath() + File.separator + ctx.getName() + support + "Rules.txt");
-                PrintWriter printWriter = new PrintWriter(fileWriter);
-                RuleUtilities.printImplications(printWriter, map.get(support),ctx);
-                printWriter.close();
-            }
-        StringBuilder sb = new StringBuilder();
-        for (int support : map.keySet()) {
-            sb.append(String.format("support %d: %d rules\n", support, map.get(support).size()));
-        }
-    }
-	
+		for (Implication implication : implications) {
+			List<Implication> list = map.get(implication.getSupport().cardinality());
+			if (list == null) {
+				list = new ArrayList<>();
+				map.put(implication.getSupport().cardinality(), list);
+			}
+			list.add(implication);
+		}
+		for (int support : map.keySet()) {
+			FileWriter fileWriter = new FileWriter(
+					folder.getPath() + File.separator + ctx.getName() + support + "Rules.txt");
+			PrintWriter printWriter = new PrintWriter(fileWriter);
+			RuleUtilities.printImplications(printWriter, map.get(support), ctx);
+			printWriter.close();
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int support : map.keySet()) {
+			sb.append(String.format("support %d: %d rules\n", support, map.get(support).size()));
+		}
+	}
+
 	/**
 	 * Prints sorted implications.
 	 *
-	 * @param printWriter the print writer
+	 * @param printWriter  the print writer
 	 * @param implications the implications
 	 */
 	private void printSortedImplications(PrintWriter printWriter, List<Implication> implications) {
@@ -403,7 +382,7 @@ public class RuleBasisBuilder extends Command {
 			list.add(implication);
 		}
 		for (int support : map.keySet()) {
-			RuleUtilities.printImplications(printWriter, map.get(support),ctx);
+			RuleUtilities.printImplications(printWriter, map.get(support), ctx);
 
 		}
 	}
@@ -411,26 +390,27 @@ public class RuleBasisBuilder extends Command {
 	/**
 	 * Prints the report.
 	 *
-	 * @param implications the implications
-	 * @param algo the algorithm
+	 * @param implications    the implications
+	 * @param algo            the algorithm
 	 * @param closureStrategy the closure strategy
-	 * @param chrono the chrono
+	 * @param chrono          the chrono
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private void printReport(List<Implication> implications,AlgoRuleBasis algo,ClosureStrategy closureStrategy,Chrono chrono) throws IOException{
-		CSVWriter writer=new CSVWriter(new FileWriter(reportFile,reportExist),separator);
-		ArrayList<String> keys=new ArrayList<>();
-		ArrayList<String> values=new ArrayList<>();
+	private void printReport(List<Implication> implications, AlgoRuleBasis algo, ClosureStrategy closureStrategy,
+			Chrono chrono) throws IOException {
+		CSVWriter writer = new CSVWriter(new FileWriter(reportFile, reportExist), separator);
+		ArrayList<String> keys = new ArrayList<>();
+		ArrayList<String> values = new ArrayList<>();
 		keys.add("source");
 		values.add(inputFile.getName());
 		keys.add("nb_objects");
-		values.add(""+ctx.getObjectCount());
+		values.add("" + ctx.getObjectCount());
 		keys.add("nb_attributes");
-		values.add(""+ctx.getAttributeCount());
+		values.add("" + ctx.getAttributeCount());
 		keys.add("incidence");
-		values.add(""+ctx.getIncidence());		
+		values.add("" + ctx.getIncidence());
 		keys.add("timestamp");
-		values.add( ""+new Timestamp(System.currentTimeMillis()).getTime());
+		values.add("" + new Timestamp(System.currentTimeMillis()).getTime());
 		keys.add("java.version");
 		values.add(System.getProperty("java.version"));
 		keys.add("java.vm.name");
@@ -442,24 +422,24 @@ public class RuleBasisBuilder extends Command {
 		keys.add("os.version");
 		values.add(System.getProperty("os.version"));
 		keys.add("nb_core");
-		values.add(""+Runtime.getRuntime().availableProcessors());		
+		values.add("" + Runtime.getRuntime().availableProcessors());
 		keys.add("algo");
 		values.add(algo.toString());
 		keys.add("pool_mode");
-		values.add(""+poolMode);
-		keys.add("closure_type");		
-		values.add(""+closureType);
+		values.add("" + poolMode);
+		keys.add("closure_type");
+		values.add("" + closureType);
 		keys.add("set_impl");
 		values.add(impl.toString());
 		keys.add("threshold");
-		values.add(""+closureStrategy.threshold());
+		values.add("" + closureStrategy.threshold());
 		keys.add("time_exec");
-		values.add(""+chrono.getResult());
+		values.add("" + chrono.getResult());
 		keys.add("nb_implications");
-		values.add(""+implications.size());
+		values.add("" + implications.size());
 		keys.add("withClarification");
-		values.add(""+withClarification);
-		
+		values.add("" + withClarification);
+
 		TreeMap<Integer, List<Implication>> map = new TreeMap<>();
 		for (Implication implication : implications) {
 			List<Implication> list = map.get(implication.getSupport().cardinality());
@@ -470,25 +450,27 @@ public class RuleBasisBuilder extends Command {
 			list.add(implication);
 		}
 		keys.add("support_0");
-		List<Implication> list=map.get(0);
-		if(list==null)
+		List<Implication> list = map.get(0);
+		if (list == null)
 			values.add("0");
-		else values.add(""+map.get(0).size());
+		else
+			values.add("" + map.get(0).size());
 		keys.add("nb_diff_support");
-		values.add(""+map.size());
+		values.add("" + map.size());
 		keys.add("max_support");
-		values.add(""+(map.isEmpty()?-1:map.lastKey()));
-		
-		ArrayList<String[]> records=new ArrayList<>();
+		values.add("" + (map.isEmpty() ? -1 : map.lastKey()));
+
+		ArrayList<String[]> records = new ArrayList<>();
 		records.add(keys.toArray(new String[keys.size()]));
 		records.add(values.toArray(new String[values.size()]));
-		if(!reportExist)
+		if (!reportExist)
 			writer.writeAll(records);
-		else writer.writeNext(records.get(1));
+		else
+			writer.writeNext(records.get(1));
 		writer.flush();
 		writer.close();
 	}
-	
+
 	/**
 	 * Exec.
 	 *
@@ -503,14 +485,15 @@ public class RuleBasisBuilder extends Command {
 		Chrono chrono = new Chrono("lincbo");
 		switch (algo) {
 		case LINCBO:
-			linCbO = new LinCbO(ctx, chrono, closureStrategy,withClarification);
+			linCbO = new LinCbO(ctx, chrono, closureStrategy, withClarification);
 			break;
 		case LINCBOPRUNING:
 		default:
-			linCbO = new LinCbOWithPruning(ctx, chrono, closureStrategy,withClarification);
+			linCbO = new LinCbOWithPruning(ctx, chrono, closureStrategy, withClarification);
 		}
-		System.out.println("running " + algo + " (" + impl + "/" + closureType+"/"+poolMode
-				+(withClarification?"/CLARIFIED":"")+ ") data: " + inputFile.getName() + " ( " + ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
+		System.out.println("running " + algo + " (" + impl + "/" + closureType + "/" + poolMode
+				+ (withClarification ? "/CLARIFIED" : "") + ") data: " + inputFile.getName() + " ( "
+				+ ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
 		chrono.start(linCbO.getDescription());
 		linCbO.run();
 		chrono.stop(linCbO.getDescription());
@@ -544,120 +527,125 @@ public class RuleBasisBuilder extends Command {
 		if (sortedPrint)
 			printSortedImplications(pw, result);
 		else
-			RuleUtilities.printImplications(pw, result,ctx);		
+			RuleUtilities.printImplications(pw, result, ctx);
 		pw.flush();
 		pw.close();
-		
-		if(reportFile!=null)
+
+		if (reportFile != null)
 			printReport(result, algo, closureStrategy, chrono);
-		if(resultFolder!=null){
+		if (resultFolder != null) {
 			printBySupport(resultFolder, result);
 		}
 		return result;
 	}
+
 	public static void main(String[] args) throws IOException {
 //		test("example0.5.2");
+//		test("FontaineDuTheil_attribute");
 //		test("PlantSpecies");
 //		test("exemple16");
 //		test("exemple");
-		test("dbasis_10x22");
-//		test("dbasis_10x21r");
+//		test("dbasis_10x22");
+//		test("Plant");
+//		test("ProtSystem");
+//		test("distinct",true);
+//		test("tags");
+		test("association");
+//		test("UsedPlant");
+//		test("dbasis_10x21");
+//		test("dbasis_9x8");
 //		test("ProtectedOrganism");
-//		test3();
-	}
-	private static void test3() throws IOException  {
-		IBinaryContext context=SLFReader.read(new File("c:/projects/rules/dbasis/dbasis_10x22.slf"));
-		RuleBasis ruleBaseDB02=RuleBasisReader.read("c:/projects/rules/dbasis/dbasis_10x22DB2_02.txt",context);
-		RuleBasis ruleBaseDB15=RuleBasisReader.read("c:/projects/rules/dbasis/dbasis_10x22DB2_15.txt",context);
-		RuleBasis ruleBaseDB16=RuleBasisReader.read("c:/projects/rules/dbasis/dbasis_10x22DB2_16.txt",context);
-		RuleBasis ruleBaseDB=RuleBasisReader.read("c:/projects/rules/dbasis/dbasis_10x22DB.txt",context);
-		RuleBasis ruleBaseDB05=RuleBasisReader.read("c:/projects/rules/dbasis/dbasis_10x22DB2_05.txt",context);
-		System.out.println("ruleBaseDB02<ruleBase15="+RuleUtilities.isIncludedIn(ruleBaseDB02.getImplications(),ruleBaseDB15.getImplications()));
-		System.out.println("ruleBaseDB15<ruleBase02="+RuleUtilities.isIncludedIn(ruleBaseDB15.getImplications(),ruleBaseDB02.getImplications()));
-
 	}
 
-	private static void test(String name) throws IOException  {
-		IBinaryContext context=SLFReader.read(new File("c:/projects/rules/dbasis/"+name+".slf"));
-		System.out.println("***************************");
-		System.out.println("context="+context.getObjectCount()+"x"+context.getAttributeCount());
-		RuleBasis ruleBaseDB=RuleBasisReader.read("c:/projects/rules/dbasis/"+name+"DB.txt",context);
-		RuleBasis ruleBaseDQ=RuleBasisReader.read("c:/projects/rules/dbasis/"+name+"DQ.txt",context);
+	final static int DIRECT_TEST_DEEP = 6;
+
+	private static void test(String name) throws IOException {
+		IBinaryContext initial_context = SLFReader.read(new File("c:/projects/rules/dbasis/" + name + ".slf")/* ,new RoaringBitMapFactory() */);
+		System.out.println("context=" + initial_context.getObjectCount() + "x" + initial_context.getAttributeCount());
 		
-//		DBaseV2 calculator=new DBaseV2(context);
-		DBaseV16 calculator=new DBaseV16(context);
-//		DBaseCalculator3 calculator=new DBaseCalculator3(context);
-//		DBaseCalculator4 calculator=new DBaseCalculator4(context);
-//		DBaseCalculator5 calculator=new DBaseCalculator5(context);
-//		DBaseCalculator7 calculator=new DBaseCalculator7(context);
-//		DBaseCalculator15 calculator=new DBaseCalculator15(context);
-//		DBaseCalculator17 calculator=new DBaseCalculator17(context);
-//		DBaseCalculator2_16 calculator=new DBaseCalculator2_16(context);
-//		DBaseCalculator14_16 calculator=new DBaseCalculator14_16(context);
-//		DBaseCalculator5_16 calculator=new DBaseCalculator5_16(context);
+		ClosureStrategy closureEngine=new ClosureDirect(initial_context);	
+		// compute duquenne guigues
+		LinCbO linCbO = new LinCbO(initial_context, null, closureEngine, false);
+		linCbO.run();
+		List<Implication> dqBasis = linCbO.getResult();
+		DBaseV18 calculator = new DBaseV18(initial_context,-1);
 		calculator.run();
-		PrintWriter pw=new PrintWriter("c:/projects/rules/dbasis/"+name+"DB2.txt");
-		RuleUtilities.printImplications(pw,calculator.getResult(),context);
-		RuleBasis ruleBaseDB2=new RuleBasis(calculator.getResult(),context);
-		
-//		System.out.println("ruleBaseDQ<ruleBaseDB="+RuleUtilities.isIncludedIn(ruleBaseDQ.getImplications(),ruleBaseDB.getImplications()));
-//		System.out.println("ruleBaseDB<ruleBaseDQ="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDQ.getImplications()));
-		System.out.println("ruleBaseDQ<ruleBaseDB2="+RuleUtilities.isIncludedIn(ruleBaseDQ.getImplications(),ruleBaseDB2.getImplications()));
-		System.out.println("ruleBaseDB2<ruleBaseDQ="+RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(),ruleBaseDQ.getImplications()));
-		System.out.println("ruleBaseDB2<ruleBaseDB="+RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(),ruleBaseDB.getImplications()));
-		System.out.println("ruleBaseDB<ruleBaseDB2="+RuleUtilities.isIncludedIn(ruleBaseDB.getImplications(),ruleBaseDB2.getImplications()));
-		DirectnessTester directTester= new DirectnessTester(calculator.getResult());
-//		List<ISet> dqClosures=RuleUtilities.generateClosures(ruleBaseDQ.getImplications(), context.getFactory());
-//		List<ISet> dbClosures=RuleUtilities.generateClosures(ruleBaseDB.getImplications(), context.getFactory());
-//		System.out.println("DQ is direct= "+RuleUtilities.isDirect(ruleBaseDQ.getImplications(),context.getFactory()));
-//		System.out.println("DB is direct= "+RuleUtilities.isDirect(ruleBaseDB.getImplications(),context.getFactory()));
-		System.out.println("DB2 is direct= "+directTester.isDirect());
-		System.out.println("DB2 is direct= "+RuleUtilities.isDirect(ruleBaseDB2.getImplications(),context.getFactory()));
+		// print result
+		PrintWriter pw = new PrintWriter("c:/projects/rules/dbasis/" + name + "DB2.txt");
+		RuleUtilities.printImplications(pw, calculator.getResult(), initial_context);
+		RuleBasis ruleBaseDB2 = new RuleBasis(calculator.getResult(), initial_context);
+			System.out.println(
+					"ruleBaseDQ<ruleBaseDB2=" + RuleUtilities.isIncludedIn(dqBasis, ruleBaseDB2.getImplications()));
+			System.out.println(
+					"ruleBaseDB2<ruleBaseDQ=" + RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(), dqBasis));
+			System.out.println("DB2 is direct= "
+					+ RuleUtilities.isDirect(ruleBaseDB2.getImplications(), DIRECT_TEST_DEEP, initial_context.getFactory()));
+			testOrderedDirect(name);
 	}
-	public static class DirectnessTester {
 
-	    private final List<Implication> base;
+	private static void testOrderedDirect(String name) throws IOException {
+		IBinaryContext context = SLFReader
+				.read(new File("c:/projects/rules/dbasis/" + name + ".slf")/* ,new RoaringBitMapFactory() */);
+		RuleBasis ruleBase = RuleBasisReader.read("c:/projects/rules/dbasis/" + name + "DB2.txt", context);
 
-	    public DirectnessTester(List<Implication> base) {
-	        this.base = base;
-	    }
+		List<Implication> nonBinaryBasis = new ArrayList<>();
+		List<Implication> binaryBasis = new ArrayList<>();
+		for (Implication impl : ruleBase.getImplications()) {
+			if (impl.getPremise().cardinality() <= 1)
+				binaryBasis.add(impl);
+			else
+				nonBinaryBasis.add(impl);
+		}
+		List<Implication> dBasis = new ArrayList<>(binaryBasis);
+		Collections.shuffle(nonBinaryBasis);
+		dBasis.addAll(nonBinaryBasis);
+		System.out.println("DB2 with shuffle is direct= "
+				+ RuleUtilities.isDirect(dBasis, DIRECT_TEST_DEEP, context.getFactory()));
 
-	    public boolean isDirect() {
-	        for (Implication impl : base) {
-	            ISet premise = impl.getPremise();
+		dBasis.removeAll(nonBinaryBasis);
+		Collections.sort(nonBinaryBasis, new Comparator<Implication>() {
+			@Override
+			public int compare(Implication a1, Implication a2) {
+				return Integer.compare(a2.getPremise().cardinality(), a1.getPremise().cardinality());
+			}
+		});
+		dBasis.addAll(nonBinaryBasis);
 
-	            // Fermeture complète par itérations (standard)
-	            ISet fullClosure = computeFullClosure(premise);
+		System.out.println("DB2 with cardinality inverse is direct= "
+				+ RuleUtilities.isDirect(dBasis, DIRECT_TEST_DEEP, context.getFactory()));
 
-	            // Fermeture en une seule passe
-	            ISet onePassClosure = premise.clone();
-	            for (Implication rule : base) {
-	                if (onePassClosure.containsAll(rule.getPremise())) {
-	                    onePassClosure.addAll(rule.getConclusion());
-	                }
-	            }
-
-	            if (!fullClosure.equals(onePassClosure)) {
-	                // Pas direct : une implication indirecte a été nécessaire
-	                return false;
-	            }
-	        }
-	        return true;
-	    }
-
-	    private ISet computeFullClosure(ISet premise) {
-	        ISet closure = premise.clone();
-	        boolean changed;
-	        do {
-	            changed = false;
-	            for (Implication impl : base) {
-	                if (closure.containsAll(impl.getPremise()) && !closure.containsAll(impl.getConclusion())) {
-	                    closure.addAll(impl.getConclusion());
-	                    changed = true;
-	                }
-	            }
-	        } while (changed);
-	        return closure;
-	    }
 	}
+
+	public static double calculateAverageSize(List<Implication> items) {
+		if (items == null || items.isEmpty())
+			return 0.0;
+
+		double total = 0.0;
+		for (Implication impl : items) {
+			total += impl.getPremise().cardinality();
+		}
+
+		return total / items.size();
+	}
+
+	public static double calculateMedianSize(List<Implication> items) {
+		if (items == null || items.isEmpty())
+			return 0.0;
+
+		List<Integer> sizes = new ArrayList<>();
+		for (Implication impl : items) {
+			sizes.add(impl.getPremise().cardinality());
+		}
+
+		Collections.sort(sizes);
+
+		int middle = sizes.size() / 2;
+		if (sizes.size() % 2 == 0) {
+			// moyenne des deux valeurs du milieu
+			return (sizes.get(middle - 1) + sizes.get(middle)) / 2.0;
+		} else {
+			return sizes.get(middle);
+		}
+	}
+
 }

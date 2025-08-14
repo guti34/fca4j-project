@@ -71,6 +71,9 @@ public class FastReduction implements AbstractAlgo<IBinaryContext> {
 	public FastReduction(IBinaryContext binCtx) {
 		this(binCtx, null);
 	}
+	private ISet createEmptySet() {
+		return context.getFactory().createSet();
+	}
 
 	/**
 	 * Run.

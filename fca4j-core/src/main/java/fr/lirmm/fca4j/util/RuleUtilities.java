@@ -56,6 +56,9 @@ public class RuleUtilities {
 	 * @return
 	 */
 	public static boolean isDirect(List<Implication> implications, ISetFactory factory) {
+		return isDirect(implications, -1, factory);
+	}
+		public static boolean isDirect(List<Implication> implications, int maxCardinality, ISetFactory factory) {
 		ISet attributes = factory.createSet();
 		for (Implication impl : implications) {
 			attributes.addAll(impl.getPremise());
@@ -66,10 +69,14 @@ public class RuleUtilities {
 			last = it.next();
 		}
 		if (last > 0) {
-			List<ISet> powerSet = generatePowerSet(last, factory);
+			List<ISet> powerSet;
+			if(maxCardinality<=0) powerSet= generatePowerSet(last, factory);
+			else powerSet=generatePowerSet(last, maxCardinality,factory);
 			for (ISet set : powerSet) {
-				if (!isDirect(set, implications))
+				if (!isDirect(set, implications)) {
+					System.out.println(set);
 					return false;
+				}
 			}
 		}
 		return true;
@@ -97,9 +104,9 @@ public class RuleUtilities {
 				}
 			}
 			if (changed)
-				count++;
+				if(++count>1) return false;
 		} while (changed);
-		return count <= 1;
+		return true;
 	}
 
 	public static boolean isDirectWithStats(List<Implication> implications, ISetFactory factory) {
@@ -261,7 +268,31 @@ public class RuleUtilities {
 
 		return powerSet;
 	}
+	private static List<ISet> generatePowerSet(int N, int maxCardinality, ISetFactory factory) {
+	    List<ISet> powerSet = new ArrayList<>();
+	    int totalSubsets = 1 << (N + 1); // 2^(N+1)
 
+	    for (int i = 0; i < totalSubsets; i++) {
+	        ISet subset = factory.createSet();
+	        int count = 0;
+
+	        for (int j = 0; j <= N; j++) {
+	            if ((i & (1 << j)) != 0) {
+	                subset.add(j);
+	                count++;
+	                if (count > maxCardinality) {
+	                    break; // On arrête dès que la cardinalité est dépassée
+	                }
+	            }
+	        }
+
+	        if (count <= maxCardinality) {
+	            powerSet.add(subset);
+	        }
+	    }
+
+	    return powerSet;
+	}
 	public static Iterator<Implication> iteratorImplications(Collection<Implication> implications) {
 		SimpleDirectedGraph<Implication, DefaultEdge> graph = new SimpleDirectedGraph<>(DefaultEdge.class);
 		for (Implication impl : implications) {

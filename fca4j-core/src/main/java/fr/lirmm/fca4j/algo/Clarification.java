@@ -130,7 +130,6 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
      */
     public static List<ISet> getAttributesByEquivClasses(IBinaryContext context) {
         ArrayList<RefSet> attrSets = new ArrayList<>();
-        int sizeSet=Integer.max(context.getAttributeCount(), context.getObjectCount());
         
             for (int numAttr = 0; numAttr < context.getAttributeCount(); numAttr++) {
                 attrSets.add(new RefSet(numAttr, context.getExtent(numAttr)));
@@ -216,7 +215,6 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
     public void run() {
         ArrayList<RefSet> attrSets = new ArrayList<>();
         ArrayList<RefSet> objSets = new ArrayList<>();
-        int sizeSet=Integer.max(matrix.getAttributeCount(), matrix.getObjectCount());
         if (matrix.getAttributeCount() > matrix.getObjectCount()) {
             for (int numAttr = 0; numAttr < matrix.getAttributeCount(); numAttr++) {
                 attrSets.add(new RefSet(numAttr, matrix.getExtent(numAttr)));
@@ -249,7 +247,7 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
         BinaryContext newContext=new BinaryContext(rows, columns, nameContext,factory);
         for(RefSet ref:attrSets)
         {
-            String attrName=matrix.getAttributeName(ref.refs.iterator().next());
+            String attrName=matrix.getAttributeName(ref.refs.first());
         	ISet refs=factory.createSet(ref.refs.toBitSet(), matrix.getAttributeCount());           
             equivClassAttributes.add(refs);
             if(rename && ref.refs.cardinality()>1) attrName=attrName+"("+ref.refs.cardinality()+")";
@@ -257,7 +255,7 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
         }
         for(RefSet ref:objSets)
         {
-            String objName=matrix.getObjectName(ref.refs.iterator().next());
+            String objName=matrix.getObjectName(ref.refs.first());
         	ISet refs=factory.createSet(ref.refs.toBitSet(), matrix.getObjectCount());           
             equivClassObjects.add(refs);
             if(rename && ref.refs.cardinality()>1) objName=objName+"("+ref.refs.cardinality()+")";

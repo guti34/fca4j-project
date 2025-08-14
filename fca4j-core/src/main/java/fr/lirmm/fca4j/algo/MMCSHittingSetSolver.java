@@ -46,6 +46,9 @@ public class MMCSHittingSetSolver implements AbstractAlgo<List<ISet>> {
 		this(binCtx, null);
 		this.family=family;
 	}
+	private ISet createEmptySet() {
+		return context.getFactory().createSet();
+	}
 	@Override
 	public void run() {
 		if(family!=null)
@@ -58,10 +61,10 @@ public class MMCSHittingSetSolver implements AbstractAlgo<List<ISet>> {
 	 * @return The set of all minimal hitting sets
 	 */
 	public List<ISet> computeMinimalHittingSets(List<ISet> family) {
-        ISet universe = context.getFactory().createSet();
+        ISet universe = createEmptySet();
         for (ISet s : family) universe.addAll(s);
 
-        mmcs(family, context.getFactory().createSet(), universe);
+        mmcs(family, createEmptySet(), universe);
         return result;
 	}
 	   private void mmcs(List<ISet> family, ISet current, ISet candidates) {

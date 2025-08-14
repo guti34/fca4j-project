@@ -45,6 +45,9 @@ public class HittingSetSolver implements AbstractAlgo<Set<ISet>> {
 		this(binCtx, null);
 		this.family=family;
 	}
+	private ISet createEmptySet() {
+		return context.getFactory().createSet();
+	}
 	@Override
 	public void run() {
 		if(family!=null)
@@ -60,7 +63,7 @@ public class HittingSetSolver implements AbstractAlgo<Set<ISet>> {
 		// Si la famille est vide, l'ensemble vide est le seul hitting set.
 		if (family.isEmpty()) {
 			Set<ISet> result = new HashSet<>();
-			result.add(context.getFactory().createSet());
+			result.add(createEmptySet());
 			return result;
 		}
 

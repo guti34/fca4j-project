@@ -47,6 +47,7 @@ import fr.lirmm.fca4j.command.Binarizer;
 import fr.lirmm.fca4j.command.Clarifier;
 import fr.lirmm.fca4j.command.Command;
 import fr.lirmm.fca4j.command.Conversion;
+import fr.lirmm.fca4j.command.DBasisBuilder;
 import fr.lirmm.fca4j.command.FamilyCommand;
 import fr.lirmm.fca4j.command.Inspect;
 import fr.lirmm.fca4j.command.Irreductible;
@@ -78,7 +79,7 @@ public class Main {
 	public final static void main(String[] args) {
 		AbstractSetContext setContext = new SetContextLight();
 		commands = new Command[] { new LatticeBuilder(setContext), new AOCPosetBuilder(setContext),
-				new RuleBasisBuilder(setContext), new Clarifier(setContext), new Reducer(setContext),
+				new RuleBasisBuilder(setContext),new DBasisBuilder(setContext), new Clarifier(setContext), new Reducer(setContext),
 				new Inspect(setContext), new Irreductible(setContext), new Binarizer(setContext),
 				new Conversion(setContext), new FamilyCommand(setContext), new RCACommand(setContext) };
 

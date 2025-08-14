@@ -41,6 +41,9 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 		this.implications = new ArrayList<>();
 		closureEngine = new ClosureDirect(context);
 	}
+	private ISet createEmptySet() {
+		return context.getFactory().createSet();
+	}
 
 	@Override
 	public void run() {
@@ -67,9 +70,9 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 				if (attrPremise != attrConclusion) {
 					ISet support = context.getExtent(attrPremise);
 					if (support.cardinality() > 0 && conclusionObjects.containsAll(support)) {
-						ISet premiseAttributes = context.getFactory().createSet();
+						ISet premiseAttributes = createEmptySet();
 						premiseAttributes.add(attrPremise);
-						ISet conclusionAttributes = context.getFactory().createSet();
+						ISet conclusionAttributes = createEmptySet();
 						conclusionAttributes.add(attrConclusion);
 						Implication dependency = new Implication(premiseAttributes, conclusionAttributes, support);
 						dBase.add(dependency);
@@ -120,11 +123,11 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 		for (int attrConclusion = 0; attrConclusion < nbAttributes; attrConclusion++) {
 //			for (int attrConclusion:listAttr) {
 			Queue<State> queue = new LinkedList<>();
-			ISet conclusionAttributes = context.getFactory().createSet();
+			ISet conclusionAttributes = createEmptySet();
 			conclusionAttributes.add(attrConclusion);
 			ISet conclusionObjects = context.getExtent(attrConclusion);
 			// Initialize the stack with an empty set
-			ISet initialSet = context.getFactory().createSet(); // Empty set
+			ISet initialSet = createEmptySet(); // Empty set
 			queue.add(new State(initialSet, 0));
 
 			// Parcourir les états pour l'élément en cours
@@ -173,7 +176,7 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 
 
 	private ISet getExtent(ISet intent) {
-		ISet result = context.getFactory().createSet();
+		ISet result = createEmptySet();
 		result.fill(context.getObjectCount());
 		for (Iterator<Integer> it = intent.iterator(); it.hasNext();) {
 			int numattr = it.next();
@@ -261,11 +264,11 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 			// 1.4. For each minimal set X, verify that the closure of X contains m
 			for (ISet X : minimalPremises) {
 				// compute the closure of X
-				ISet closure = context.getFactory().createSet();
+				ISet closure = createEmptySet();
 				ISet support = closureEngine.closure(closure, X, null, null);
 				if (closure.contains(m)) {
 					// Create implication X -> m and add to the D-basis
-					ISet conclusion = context.getFactory().createSet();
+					ISet conclusion = createEmptySet();
 					conclusion.add(m);
 					ISet premise=X.newDifference(conclusion);
 					premise=minimizePremise(premise, m);
@@ -291,9 +294,9 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 	            ISet candidate = minimalPremise.clone();
 	            candidate.remove(attr);
 	            // Si la clôture de candidate contient toujours la conclusion, on peut éliminer attr
-				ISet closure1 = context.getFactory().createSet();
+				ISet closure1 = createEmptySet();
 				ISet support1=closureEngine.closure(closure1, candidate, null, null);
-				ISet closure2 = context.getFactory().createSet();
+				ISet closure2 = createEmptySet();
 				ISet support2=closureEngine.closure(closure2, minimalPremise, null, null);
 	            if (closure1.contains(attrConclusion)&&support1.cardinality()==support2.cardinality()) {
 	                minimalPremise = candidate;
@@ -307,7 +310,7 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 	}
     private Set<ISet> getIntentCombinations(Set<ISet> hittingSets) {
         Set<ISet> result = new HashSet<>();
-        result.add(context.getFactory().createSet());
+        result.add(createEmptySet());
         // Cas particulier : si la liste est vide, retourner un ensemble contenant l'ensemble vide.
         if (hittingSets == null || hittingSets.isEmpty()) {
              return result;
@@ -341,7 +344,7 @@ public class DBaseCalculator implements AbstractAlgo<List<Implication>> {
 		// Si la famille est vide, l'ensemble vide est le seul hitting set.
 		if (family.isEmpty()) {
 			Set<ISet> result = new HashSet<>();
-			result.add(context.getFactory().createSet());
+			result.add(createEmptySet());
 			return result;
 		}
 

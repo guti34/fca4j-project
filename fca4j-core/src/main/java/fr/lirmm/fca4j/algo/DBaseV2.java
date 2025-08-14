@@ -38,7 +38,10 @@ public class DBaseV2 implements AbstractAlgo<List<Implication>> {
 	public DBaseV2(IBinaryContext context) {
 		this.context = context;
 		this.implications = new ArrayList<>();
-	    supportBidon=context.getFactory().createSet();
+	    supportBidon=createEmptySet();
+	}
+	private ISet createEmptySet() {
+		return context.getFactory().createSet();
 	}
 
 	@Override
@@ -58,16 +61,14 @@ public class DBaseV2 implements AbstractAlgo<List<Implication>> {
 
 	public List<Implication> computeDBasis() {
 
-		LinCbO linCbO = new LinCbO(context, chrono, new ClosureDirect(context), false);
-		linCbO.run();
-		List<Implication> dqBasis=linCbO.getResult(); 
-		System.out.println("lincbo done");
+		List<Implication> initialBasis=buildInitialBasis(); 
+		System.out.println("initial basis done");
 	       boolean changed;
 	        do {
 	            changed = false;
 	            // On travaille sur une copie de sigmaSr pour éviter les modifications concurrentes.
 	            List<Implication> tempBasis = new ArrayList<>();
-	            for(Implication impl:dqBasis) {
+	            for(Implication impl:initialBasis) {
 	            	tempBasis.add(impl.clone());
 	            }
 	            outer:
@@ -76,7 +77,8 @@ public class DBaseV2 implements AbstractAlgo<List<Implication>> {
 	                ISet A = implA.getPremise().clone();
 	                ISet B = implA.getConclusion().clone();
 	                for (Implication implC : tempBasis) {
-	                    if (equals(implA,implC)) {
+	                    if (implA==implC) {
+//		                    if (implA.equals(implC)) {
 	                        continue; // Évite de comparer une implication avec elle-même.
 	                    }
 	                    ISet C = implC.getPremise().clone();
@@ -89,15 +91,15 @@ public class DBaseV2 implements AbstractAlgo<List<Implication>> {
 	                        if (unionAB.containsAll(C)) {
 	                            ISet newConclusion = B.clone();
 	                            newConclusion.addAll(D);
-	                            dqBasis.remove(implA);
-	                            dqBasis.remove(implC);
-	                            dqBasis.add(new Implication(A, newConclusion,implA.getSupport()));
+	                            initialBasis.remove(implA);
+	                            initialBasis.remove(implC);
+	                            initialBasis.add(new Implication(A, newConclusion,0));
 	                            changed = true;
 	                            break outer;
 	                        }
 	                        // Sinon si D ⊆ B, supprimer l’implication C → D de sigmaSr.
 	                        else if (B.containsAll(D)) {
-	                        	dqBasis.remove(implC);
+	                        	initialBasis.remove(implC);
 	                            changed = true;
 	                            break outer;
 	                        }
@@ -106,10 +108,10 @@ public class DBaseV2 implements AbstractAlgo<List<Implication>> {
 	                            ISet newPremise = C.newDifference(B);
 	                            ISet newConclusion = D.newDifference(B);
 	                            Implication newImpl=new Implication(newPremise, newConclusion,supportBidon);
-	                            dqBasis.remove(implC);
+	                            initialBasis.remove(implC);
 //	                            if(equals(implC,newImpl)) continue;
-	                            dqBasis.add(newImpl);
-	                            if(!equals(implC,newImpl))	                            
+	                            initialBasis.add(newImpl);
+	                            if(!implC.equals(newImpl))	                            
 	                            	changed = true;
 	                            break outer;
 	                        }
@@ -117,16 +119,16 @@ public class DBaseV2 implements AbstractAlgo<List<Implication>> {
 	                }
 	            }
 	        } while (changed);
-System.out.println("Σsr= "+dqBasis.size());	        
+System.out.println("Σsr= "+initialBasis.size());	 
 System.out.println("Complétion de Σsr pour obtenir Σdsr");
 	        // Stage 3 : 
             List<Implication> sigmaDsr = new ArrayList<>();
-            for(Implication impl:dqBasis) {
+            for(Implication impl:initialBasis) {
             	sigmaDsr.add(impl.clone());
             }
 	        // Parcours des paires d’implications issues de sigmaDsr (à l’aide d’une copie pour éviter les modifications concurrentes)
             List<Implication> sigmaDsrCopy = new ArrayList<>();
-            for(Implication impl:dqBasis) {
+            for(Implication impl:initialBasis) {
             	sigmaDsrCopy.add(impl.clone());
             }
 	        for (Implication implA : sigmaDsrCopy) {
@@ -145,12 +147,11 @@ System.out.println("Complétion de Σsr pour obtenir Σdsr");
 	                    newPremise.addAll(C);
 	                    newPremise.removeAll(B);
 	                    sigmaDsr.add(new Implication(newPremise, diffD,supportBidon));
+	               
 	                }
 	            }
 	        }
 System.out.println("sigmaDsr="+sigmaDsr.size());
-//return sigmaDsr;
-
 	        // Stage 4 : Optimisation de Σdsr pour obtenir Σdo
 	        List<Implication> sigmaDo = new ArrayList<>();
 	        for (Implication impl : sigmaDsr) {
@@ -167,41 +168,13 @@ System.out.println("sigmaDsr="+sigmaDsr.size());
 	                }
 	            }
 	            if (!B.isEmpty()) {
-	            	sigmaDo.add(new Implication(A, B,supportBidon));
-//	                addImplication(new Implication(A, B,supportBidon),sigmaDo);
+//	            	sigmaDo.add(new Implication(A, B,supportBidon));
+	                addImplication(new Implication(A, B,supportBidon),sigmaDo);
 	            }
 	        }
 	        
 System.out.println("sigmaDo="+sigmaDo.size());
 return sigmaDo;
-
-/*			// Étape 2 : Réduire les implications pour obtenir une D-base minimale
-			List<Implication> minimalDBase = new ArrayList<>();
-			List<Implication> sortedList = new ArrayList<>(sigmaDo);
-			// Sort implication by cardinality
-			Collections.sort(sortedList, new Comparator<Implication>() {
-				@Override
-				public int compare(Implication a1, Implication a2) {
-					return Integer.compare(a1.getPremise().cardinality(), a2.getPremise().cardinality());
-				}
-			});
-
-			for (Implication dep : sortedList) {
-				ISet closure = RuleUtilities.computeClosure(dep.getPremise(), minimalDBase);
-				ISet minimalConclusion = dep.getConclusion().newDifference(closure);
-
-				if (!RuleUtilities.isDerivable(minimalConclusion, dep.getPremise(), minimalDBase)) {
-					addImplication(new Implication(dep.getPremise(), minimalConclusion, dep.getSupport()),minimalDBase);
-//					minimalDBase.add(new Implication(dep.getPremise(), minimalConclusion, dep.getSupport()));
-				}
-			}
-        	System.out.println("minimalDBase="+minimalDBase.size());
-        
-		return minimalDBase;
-*/	}
-	boolean equals(Implication implA,Implication implB) {
-        return implA.getPremise().equals(implB.getPremise())&&implA.getConclusion().equals(implB.getConclusion());
-		
 	}
 	void addImplication(Implication impl,List<Implication> basis) {
 		if(impl.getConclusion().cardinality()==1 && !basis.contains(impl))
@@ -209,12 +182,17 @@ return sigmaDo;
 		else {
 			for(Iterator<Integer> it=impl.getConclusion().iterator();it.hasNext();)
 			{
-				ISet conclusion=context.getFactory().createSet();
+				ISet conclusion=createEmptySet();
 				conclusion.add(it.next());
 				Implication newImpl=new Implication(impl.getPremise(), conclusion,supportBidon);
 				if(!basis.contains(newImpl))
 					basis.add(newImpl);
 			}
 		}
+	}
+	List<Implication> buildInitialBasis(){
+		LinCbO linCbO = new LinCbO(context, chrono, new ClosureDirect(context), false);
+		linCbO.run();
+		return linCbO.getResult();
 	}
 }
