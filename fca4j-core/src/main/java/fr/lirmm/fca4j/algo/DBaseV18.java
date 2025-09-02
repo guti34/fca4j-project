@@ -1,10 +1,15 @@
 package fr.lirmm.fca4j.algo;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -12,7 +17,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.jgrapht.Graph;
 import org.jgrapht.alg.TransitiveReduction;
+import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
@@ -71,9 +78,9 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		// clarify context and compute corresponding equivalence rules
 		List<Implication> eqBasis = clarify();
 		closureEngine.setContext(clarifiedContext);
-		if(clarifiedContext.getAttributeCount()<context.getAttributeCount())
-		{
-			System.out.println("Warning: the context is not clarified. Computed with " + clarifiedContext.getAttributeCount()+"/"+context.getAttributeCount()+" attributes");
+		if (clarifiedContext.getAttributeCount() < context.getAttributeCount()) {
+			System.out.println("Warning: the context is not clarified. Computed with "
+					+ clarifiedContext.getAttributeCount() + "/" + context.getAttributeCount() + " attributes");
 		}
 		// compute binary basis
 		List<Implication> binaryBasis = computeBinaryBasis();
@@ -94,7 +101,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		chrono.start("rewrite results");
 		List<Implication> dBasis = new ArrayList<>();
 		for (Implication impl : eqBasis) {
-			ISet support=computeSupport(impl.getPremise());
+			ISet support = computeSupport(impl.getPremise());
 			impl.setSupport(support);
 			dBasis.add(impl);
 		}
@@ -121,16 +128,16 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 	}
 
 	private ISet computeSupport(ISet intent) {
-		if(intent.cardinality()==1)
+		if (intent.cardinality() == 1)
 			return context.getExtent(intent.first()).clone();
 		else {
-		ISet support = createEmptySet();
-		for (int obj = 0; obj < context.getObjectCount(); obj++) {
-			if (context.getIntent(obj).containsAll(intent)) {
-				support.add(obj);
+			ISet support = createEmptySet();
+			for (int obj = 0; obj < context.getObjectCount(); obj++) {
+				if (context.getIntent(obj).containsAll(intent)) {
+					support.add(obj);
+				}
 			}
-		}
-		return support;
+			return support;
 		}
 	}
 
@@ -187,10 +194,10 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 
 	protected List<Implication> computeNonBinaryBasis(int target, ISet[] closures) {
 		List<Implication> basis = new ArrayList<>();
-		System.out.println("traitement attr= " + target);
 
 		chrono.start("computeMinimalGenerators");
 		Set<ISet> minGens = computeMinimalGenerators(target);
+//		minGens=reduceMinimalGenerators(minGens);
 		chrono.stop("computeMinimalGenerators");
 
 		chrono.start("extractCovers");
@@ -290,6 +297,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 	protected Set<ISet> computeMinimalCovers(Set<ISet> covers, ISet[] closures) {
 		Set<ISet> result = new HashSet<>(covers);
 		for (ISet g : covers) {
+			ISet union = null;
 			for (ISet h : covers) {
 				if (g != h) {
 					// case 1
@@ -298,12 +306,14 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 					}
 					// case 2
 					else {
-						if (g.cardinality() > 1) {
+						if (union == null) {
 							// build union of closure of each attributes of g
-							ISet union = createEmptySet();
-							for (Iterator<Integer> it = g.iterator(); it.hasNext();) {
-								union.addAll(closures[it.next()]);
-							}
+							union = createEmptySet();
+							if (g.cardinality() > 1) 
+								for (Iterator<Integer> it = g.iterator(); it.hasNext();) 
+									union.addAll(closures[it.next()]);															
+						}
+						if (g.cardinality() > 1) {
 							if (union.containsAll(h)) {
 								result.remove(g);
 							}
@@ -314,6 +324,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		}
 		return result;
 	}
+
 
 	protected Set<ISet> computeMinimalGenerators(int b) {
 		List<ISet> hypergraph = new ArrayList<>();
@@ -331,12 +342,53 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 			edge.remove(b);
 			hypergraph.add(edge);
 		}
-
 		// Étape 2 : appel au générateur de transversaux minimaux
 		Set<ISet> result = new HashSet<>();
 		ISet current = createEmptySet();
-		generateTransversals(hypergraph, 0, current, result);
+//		generateTransversals(hypergraph, 0, current, result);
+		generateTransversalsIterative(hypergraph,result);
 		return result;
+	}
+	protected void generateTransversalsIterative(List<ISet> hypergraph, Set<ISet> result) {
+	    class Frame {
+	        int index;
+	        ISet current;
+	        Iterator<Integer> it;
+
+	        Frame(int index, ISet current) {
+	            this.index = index;
+	            this.current = current;
+	        }
+	    }
+
+	    Deque<Frame> stack = new ArrayDeque<>();
+	    stack.push(new Frame(0, createEmptySet())); // point de départ
+
+	    while (!stack.isEmpty()) {
+	        Frame frame = stack.pop();
+
+	        if (frame.index == hypergraph.size()) {
+	            result.add(frame.current.clone());
+	            continue;
+	        }
+
+	        ISet edge = hypergraph.get(frame.index);
+
+	        // Cas : l’arête est déjà coupée
+	        if (!frame.current.newIntersect(edge).isEmpty()) {
+	            stack.push(new Frame(frame.index + 1, frame.current.clone()));
+	            continue;
+	        }
+
+	        // Sinon : pour chaque attribut de l’arête
+			for (Iterator<Integer> it = edge.iterator(); it.hasNext();) {
+				int attr = it.next();
+	            if (frame.current.contains(attr)) continue;
+	            ISet next = frame.current.clone(); // clone ici car on empile
+	            next.add(attr);
+	            stack.push(new Frame(frame.index + 1, next));
+	        }
+	    }
 	}
 
 	protected void generateTransversals(List<ISet> hypergraph, int index, ISet current, Set<ISet> result) {
@@ -363,7 +415,6 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 			current.remove(attr);
 		}
 	}
-
 	protected class ImplicationEdge extends DefaultEdge {
 		private final Implication implication;
 
@@ -379,33 +430,6 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		public String toString() {
 			return implication.toString();
 		}
-	}
-
-	protected Set<ISet> reduceMinimalGenerators(Set<ISet> minGens) {
-		SimpleDirectedGraph<ISet, DefaultEdge> graph = new SimpleDirectedGraph<>(DefaultEdge.class);
-		for (ISet minGen : minGens) {
-			graph.addVertex(minGen);
-		}
-		for (ISet minGen1 : minGens) {
-			for (ISet minGen2 : minGens) {
-				if (minGen1 != minGen2 && minGen1.containsAll(minGen2)) {
-					graph.addEdge(minGen1, minGen2);
-				}
-			}
-		}
-		Set<ISet> result = new HashSet<>();
-		for (ISet vertex : graph.vertexSet()) {
-			if (graph.inDegreeOf(vertex) + graph.outDegreeOf(vertex) == 0)
-				result.add(vertex);
-		}
-		graph.removeAllVertices(result);
-		TransitiveReduction.INSTANCE.reduce(graph);
-		for (ISet vertex : graph.vertexSet()) {
-			if (graph.inDegreeOf(vertex) > 0 && graph.outDegreeOf(vertex) == 0)
-				result.add(vertex);
-		}
-
-		return result;
 	}
 
 	public class ParallelBasisBuilder {

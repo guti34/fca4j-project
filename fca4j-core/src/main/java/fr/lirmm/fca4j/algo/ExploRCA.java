@@ -47,6 +47,7 @@ import fr.lirmm.fca4j.core.operator.AbstractScalingOperator;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.util.ConceptOrderFinder;
 
+
 /**
  * The Class ExploRCA.
  */
