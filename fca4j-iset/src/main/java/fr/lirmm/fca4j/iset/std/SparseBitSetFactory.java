@@ -36,6 +36,7 @@ import java.util.NoSuchElementException;
 
 import fr.lirmm.fca4j.iset.AbstractSetFactory;
 import fr.lirmm.fca4j.iset.AbstractSetFactory.AbstractOrderedSet;
+import fr.lirmm.fca4j.iset.std.JavaCollectionSetFactory.SetWithCollection;
 import fr.lirmm.fca4j.iset.ISet;
 
 /**
@@ -414,6 +415,11 @@ public class SparseBitSetFactory extends AbstractSetFactory {
             return false;
         }
     }
+
+	@Override
+	public boolean intersects(ISet anotherSet) {
+		return bitSet.intersects(((SetWithSparseBitSet)anotherSet).bitSet);
+	}
 
 
     }

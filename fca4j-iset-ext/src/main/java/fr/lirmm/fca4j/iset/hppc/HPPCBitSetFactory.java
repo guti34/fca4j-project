@@ -416,6 +416,12 @@ public class HPPCBitSetFactory extends AbstractSetFactory {
         }
     }
 
+	@Override
+	public boolean intersects(ISet anotherSet) {
+		bitSet.intersects(((SetWithBitSet)anotherSet).bitSet);
+		return false;
+	}
+
 
     }
 }

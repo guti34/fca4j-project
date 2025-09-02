@@ -173,6 +173,14 @@ public interface ISet extends Cloneable {
     public String toString();
 
     /**
+     * calculate intersection between this set and the set specified as parameter.
+     * return true if at leats one element is common to both sets
+     *
+     * @param anotherSet the another set
+     * @return true if intersection is not empty
+     */
+    public boolean intersects(ISet anotherSet);
+    /**
      * New intersection between this set and the set specified as parameter.
      * Unlike retainAll the set remains unchanged, a copy of the results is
      * returned

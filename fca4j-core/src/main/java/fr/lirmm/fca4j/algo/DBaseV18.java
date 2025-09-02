@@ -345,50 +345,8 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		// Étape 2 : appel au générateur de transversaux minimaux
 		Set<ISet> result = new HashSet<>();
 		ISet current = createEmptySet();
-//		generateTransversals(hypergraph, 0, current, result);
-		generateTransversalsIterative(hypergraph,result);
+		generateTransversals(hypergraph, 0, current, result);
 		return result;
-	}
-	protected void generateTransversalsIterative(List<ISet> hypergraph, Set<ISet> result) {
-	    class Frame {
-	        int index;
-	        ISet current;
-	        Iterator<Integer> it;
-
-	        Frame(int index, ISet current) {
-	            this.index = index;
-	            this.current = current;
-	        }
-	    }
-
-	    Deque<Frame> stack = new ArrayDeque<>();
-	    stack.push(new Frame(0, createEmptySet())); // point de départ
-
-	    while (!stack.isEmpty()) {
-	        Frame frame = stack.pop();
-
-	        if (frame.index == hypergraph.size()) {
-	            result.add(frame.current.clone());
-	            continue;
-	        }
-
-	        ISet edge = hypergraph.get(frame.index);
-
-	        // Cas : l’arête est déjà coupée
-	        if (!frame.current.newIntersect(edge).isEmpty()) {
-	            stack.push(new Frame(frame.index + 1, frame.current.clone()));
-	            continue;
-	        }
-
-	        // Sinon : pour chaque attribut de l’arête
-			for (Iterator<Integer> it = edge.iterator(); it.hasNext();) {
-				int attr = it.next();
-	            if (frame.current.contains(attr)) continue;
-	            ISet next = frame.current.clone(); // clone ici car on empile
-	            next.add(attr);
-	            stack.push(new Frame(frame.index + 1, next));
-	        }
-	    }
 	}
 
 	protected void generateTransversals(List<ISet> hypergraph, int index, ISet current, Set<ISet> result) {
@@ -400,7 +358,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 
 		ISet edge = hypergraph.get(index);
 		// Si l’arête est déjà là -> passer à la suivante
-		if (!current.newIntersect(edge).isEmpty()) {
+		if (current.intersects(edge)) {
 			generateTransversals(hypergraph, index + 1, current, result);
 			return;
 		}

@@ -449,6 +449,13 @@ public class ArrayListSetFactory extends AbstractSetFactory {
             }
 
         }
+
+		@Override
+		public boolean intersects(ISet anotherSet) {
+			for(int i:collection) 
+				if(((SetWithArrayList) anotherSet).collection.contains(i)) return true;			
+			return false;
+		}
     }
 
 }

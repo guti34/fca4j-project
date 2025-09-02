@@ -381,6 +381,11 @@ public class RoaringBitMapFactory extends  AbstractSetFactory {
         }
     }
 
+	@Override
+	public boolean intersects(ISet anotherSet) {		
+		return RoaringBitmap.intersects(this.bitMap, ((SetWithRoaringBitMap)anotherSet).bitMap);
+	}
+
     }
 
 }

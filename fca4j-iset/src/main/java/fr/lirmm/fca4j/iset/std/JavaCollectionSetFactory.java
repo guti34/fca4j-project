@@ -38,6 +38,7 @@ import java.util.function.Supplier;
 
 import fr.lirmm.fca4j.iset.AbstractSetFactory;
 import fr.lirmm.fca4j.iset.AbstractSetFactory.AbstractSet;
+import fr.lirmm.fca4j.iset.std.ArrayListSetFactory.SetWithArrayList;
 import fr.lirmm.fca4j.iset.ISet;
 
 /**
@@ -397,6 +398,13 @@ public class JavaCollectionSetFactory<T extends Collection<Integer>> extends Abs
                 return -1;
             }
         }
+
+		@Override
+		public boolean intersects(ISet anotherSet) {
+			for(int i:collection) 
+				if(((SetWithCollection) anotherSet).collection.contains(i)) return true;			
+			return false;
+		}
     }
 
 

@@ -387,8 +387,11 @@ public class TIntHashSetFactory extends AbstractSetFactory {
             return false;
         }
     }
-        
 
+	@Override
+	public boolean intersects(ISet anotherSet) {
+		return !newIntersect(anotherSet).isEmpty();
+	}
     }
 
 }

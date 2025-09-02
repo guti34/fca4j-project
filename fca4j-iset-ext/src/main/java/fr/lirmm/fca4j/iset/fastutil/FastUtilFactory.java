@@ -415,6 +415,10 @@ public class FastUtilFactory <T extends IntSortedSet> extends AbstractSetFactory
            return bs;
         }
 
+		@Override
+		public boolean intersects(ISet anotherSet) {
+			return !newIntersect(anotherSet).isEmpty();
+		}
 
     }
  

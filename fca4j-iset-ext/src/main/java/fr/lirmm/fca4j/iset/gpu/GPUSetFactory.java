@@ -716,6 +716,11 @@ public class GPUSetFactory extends AbstractSetFactory {
 			clReleaseMemObject(mem_array);
 			clReleaseMemObject(mem_output);
 		}
+
+		@Override
+		public boolean intersects(ISet anotherSet) {
+			return !newIntersect(anotherSet).isEmpty();
+		}
 	}
 
 }

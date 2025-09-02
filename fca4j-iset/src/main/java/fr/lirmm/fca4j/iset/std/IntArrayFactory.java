@@ -413,6 +413,11 @@ public class IntArrayFactory extends AbstractSetFactory {
         public int last() {
             return fiArray.last();
         }
+
+		@Override
+		public boolean intersects(ISet anotherSet) {
+			return !newIntersect(anotherSet).isEmpty();
+		}
         
     }
 }

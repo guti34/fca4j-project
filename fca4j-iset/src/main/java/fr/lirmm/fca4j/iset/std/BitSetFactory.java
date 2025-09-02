@@ -36,6 +36,7 @@ import java.util.NoSuchElementException;
 
 import fr.lirmm.fca4j.iset.AbstractSetFactory;
 import fr.lirmm.fca4j.iset.AbstractSetFactory.AbstractOrderedSet;
+import fr.lirmm.fca4j.iset.std.SparseBitSetFactory.SetWithSparseBitSet;
 import fr.lirmm.fca4j.iset.ISet;
 
 /**
@@ -440,6 +441,11 @@ public class BitSetFactory extends AbstractSetFactory {
         public BitSet toBitSet() {
             return (BitSet) bitSet.clone();
         }
+
+    	@Override
+    	public boolean intersects(ISet anotherSet) {
+    		return bitSet.intersects(((SetWithBitSet)anotherSet).bitSet);
+    	}
 
     }
 

@@ -404,6 +404,11 @@ public class KolobokeHashSetFactory extends AbstractSetFactory {
             }
         }
 
+		@Override
+		public boolean intersects(ISet anotherSet) {
+			return !newIntersect(anotherSet).isEmpty();
+		}
+
     }
 
 }
