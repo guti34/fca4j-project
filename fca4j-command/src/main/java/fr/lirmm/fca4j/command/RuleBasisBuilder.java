@@ -381,10 +381,11 @@ public class RuleBasisBuilder extends Command {
 			}
 			list.add(implication);
 		}
+		ArrayList<Implication> result=new ArrayList<>();
 		for (int support : map.keySet()) {
-			RuleUtilities.printImplications(printWriter, map.get(support), ctx);
-
+			result.addAll(map.get(support));
 		}
+			RuleUtilities.printImplications(printWriter, result, ctx);
 	}
 
 	/**
@@ -543,24 +544,62 @@ public class RuleBasisBuilder extends Command {
 //		test("example0.5.2");
 //		test("FontaineDuTheil_attribute");
 //		test("PlantSpecies");
-//		test("exemple16");
 //		test("exemple");
 //		test("dbasis_10x22");
 //		test("Plant");
 //		test("ProtSystem");
 //		test("distinct",true);
 //		test("tags");
-		test("association");
+//		compareBasis("example16");
+//		compareBasis("example16");
+//		compareBasis("dbasis_10x21");
+//		compareBasis("dbasis_10x22");
+//		compareBasis("ord5bikesharing_day_cut");
+//		compareBasis("association");
+//		compareBasis("association_r");
+//		compareBasis("association_c");
+//		compareBasis("ord10shuttle");
+//		compareBasis("ord6magic04r");
+//		compareBasis("role");
+		compareBasis("attribute");
 //		test("UsedPlant");
 //		test("dbasis_10x21");
 //		test("dbasis_9x8");
-//		test("ProtectedOrganism");
+//		compareBasis("ProtectedOrganism");
 	}
 
 	final static int DIRECT_TEST_DEEP = 6;
-
+	
+	private static void compareBasis(String name1) throws IOException {
+		IBinaryContext context = SLFReader.read(new File("c:/projects/rules/expe/" + name1 + ".slf"));
+		RuleBasis myBasis = RuleBasisReader.read("c:/projects/rules/expe/" + name1 + ".txt", context);
+		RuleBasis kiraBasis = RuleBasisReader.read("c:/projects/rules/expe/" + name1 + "DB.txt", context);
+//		RuleBasis kiraBasisR = RuleBasisReader.read("c:/projects/rules/expe/" + name1 + "DBr.txt", context);
+		ClosureStrategy closureEngine=new ClosureDirect(context);	
+		// compute duquenne guigues
+		LinCbO linCbO = new LinCbO(context, null, closureEngine, false);
+		linCbO.run();
+		RuleBasis dqBasis = new RuleBasis(linCbO.getResult(), context);
+		System.out.println(
+				"DQbasis<kiraBasis=" + RuleUtilities.isIncludedIn(dqBasis.getImplications(), kiraBasis.getImplications()));
+		System.out.println(
+				"kiraBasis<DQbasis=" + RuleUtilities.isIncludedIn(kiraBasis.getImplications(), dqBasis.getImplications()));
+		System.out.println(
+				"myBasis<kiraBasis=" + RuleUtilities.isIncludedIn(myBasis.getImplications(), kiraBasis.getImplications()));
+		System.out.println(
+				"kiraBasis<myBasis=" + RuleUtilities.isIncludedIn(kiraBasis.getImplications(), myBasis.getImplications()));
+		System.out.println(
+				"myBasis<DQbasis=" + RuleUtilities.isIncludedIn(myBasis.getImplications(), dqBasis.getImplications()));
+		System.out.println(
+				"DQBasis<myBasis" + RuleUtilities.isIncludedIn(dqBasis.getImplications(), myBasis.getImplications()));
+/*		System.out.println(
+				"myBasis<kiraBasisR=" + RuleUtilities.isIncludedIn(myBasis.getImplications(), kiraBasisR.getImplications()));
+		System.out.println(
+				"kiraBasisR<myBasis=" + RuleUtilities.isIncludedIn(kiraBasisR.getImplications(), myBasis.getImplications()));
+*/		
+	}
 	private static void test(String name) throws IOException {
-		IBinaryContext initial_context = SLFReader.read(new File("c:/projects/rules/dbasis/" + name + ".slf")/* ,new RoaringBitMapFactory() */);
+		IBinaryContext initial_context = SLFReader.read(new File("c:/projects/rules/expe/" + name + ".slf"));
 		System.out.println("context=" + initial_context.getObjectCount() + "x" + initial_context.getAttributeCount());
 		
 		ClosureStrategy closureEngine=new ClosureDirect(initial_context);	

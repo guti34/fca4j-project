@@ -182,16 +182,17 @@ public class RuleUtilities {
 
 	public static boolean isIncludedIn(List<Implication> subBasis, List<Implication> basis) {
 		boolean derivable=true;
+//int count=0;
 		for (Implication dep : subBasis) {
 			ISet closure = computeClosure(dep.getPremise(), basis);
 			ISet minimalConclusion = dep.getConclusion().newDifference(closure);
-
 			if (!isDerivable(minimalConclusion, dep.getPremise(), basis)) {
-//				System.out.println(dep.toString() + " is not derivable");
 				derivable=false;
+//				count++;
 				break;
-			}
+			}		
 		}
+//			if(count>0)	System.out.println("Not derivable:"+count);
 		return derivable;
 	}
 
@@ -204,8 +205,7 @@ public class RuleUtilities {
 	public static void printImplications(PrintWriter printWriter, Iterable<Implication> implications,
 			IBinaryContext context) {
 		for (Implication implication : implications) {
-			int support = implication.getSupport() == null ? implication.getSupportSize()
-					: implication.getSupport().cardinality();
+			int support = implication.getSupportSize();
 			printWriter.printf("<%d> %s => %s\n", support, displayAttrs(implication.getPremise(), context),
 					displayAttrs(implication.getConclusion(), context));
 		}

@@ -51,7 +51,7 @@ public class MyExistentialScaling extends AbstractScalingOperator{
 	 */
 	@Override
 	public boolean scale(int e, ISet c, IBinaryContext context) {
-		return ! context.getIntent(e).newIntersect(c).isEmpty();
+		return context.getIntent(e).intersects(c);
 		
 	}
 

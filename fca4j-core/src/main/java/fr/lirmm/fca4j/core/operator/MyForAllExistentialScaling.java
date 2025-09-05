@@ -49,7 +49,7 @@ public class MyForAllExistentialScaling extends AbstractScalingOperator{
 	 */
 	@Override
 	public boolean scale(int e, ISet c, IBinaryContext context) {
-		if (c.isEmpty())
+		if (c.isEmpty()||context.getIntent(e).isEmpty())
 			return false;
 		ISet inter=context.getIntent(e).newIntersect(c);
 		return inter.equals(context.getIntent(e));
