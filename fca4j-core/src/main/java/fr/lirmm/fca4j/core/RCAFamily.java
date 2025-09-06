@@ -640,7 +640,7 @@ public class RCAFamily {
     		
     		if(!fcTarget.getOrder().getConcepts().contains(concept)) {
     			attrToRemove.add(numAttr);
-    			System.out.println("remove "+attrName+" from "+fc.getName());
+//    			System.out.println("remove "+attrName+" from "+fc.getName());
     		}
     	}
     	for(int numAttr:attrToRemove)

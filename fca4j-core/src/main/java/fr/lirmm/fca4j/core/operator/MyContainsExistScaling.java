@@ -51,7 +51,9 @@ public class MyContainsExistScaling extends AbstractScalingOperator{
      */
     @Override
     public boolean scale(int e, ISet c, IBinaryContext context) {
-               return !c.isEmpty() && context.getIntent(e).containsAll(c);       
+		if (c.isEmpty()||context.getIntent(e).isEmpty())
+			return false;
+        return  context.getIntent(e).containsAll(c);       
     }
 
     /**

@@ -60,14 +60,11 @@ public class MyForNearlyAllExistentialScaling extends AbstractScalingOperator {
 	 * @return true, if successful
 	 */
 	public boolean scale(int e, ISet c, IBinaryContext context) {
-		ISet targetEntities = context.getIntent(e);
-		int maxLinks = targetEntities.cardinality();
-		int threshold = (int) ((x * maxLinks) / 100);
-		if (maxLinks == 0 || c.isEmpty()) {
+		if (c.isEmpty()||context.getIntent(e).isEmpty())
 			return false;
-		}
-		ISet inter = targetEntities.newIntersect(c);
-		return inter.cardinality() > threshold;
+		ISet inter=context.getIntent(e).newIntersect(c);
+		int threshold = (int) ((x * context.getIntent(e).cardinality()) / 100);
+		return inter.cardinality() >= threshold;
 	}
 
 	/**
