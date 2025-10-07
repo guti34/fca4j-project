@@ -19,6 +19,45 @@ public class ConceptUtilities {
 
 	public static Map<Integer, Double> computeStability(IConceptOrder conceptOrder) {
 		HashMap<Integer, Integer> count = new HashMap<>();
+		HashMap<Integer, PowerSetNumber> subsets = new HashMap<>();
+		HashMap<Integer, Double> stability = new HashMap<>();
+		ISet concepts = conceptOrder.getContext().getFactory().createSet();
+		for (Iterator<Integer> it = conceptOrder.getBottomUpIterator(); it.hasNext();) {
+			int concept = it.next();
+			concepts.add(concept);
+			count.put(concept, conceptOrder.getLowerCover(concept).cardinality());
+			PowerSetNumber nbSubsets=PowerSetNumber.fromPowerOfTwo(conceptOrder.getConceptExtent(concept).cardinality());
+			subsets.put(concept, nbSubsets);
+		}
+		while (!concepts.isEmpty()) {
+			for (Iterator<Integer> it = concepts.iterator(); it.hasNext();) {
+				int concept = it.next();
+				if (count.get(concept) == 0) {
+					concepts.remove(concept);
+					
+					PowerSetNumber denominator=PowerSetNumber.fromPowerOfTwo(conceptOrder.getConceptExtent(concept).cardinality());
+					PowerSetNumber numerator=subsets.get(concept);
+					double sta=numerator.divide(denominator);
+					 stability.put(concept, sta);
+					
+					for (Iterator<Integer> itParent = conceptOrder.getAllParents(concept).iterator(); itParent
+							.hasNext();) {
+						int parent = itParent.next();
+						if (parent == concept)
+							continue;
+						subsets.get(parent).subtract(subsets.get(concept));
+						if (conceptOrder.getUpperCover(concept).contains(parent)) {
+							count.put(parent, count.get(parent) - 1);
+						}
+					}
+					break;
+				}
+			}
+		}
+		return stability;
+	}
+	public static Map<Integer, Double> computeStability2(IConceptOrder conceptOrder) {
+		HashMap<Integer, Integer> count = new HashMap<>();
 		HashMap<Integer, BigInteger> subsets = new HashMap<>();
 		HashMap<Integer, Double> stability = new HashMap<>();
 		ISet concepts = conceptOrder.getContext().getFactory().createSet();

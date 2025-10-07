@@ -234,7 +234,11 @@ public class GraphVizDotWriter {
 				attrToConcept.put(it.next(), numconcept);
 		}
 		// compute stability for each concepts
+		Chrono chrono=new Chrono("sta");
+		chrono.start("stability");
 		Map<Integer, Double> stability = ConceptUtilities.computeStability(lattice);
+		chrono.stop("stability");
+		System.out.println(chrono.getResult());
 		for (Iterator<Integer> it = lattice.getBasicIterator(); it.hasNext();) {
 			int concept = it.next();
 			writeConcept(sb, lattice, attrToConcept, stability, concept, null, MODE.SIMPLE);
@@ -257,7 +261,11 @@ public class GraphVizDotWriter {
 			for (Iterator<Integer> it = conceptOrder.getConceptReducedIntent(numconcept).iterator(); it.hasNext();)
 				attrToConcept.put(it.next(), numconcept);
 		}
+		Chrono chrono=new Chrono("sta");
+		chrono.start("stability");
 		Map<Integer, Double> stability = ConceptUtilities.computeStability(conceptOrder);
+		chrono.stop("stability");
+		System.out.println(chrono.getResult());
 
 		appendLine(buffer, "subgraph ", conceptOrder.getContext().getName(), " { ");
 		appendLine(buffer, "label=\"", conceptOrder.getContext().getName(), "\";");
