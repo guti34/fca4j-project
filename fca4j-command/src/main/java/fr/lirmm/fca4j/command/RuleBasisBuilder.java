@@ -381,11 +381,11 @@ public class RuleBasisBuilder extends Command {
 			}
 			list.add(implication);
 		}
-		ArrayList<Implication> result=new ArrayList<>();
+		ArrayList<Implication> result = new ArrayList<>();
 		for (int support : map.keySet()) {
 			result.addAll(map.get(support));
 		}
-			RuleUtilities.printImplications(printWriter, result, ctx);
+		RuleUtilities.printImplications(printWriter, result, ctx);
 	}
 
 	/**
@@ -550,82 +550,134 @@ public class RuleBasisBuilder extends Command {
 //		test("ProtSystem");
 //		test("distinct",true);
 //		test("tags");
-//		compareBasis("example16");
-//		compareBasis("example16");
+//		compareBasis("association","association");
+//		compareBasis("association_r","association");
+//		compareBasis("example16","example16");
+//		compareBasis("example16_r","example16");
+		compareBasisWithReduced("example16","example16");
+//		findCycles2("example16_r");
 //		compareBasis("dbasis_10x21");
 //		compareBasis("dbasis_10x22");
-//		compareBasis("ord5bikesharing_day_cut");
-//		compareBasis("association");
+//		compareBasis("ord5bikesharing_day_cut_r");
+//		compareBasis("ord5bikesharing_day_cut","ord5bikesharing_day_cut");
+//		compareBasisWithReduced("ord5bikesharing_day_cut","ord5bikesharing_day_cut");
+//		compareBasis("UsedPlant","UsedPlant");
+//		findCycles("ord5bikesharing_day_cut_r");
+//		findCycles("ord5bikesharing_day_cut");
+//		compareBasis("association","association");
 //		compareBasis("association_r");
+//		findCycles("association_r");
 //		compareBasis("association_c");
-//		compareBasis("ord10shuttle");
-//		compareBasis("ord6magic04r");
+//		compareBasis("ord10shuttle","ord10shuttle");
+//		compareBasis("ord10shuttle_r","ord10shuttle");
+//		compareBasis("ord10shuttle_ro","ord10shuttle");
+//		compareBasis("ord10shuttle_ra","ord10shuttle");
+//		findCycles("ord10shuttle_r");
+//		testOrderedDirect("ord10shuttle_r");
+//		testOrderedDirect("ord10shuttle_r_kira");
+//		testOrderedDirect("association_r");
+//		testOrderedDirect("ord6magic04_r");
+
+//		compareBasis("ord6magic04","ord6magic04");
+//		compareBasis("ord6magic04_r","ord6magic04");
+//		findCycles("ord6magic04_r");
 //		compareBasis("role");
-		compareBasis("attribute");
+//		compareBasis("attribute");
 //		test("UsedPlant");
 //		test("dbasis_10x21");
 //		test("dbasis_9x8");
-//		compareBasis("ProtectedOrganism");
+//		compareBasis("ProtectedOrganism","ProtectedOrganism");
 	}
 
-	final static int DIRECT_TEST_DEEP = 6;
-	
-	private static void compareBasis(String name1) throws IOException {
-		IBinaryContext context = SLFReader.read(new File("c:/projects/rules/expe/" + name1 + ".slf"));
-		RuleBasis myBasis = RuleBasisReader.read("c:/projects/rules/expe/" + name1 + ".txt", context);
-		RuleBasis kiraBasis = RuleBasisReader.read("c:/projects/rules/expe/" + name1 + "DB.txt", context);
-//		RuleBasis kiraBasisR = RuleBasisReader.read("c:/projects/rules/expe/" + name1 + "DBr.txt", context);
+	final static int DIRECT_TEST_DEEP = 5;
+
+	private static void findCycles2(String name1) throws IOException {
+		IBinaryContext context = SLFReader.read(new File("c:/projects/rules/ebasis/" + name1 + ".slf"));
+		RuleBasis myBasis = RuleBasisReader.read("c:/projects/rules/ebasis/" + name1 + ".txt", context);
 		ClosureStrategy closureEngine=new ClosureDirect(context);	
 		// compute duquenne guigues
 		LinCbO linCbO = new LinCbO(context, null, closureEngine, false);
 		linCbO.run();
 		RuleBasis dqBasis = new RuleBasis(linCbO.getResult(), context);
-		System.out.println(
-				"DQbasis<kiraBasis=" + RuleUtilities.isIncludedIn(dqBasis.getImplications(), kiraBasis.getImplications()));
-		System.out.println(
-				"kiraBasis<DQbasis=" + RuleUtilities.isIncludedIn(kiraBasis.getImplications(), dqBasis.getImplications()));
-		System.out.println(
-				"myBasis<kiraBasis=" + RuleUtilities.isIncludedIn(myBasis.getImplications(), kiraBasis.getImplications()));
-		System.out.println(
-				"kiraBasis<myBasis=" + RuleUtilities.isIncludedIn(kiraBasis.getImplications(), myBasis.getImplications()));
-		System.out.println(
-				"myBasis<DQbasis=" + RuleUtilities.isIncludedIn(myBasis.getImplications(), dqBasis.getImplications()));
-		System.out.println(
-				"DQBasis<myBasis" + RuleUtilities.isIncludedIn(dqBasis.getImplications(), myBasis.getImplications()));
-/*		System.out.println(
-				"myBasis<kiraBasisR=" + RuleUtilities.isIncludedIn(myBasis.getImplications(), kiraBasisR.getImplications()));
-		System.out.println(
-				"kiraBasisR<myBasis=" + RuleUtilities.isIncludedIn(kiraBasisR.getImplications(), myBasis.getImplications()));
-*/		
+		System.out.println("DQbasis D-cycles=" + RuleUtilities.findDCycles(dqBasis.getImplications()));
+		System.out.println("Mybasis D-cycles=" + RuleUtilities.findDCycles(myBasis.getImplications()));		
 	}
+		private static void findCycles(String name1) throws IOException {
+		IBinaryContext context = SLFReader.read(new File("c:/projects/rules/expe2/" + name1 + ".slf"));
+		RuleBasis myBasis = RuleBasisReader.read("c:/projects/rules/expe2/" + name1 + ".txt", context);
+		RuleBasis kiraBasis = RuleBasisReader.read("c:/projects/rules/expe2/" + name1 + "_kira.txt", context);
+		ClosureStrategy closureEngine=new ClosureDirect(context);	
+		// compute duquenne guigues
+		LinCbO linCbO = new LinCbO(context, null, closureEngine, false);
+		linCbO.run();
+		RuleBasis dqBasis = new RuleBasis(linCbO.getResult(), context);
+		System.out.println("DQbasis D-cycles=" + RuleUtilities.findDCycles(dqBasis.getImplications()));
+		System.out.println("Mybasis D-cycles=" + RuleUtilities.findDCycles(myBasis.getImplications()));
+		System.out.println("Kirabasis D-cycles=" + RuleUtilities.findDCycles(kiraBasis.getImplications()));
+	}
+
+		private static void compareBasisWithReduced(String name1,String rep) throws IOException {
+		IBinaryContext context = SLFReader.read(new File("c:/projects/rules/"+rep+"/" + name1 + ".slf"));
+			RuleBasis myBasis = RuleBasisReader.read("c:/projects/rules/"+rep+"/" + name1 + ".txt", context);
+			RuleBasis reducedBasis = RuleBasisReader.read("c:/projects/rules/"+rep+"/" +name1+ "_r.txt", context);
+			System.out.println("reducedBasis<myBasis="
+					+ RuleUtilities.isIncludedIn(reducedBasis.getImplications(), myBasis.getImplications()));
+			System.out.println("myBasis<reducedBasis="
+					+ RuleUtilities.isIncludedIn(myBasis.getImplications(), reducedBasis.getImplications()));
+			
+		}
+		private static void compareBasis(String name1,String rep) throws IOException {
+		IBinaryContext context = SLFReader.read(new File("c:/projects/rules/"+rep+"/" + name1 + ".slf"));
+		RuleBasis myBasis = RuleBasisReader.read("c:/projects/rules/"+rep+"/" + name1 + ".txt", context);
+		RuleBasis kiraBasis = RuleBasisReader.read("c:/projects/rules/"+rep+"/" +name1+ "_kira.txt", context);
+		ClosureStrategy closureEngine = new ClosureDirect(context);
+		// compute duquenne guigues
+		LinCbO linCbO = new LinCbO(context, null, closureEngine, false);
+		linCbO.run();
+		RuleBasis dqBasis = new RuleBasis(linCbO.getResult(), context);
+		System.out.println("DQbasis<kiraBasis="
+				+ RuleUtilities.isIncludedIn(dqBasis.getImplications(), kiraBasis.getImplications()));
+		System.out.println("kiraBasis<DQbasis="
+				+ RuleUtilities.isIncludedIn(kiraBasis.getImplications(), dqBasis.getImplications()));
+		System.out.println("DQbasis<myBasis="
+				+ RuleUtilities.isIncludedIn(dqBasis.getImplications(), myBasis.getImplications()));
+		System.out.println("myBasis<DQbasis="
+				+ RuleUtilities.isIncludedIn(myBasis.getImplications(), dqBasis.getImplications()));
+		System.out.println("myBasis<kiraBasis="
+				+ RuleUtilities.isIncludedIn(myBasis.getImplications(), kiraBasis.getImplications()));
+		System.out.println("kiraBasis<myBasis="
+				+ RuleUtilities.isIncludedIn(kiraBasis.getImplications(), myBasis.getImplications()));
+
+	}
+
 	private static void test(String name) throws IOException {
 		IBinaryContext initial_context = SLFReader.read(new File("c:/projects/rules/expe/" + name + ".slf"));
 		System.out.println("context=" + initial_context.getObjectCount() + "x" + initial_context.getAttributeCount());
-		
-		ClosureStrategy closureEngine=new ClosureDirect(initial_context);	
+
+		ClosureStrategy closureEngine = new ClosureDirect(initial_context);
 		// compute duquenne guigues
 		LinCbO linCbO = new LinCbO(initial_context, null, closureEngine, false);
 		linCbO.run();
 		List<Implication> dqBasis = linCbO.getResult();
-		DBaseV18 calculator = new DBaseV18(initial_context,-1);
+		DBaseV18 calculator = new DBaseV18(initial_context, -1);
 		calculator.run();
 		// print result
 		PrintWriter pw = new PrintWriter("c:/projects/rules/dbasis/" + name + "DB2.txt");
 		RuleUtilities.printImplications(pw, calculator.getResult(), initial_context);
 		RuleBasis ruleBaseDB2 = new RuleBasis(calculator.getResult(), initial_context);
-			System.out.println(
-					"ruleBaseDQ<ruleBaseDB2=" + RuleUtilities.isIncludedIn(dqBasis, ruleBaseDB2.getImplications()));
-			System.out.println(
-					"ruleBaseDB2<ruleBaseDQ=" + RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(), dqBasis));
-			System.out.println("DB2 is direct= "
-					+ RuleUtilities.isDirect(ruleBaseDB2.getImplications(), DIRECT_TEST_DEEP, initial_context.getFactory()));
-			testOrderedDirect(name);
+		System.out.println(
+				"ruleBaseDQ<ruleBaseDB2=" + RuleUtilities.isIncludedIn(dqBasis, ruleBaseDB2.getImplications()));
+		System.out.println(
+				"ruleBaseDB2<ruleBaseDQ=" + RuleUtilities.isIncludedIn(ruleBaseDB2.getImplications(), dqBasis));
+		System.out.println("DB2 is direct= " + RuleUtilities.isDirect(ruleBaseDB2.getImplications(), DIRECT_TEST_DEEP,
+				initial_context.getFactory()));
+		testOrderedDirect(name);
 	}
 
 	private static void testOrderedDirect(String name) throws IOException {
 		IBinaryContext context = SLFReader
-				.read(new File("c:/projects/rules/dbasis/" + name + ".slf")/* ,new RoaringBitMapFactory() */);
-		RuleBasis ruleBase = RuleBasisReader.read("c:/projects/rules/dbasis/" + name + "DB2.txt", context);
+				.read(new File("c:/projects/rules/expe2/" + name + ".slf")/* ,new RoaringBitMapFactory() */);
+		RuleBasis ruleBase = RuleBasisReader.read("c:/projects/rules/expe2/" + name + ".txt", context);
 
 		List<Implication> nonBinaryBasis = new ArrayList<>();
 		List<Implication> binaryBasis = new ArrayList<>();
@@ -636,10 +688,19 @@ public class RuleBasisBuilder extends Command {
 				nonBinaryBasis.add(impl);
 		}
 		List<Implication> dBasis = new ArrayList<>(binaryBasis);
+		dBasis.addAll(nonBinaryBasis);
+		Chrono chrono = new Chrono("ordered direct test");
+		chrono.start("dBasis");
+		System.out.println(
+				"DBasis initial is direct= " + RuleUtilities.isDirect(dBasis, DIRECT_TEST_DEEP, context.getFactory()));
+		chrono.stop("dBasis");
+		dBasis.removeAll(nonBinaryBasis);
 		Collections.shuffle(nonBinaryBasis);
 		dBasis.addAll(nonBinaryBasis);
-		System.out.println("DB2 with shuffle is direct= "
+		chrono.start("shuffle");
+		System.out.println("DBasis with shuffle is direct= "
 				+ RuleUtilities.isDirect(dBasis, DIRECT_TEST_DEEP, context.getFactory()));
+		chrono.stop("shuffle");
 
 		dBasis.removeAll(nonBinaryBasis);
 		Collections.sort(nonBinaryBasis, new Comparator<Implication>() {
@@ -649,10 +710,14 @@ public class RuleBasisBuilder extends Command {
 			}
 		});
 		dBasis.addAll(nonBinaryBasis);
-
-		System.out.println("DB2 with cardinality inverse is direct= "
+		chrono.start("inverse");
+		System.out.println("DBasis with cardinality inverse is direct= "
 				+ RuleUtilities.isDirect(dBasis, DIRECT_TEST_DEEP, context.getFactory()));
-
+		chrono.stop("inverse");
+		for (String serie : chrono.getSerieNames()) {
+			System.out.println(serie + " time: " + chrono.getResult(serie));
+		}
+		System.out.println("Total time: " + chrono.getResult());
 	}
 
 	public static double calculateAverageSize(List<Implication> items) {

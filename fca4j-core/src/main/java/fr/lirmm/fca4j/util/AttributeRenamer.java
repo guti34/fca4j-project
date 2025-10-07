@@ -116,7 +116,6 @@ static HashMap<Integer,String> conceptNames=new HashMap<>();
 */	
 	public static String build(RCAFamily family, String attrName, MODE mode, int currentConcept,
 			ConceptOrderFinder conceptOrderFinder) {
-		System.out.println("renaming "+attrName);
 		ISet visited = family.getFactory().createSet();
 		if (currentConcept >= 0) {
 			visited.add(currentConcept);

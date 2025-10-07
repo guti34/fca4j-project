@@ -90,7 +90,7 @@ public class RuleBasisReader {
             if(numAttr>=0)
             	result.add(numAttr); 
             else {
-            	numAttr=Integer.parseInt(attrName)-1;
+            	numAttr=Integer.parseInt(attrName);
             	result.add(numAttr);
 //            	throw new IOException("Attribute: "+attrName+" not found");
             }

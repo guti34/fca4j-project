@@ -449,7 +449,7 @@ public class RCACommand extends Command {
 			if (thisIsTheEnd || produceDot) {
 				FileWriter fw0 = new FileWriter(resultFolder.getPath() + "/step" + step + ".dot");
 				String senseLayout = "BT";
-				GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, false,false,senseLayout,exploMFca.createConceptFinder());
+				GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, true,false,senseLayout,exploMFca.createConceptFinder());
 				dotWriter.write(fw0, family,exploMFca.getConceptOrderFamily(),true,mode );
 			}
 			int i = 0;

@@ -76,20 +76,26 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 
 	public List<Implication> computeDBasis() {
 		// clarify context and compute corresponding equivalence rules
+		chrono.start("clarify");
 		List<Implication> eqBasis = clarify();
+		chrono.start("clarify");
+
 		closureEngine.setContext(clarifiedContext);
 		if (clarifiedContext.getAttributeCount() < context.getAttributeCount()) {
-			System.out.println("Warning: the context is not clarified. Computed with "
-					+ clarifiedContext.getAttributeCount() + "/" + context.getAttributeCount() + " attributes");
+//			System.out.println("Warning: the context is not clarified. Computed with "
+//					+ clarifiedContext.getAttributeCount() + "/" + context.getAttributeCount() + " attributes");
 		}
 		// compute binary basis
+		chrono.start("compute binary basis");
 		List<Implication> binaryBasis = computeBinaryBasis();
+		chrono.stop("compute binary basis");
+		
 		List<Implication> tempBasis = new ArrayList<>(binaryBasis);
 
 		// compute non binary basis
+		chrono.start("compute non binary basis");
 		ISet[] closures = computeAttributesClosure();
 		ParallelBasisBuilder builder = new ParallelBasisBuilder(closures);
-		chrono.start("compute non binary basis");
 		try {
 			List<Implication> nonBinaryImplications = builder.run();
 			tempBasis.addAll(nonBinaryImplications);
@@ -105,14 +111,16 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 			impl.setSupport(support);
 			dBasis.add(impl);
 		}
+		chrono.stop("rewrite results");
 
+		chrono.start("correct clarification and supports");
 		// adapt results to not clarified context and compute supports
 		for (Implication impl : tempBasis) {
 			ISet premise = convert(impl.getPremise());
 			ISet conclusion = convert(impl.getConclusion());
 			ISet support = computeSupport(premise);
 			dBasis.add(new Implication(premise, conclusion, support));
-			ISet doublons = attrClasses.get(impl.getConclusion().first());
+/*			ISet doublons = attrClasses.get(impl.getConclusion().first());
 			if (doublons.cardinality() > 1) {
 				Iterator<Integer> it = doublons.iterator();
 				it.next();
@@ -122,8 +130,9 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 					dBasis.add(new Implication(premise, otherConclusion, support));
 				}
 			}
+*/			
 		}
-		chrono.stop("rewrite results");
+		chrono.stop("correct clarification and supports");
 		return dBasis;
 	}
 

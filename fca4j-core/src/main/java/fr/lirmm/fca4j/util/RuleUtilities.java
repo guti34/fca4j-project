@@ -7,6 +7,17 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jgrapht.alg.connectivity.BiconnectivityInspector;
 import org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector;
@@ -18,6 +29,7 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
+import fr.lirmm.fca4j.iset.std.BitSetFactory;
 
 public class RuleUtilities {
 	/**
@@ -34,11 +46,12 @@ public class RuleUtilities {
 		boolean ret = closure.containsAll(attributes);
 		return ret;
 	}
+
 	/**
-	 * Verify if an attribute can be deduced from a base attribute set and a set
-	 * of implications d'implications.
+	 * Verify if an attribute can be deduced from a base attribute set and a set of
+	 * implications d'implications.
 	 *
-	 * @param attributs   Attribute to verify
+	 * @param attributs    Attribute to verify
 	 * @param base         Initial attribute set (prémise).
 	 * @param dependencies A list of implications.
 	 * @return true if the set can be deduced.
@@ -58,7 +71,8 @@ public class RuleUtilities {
 	public static boolean isDirect(List<Implication> implications, ISetFactory factory) {
 		return isDirect(implications, -1, factory);
 	}
-		public static boolean isDirect(List<Implication> implications, int maxCardinality, ISetFactory factory) {
+
+	public static boolean isDirect(List<Implication> implications, int maxCardinality, ISetFactory factory) {
 		ISet attributes = factory.createSet();
 		for (Implication impl : implications) {
 			attributes.addAll(impl.getPremise());
@@ -70,16 +84,81 @@ public class RuleUtilities {
 		}
 		if (last > 0) {
 			List<ISet> powerSet;
-			if(maxCardinality<=0) powerSet= generatePowerSet(last, factory);
-			else powerSet=generatePowerSet(last, maxCardinality,factory);
-			for (ISet set : powerSet) {
-				if (!isDirect(set, implications)) {
-					System.out.println(set);
-					return false;
-				}
+			if (maxCardinality <= 0)
+				powerSet = generatePowerSet(last, factory);
+			else {
+				Chrono chrono = new Chrono("powerset");
+				chrono.start("main");
+				ArrayList<Integer> base = new ArrayList<>();
+				for (int i = 0; i < last + 1; i++)
+					base.add(i);
+				powerSet = generatePowerSet(last, maxCardinality, factory);
+				// on enleve l'ensemble vide
+				assert powerSet.get(0).isEmpty();
+				powerSet.remove(0);
+				chrono.stop("main");
+				System.out.println("N=" + last + " maxCardinality=" + maxCardinality);
+				System.out.println("powerset size=" + powerSet.size());
 			}
-		}
+			try {
+				return isDirect(powerSet, implications, factory.createSet());
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
+			/*
+			 * for (ISet set : powerSet) { if (!isDirect(set, implications)) return false; }
+			 */ }
 		return true;
+	}
+
+	private static boolean isDirect(List<ISet> powerSet, List<Implication> basis, ISet POISON_PILL)
+			throws InterruptedException {
+		AtomicBoolean direct = new AtomicBoolean(true);
+		BlockingQueue<ISet> queue = new LinkedBlockingQueue<>();
+		int nbThreads = Runtime.getRuntime().availableProcessors();
+		ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+		// Lancer les workers
+		for (int i = 0; i < nbThreads; i++) {
+			executor.submit(() -> {
+				try {
+					while (true) {
+						ISet set = queue.take();
+						if (set == POISON_PILL) {
+							break; // Fin pour ce worker
+						}
+						// Calculer et stocker
+						boolean success = isDirect(set, basis);
+						if (!success) {
+							direct.set(false);
+							do {
+								set = queue.take();
+							} while (set != POISON_PILL);
+							break;
+						}
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			});
+		}
+
+		// Placer les jobs dans la queue
+		for (ISet set : powerSet) {
+			queue.put(set);
+		}
+
+		// Envoyer les pilules empoisonnées
+		for (int i = 0; i < nbThreads; i++) {
+			queue.put(POISON_PILL);
+		}
+
+		// Attendre la fin
+		executor.shutdown();
+		executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+
+		return direct.get();
 	}
 
 	/**
@@ -89,6 +168,7 @@ public class RuleUtilities {
 	 * @param dependencies
 	 * @return
 	 */
+
 	public static boolean isDirect(ISet attributes, List<Implication> dependencies) {
 		ISet closure = attributes.clone();
 		boolean changed;
@@ -104,7 +184,8 @@ public class RuleUtilities {
 				}
 			}
 			if (changed)
-				if(++count>1) return false;
+				if (++count > 1)
+					return false;
 		} while (changed);
 		return true;
 	}
@@ -160,6 +241,7 @@ public class RuleUtilities {
 
 		return closure;
 	}
+
 	/**
 	 * Calcule la fermeture d'un ensemble d'attributs sous un ensemble
 	 * d'implications en une seule passe.
@@ -170,27 +252,27 @@ public class RuleUtilities {
 	 */
 	public static ISet computeDirectClosure(ISet attributes, List<Implication> dependencies) {
 		ISet closure = attributes.clone();
-			for (Implication dep : dependencies) {
-				if (closure.containsAll(dep.getPremise())) {
-					if (!closure.containsAll(dep.getConclusion())) {
-						closure.addAll(dep.getConclusion());
-					}
+		for (Implication dep : dependencies) {
+			if (closure.containsAll(dep.getPremise())) {
+				if (!closure.containsAll(dep.getConclusion())) {
+					closure.addAll(dep.getConclusion());
 				}
 			}
+		}
 		return closure;
 	}
 
 	public static boolean isIncludedIn(List<Implication> subBasis, List<Implication> basis) {
-		boolean derivable=true;
+		boolean derivable = true;
 //int count=0;
 		for (Implication dep : subBasis) {
 			ISet closure = computeClosure(dep.getPremise(), basis);
 			ISet minimalConclusion = dep.getConclusion().newDifference(closure);
 			if (!isDerivable(minimalConclusion, dep.getPremise(), basis)) {
-				derivable=false;
+				derivable = false;
 //				count++;
 				break;
-			}		
+			}
 		}
 //			if(count>0)	System.out.println("Not derivable:"+count);
 		return derivable;
@@ -252,7 +334,7 @@ public class RuleUtilities {
 		return new ArrayList<ISet>(closures);
 	}
 
-	private static List<ISet> generatePowerSet(int N, ISetFactory factory) {
+	public static List<ISet> generatePowerSet(int N, ISetFactory factory) {
 		List<ISet> powerSet = new ArrayList<>();
 		int totalSubsets = 1 << (N + 1); // 2^(N+1)
 
@@ -268,31 +350,88 @@ public class RuleUtilities {
 
 		return powerSet;
 	}
-	private static List<ISet> generatePowerSet(int N, int maxCardinality, ISetFactory factory) {
-	    List<ISet> powerSet = new ArrayList<>();
-	    int totalSubsets = 1 << (N + 1); // 2^(N+1)
 
-	    for (int i = 0; i < totalSubsets; i++) {
-	        ISet subset = factory.createSet();
-	        int count = 0;
+	// Génère la liste de tous les sous-ensembles de {0,..,N-1} de taille <=
+	// maxCardinality
+	public static List<ISet> generatePowerSet(int N, int maxCardinality, ISetFactory factory) {
+		List<ISet> result = new ArrayList<>();
+		if (N <= 0) {
+			// univers vide -> seul l'ensemble vide
+			ISet empty = factory.createSet();
+			result.add(empty);
+			return result;
+		}
+		if (maxCardinality < 0)
+			return result;
+		if (maxCardinality > N)
+			maxCardinality = N;
 
-	        for (int j = 0; j <= N; j++) {
-	            if ((i & (1 << j)) != 0) {
-	                subset.add(j);
-	                count++;
-	                if (count > maxCardinality) {
-	                    break; // On arrête dès que la cardinalité est dépassée
-	                }
-	            }
-	        }
+		// ajouter l'ensemble vide
+		result.add(factory.createSet());
 
-	        if (count <= maxCardinality) {
-	            powerSet.add(subset);
-	        }
-	    }
-
-	    return powerSet;
+		for (int k = 1; k <= maxCardinality; k++) {
+			generateCombinationsIterative(N, k, factory, result);
+		}
+		return result;
 	}
+
+	private static void generateCombinationsIterative(int N, int k, ISetFactory factory, List<ISet> result) {
+		if (k == 0) {
+			result.add(factory.createSet());
+			return;
+		}
+		// première combinaison lexicographique : [0,1,2,...,k-1]
+		int[] comb = new int[k];
+		for (int i = 0; i < k; i++)
+			comb[i] = i;
+
+		while (true) {
+			// construire l'ISet correspondant (nouvelle instance à chaque itération)
+			ISet s = factory.createSet();
+			for (int i = 0; i < k; i++)
+				s.add(comb[i]);
+			result.add(s);
+
+			// générer la combinaison suivante
+			int i;
+			for (i = k - 1; i >= 0; i--) {
+				if (comb[i] < N - k + i) { // on peut incrémenter à la position i
+					comb[i]++;
+					for (int j = i + 1; j < k; j++)
+						comb[j] = comb[j - 1] + 1;
+					break;
+				}
+			}
+			if (i < 0)
+				break; // plus de combinaison possible
+		}
+	}
+
+	private static List<ISet> generatePowerSet2(int N, int maxCardinality, ISetFactory factory) {
+		List<ISet> powerSet = new ArrayList<>();
+		int totalSubsets = 1 << (N + 1); // 2^(N+1)
+
+		for (int i = 0; i < totalSubsets; i++) {
+			ISet subset = factory.createSet();
+			int count = 0;
+
+			for (int j = 0; j <= N; j++) {
+				if ((i & (1 << j)) != 0) {
+					subset.add(j);
+					count++;
+					if (count > maxCardinality) {
+						break; // On arrête dès que la cardinalité est dépassée
+					}
+				}
+			}
+
+			if (count <= maxCardinality) {
+				powerSet.add(subset);
+			}
+		}
+		return powerSet;
+	}
+
 	public static Iterator<Implication> iteratorImplications(Collection<Implication> implications) {
 		SimpleDirectedGraph<Implication, DefaultEdge> graph = new SimpleDirectedGraph<>(DefaultEdge.class);
 		for (Implication impl : implications) {
@@ -305,14 +444,48 @@ public class RuleUtilities {
 				}
 			}
 		}
-		org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector<Implication, DefaultEdge> sci = new GabowStrongConnectivityInspector<>(graph);
+		org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector<Implication, DefaultEdge> sci = new GabowStrongConnectivityInspector<>(
+				graph);
 		List<Set<Implication>> stronglyConnectedSets = sci.stronglyConnectedSets();
 
 		// Affichage
 		for (Set<Implication> component : stronglyConnectedSets) {
-		    System.out.println("connected set : " + component.size());
-		}		
+			System.out.println("connected set : " + component.size());
+		}
 		return new TopologicalOrderIterator<Implication, DefaultEdge>(graph);
 	}
 
+	public static List<ISet> findDCycles(List<Implication> basis) {
+		SimpleDirectedGraph<Integer, DefaultEdge> graph = new SimpleDirectedGraph<>(DefaultEdge.class);
+		for (Implication impl : basis) {
+			for (Iterator<Integer> itConclusion = impl.getConclusion().iterator(); itConclusion.hasNext();) {
+				int conclusion = itConclusion.next();
+				graph.addVertex(conclusion);
+				for (Iterator<Integer> itPremise = impl.getPremise().iterator(); itPremise.hasNext();) {
+					int premise = itPremise.next();
+					graph.addVertex(premise);
+					graph.addEdge(conclusion, premise);
+				}
+			}
+		}
+		org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector<Integer, DefaultEdge> sci = new GabowStrongConnectivityInspector<>(
+				graph);
+		List<Set<Integer>> stronglyConnectedSets = sci.stronglyConnectedSets();
+		ArrayList<ISet> cycles=new ArrayList<>();
+		BitSetFactory factory=new BitSetFactory();
+		for(Set<Integer> set:stronglyConnectedSets)
+		{
+			if(set.size()>1)
+			{
+				ISet iset=factory.createSet();
+				for(int vertex:set)
+				{
+					iset.add(vertex);
+				}
+				cycles.add(iset);
+			}
+		}
+		return cycles;
+		}
+		
 }
