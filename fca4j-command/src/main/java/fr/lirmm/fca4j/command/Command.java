@@ -134,6 +134,16 @@ public abstract class Command {
 		/** The json format of adjacency list. */
 		RCFAL
 	};
+	/**
+	 * The Enum ModelFormat.
+	 */
+	public enum ModelFormat {
+
+		/** The json format. */
+		JSON,
+		/** The xml format. */
+		XML
+	};
 
 	/**
 	 * The Enum Separator.
@@ -321,6 +331,17 @@ public abstract class Command {
 				.hasArg().argName(name).build());
 
 	}
+	/**
+	 * Declare model format.
+	 *
+	 * @param key  the key
+	 * @param name the format name
+	 */
+	void declareModelFormat(String key, String name) {
+		// input format
+		options.addOption(Option.builder(key).desc("supported formats are:\n* JSON (default)\n* XML")
+				.hasArg().argName(name).build());
+	}
 
 	/**
 	 * Declare common options.
@@ -422,6 +443,25 @@ public abstract class Command {
 	}
 
 	/**
+	 * Suggest family format.
+	 *
+	 * @param filename the filename
+	 * @return the suggested family format
+	 */
+	protected static ModelFormat suggestModelFormat(String filename) {
+		int beginIndex = filename.lastIndexOf('.');
+		if (beginIndex >= 0) {
+			switch (filename.substring(beginIndex + 1).toUpperCase()) {
+			case "JSON":
+				return ModelFormat.JSON;
+			case "XML":
+				return ModelFormat.XML;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Check context format.
 	 *
 	 * @param line     the command line
@@ -468,6 +508,31 @@ public abstract class Command {
 			return FamilyFormat.RCFT;
 		else
 			return ctxFormat;
+	}
+	/**
+	 * Check model format.
+	 *
+	 * @param line     the command line
+	 * @param fileName the file name
+	 * @param opt      the option to check
+	 * @return the model format
+	 * @throws Exception the exception
+	 */
+	protected ModelFormat checkModelFormat(CommandLine line, String fileName, String opt) throws Exception {
+		ModelFormat modelFormat = null;
+		if (line.hasOption(opt)) {
+			try {
+				modelFormat = ModelFormat.valueOf(line.getOptionValue(opt).toUpperCase());
+			} catch (IllegalArgumentException e) {
+			}
+		}
+		if (modelFormat == null && fileName != null) {
+			modelFormat = suggestModelFormat(fileName);
+		}
+		if (modelFormat == null)
+			return ModelFormat.JSON;
+		else
+			return modelFormat;
 	}
 
 	/**

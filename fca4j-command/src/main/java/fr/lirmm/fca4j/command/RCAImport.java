@@ -25,14 +25,16 @@ import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.iset.std.BitSetFactory;
 import fr.lirmm.fca4j.util.AttributeRenamer.MODE;
-import fr.lirmm.fca4j.util.ConfigFamilyImport;
-import fr.lirmm.fca4j.util.ConfigFamilyImport.ParsedFC;
-import fr.lirmm.fca4j.util.ConfigFamilyImport.ParsedRC;
+import fr.lirmm.fca4j.util.ConfigFamilyImport2;
+import fr.lirmm.fca4j.util.ConfigFamilyImport2.ParsedFC;
+import fr.lirmm.fca4j.util.ConfigFamilyImport2.ParsedRC;
 
 public class RCAImport extends Command {
 
 	/** The output file. */
 	protected File outputFile;
+	/** The model format. */
+	protected ModelFormat modelFormat;
 	/** The output format. */
 	protected FamilyFormat outputFormat;
 
@@ -49,7 +51,7 @@ public class RCAImport extends Command {
 	 * @param setContext the set context
 	 */
 	public RCAImport(ISetContext setContext) {
-		super("family_import", "transform multivalued data tables to Relational context family file (RCFT)",
+		super("family_import", "Model-driven transformation of multivalued data tables to a Relational Context Family (RCF) file.",
 				setContext);
 	}
 
@@ -61,6 +63,8 @@ public class RCAImport extends Command {
 	 */
 	@Override
 	void createOptions() {
+		// model format
+		declareModelFormat("o","INPUT-FORMAT");
 		// family format
 		declareFamilyFormat("f", "FAMILY-FORMAT");
 		// common options
@@ -83,6 +87,7 @@ public class RCAImport extends Command {
 		inputFile = new File(inputFileName).getCanonicalFile();
 		if (!inputFile.exists())
 			throw new Exception("the specified model file path is not found: " + inputFileName);
+		modelFormat=checkModelFormat(line, inputFileName, "o");
 		// output file
 		String outputFileName = null;
 		if (args.size() > 1)
@@ -104,7 +109,7 @@ public class RCAImport extends Command {
 
 	@Override
 	public Object exec() throws Exception {
-		ConfigFamilyImport config = ConfigFamilyImport.parse(inputFile.getAbsolutePath());
+		ConfigFamilyImport2 config = ConfigFamilyImport2.parse(inputFile.getAbsolutePath(),modelFormat==ModelFormat.XML);
 		workingPath = inputFile.getParent();
 		RCAFamily family = new RCAFamily("familyName", setContext.getDefaultFactory());
 		for (ParsedFC fc : config.getFormalContexts().values()) {
@@ -148,7 +153,7 @@ public class RCAImport extends Command {
 		return family;
 	}
 
-	private IBinaryContext buildRelationalContext(ParsedRC rc, ConfigFamilyImport config) {
+	private IBinaryContext buildRelationalContext(ParsedRC rc, ConfigFamilyImport2 config) {
 		ParsedFC fcSource = config.getFormalContexts().get(rc.source);
 		ParsedFC fcTarget = config.getFormalContexts().get(rc.target);
 		IBinaryContext ctxSource = formalContexts.get(fcSource.name);
@@ -161,7 +166,7 @@ public class RCAImport extends Command {
 		for (int numobj = 0; numobj < ctxTarget.getObjectCount(); numobj++) {
 			ooContext.addAttributeName(ctxTarget.getObjectName(numobj));
 		}
-		if (rc.path == null) // works with built indexes
+		if (rc.path == null|| rc.path.isEmpty()) // works with built indexes
 		{
 			for (int objSource = 0; objSource < ctxSource.getObjectCount(); objSource++) {
 				String valueSource = "";
