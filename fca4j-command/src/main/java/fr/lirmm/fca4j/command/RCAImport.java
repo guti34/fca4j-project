@@ -64,7 +64,7 @@ public class RCAImport extends Command {
 	@Override
 	void createOptions() {
 		// model format
-		declareModelFormat("o","INPUT-FORMAT");
+		declareModelFormat("m","INPUT-FORMAT");
 		// family format
 		declareFamilyFormat("f", "FAMILY-FORMAT");
 		// common options
@@ -87,7 +87,7 @@ public class RCAImport extends Command {
 		inputFile = new File(inputFileName).getCanonicalFile();
 		if (!inputFile.exists())
 			throw new Exception("the specified model file path is not found: " + inputFileName);
-		modelFormat=checkModelFormat(line, inputFileName, "o");
+		modelFormat=checkModelFormat(line, inputFileName, "m");
 		// output file
 		String outputFileName = null;
 		if (args.size() > 1)
