@@ -61,8 +61,9 @@ public class RCFTWriter {
 	 * @return the file
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public static File write(RCAFamily rcf, String outputPath, boolean compressed,ConceptOrderFinder conceptOrderFinder) throws IOException {
-		return write(rcf, outputPath, compressed, MODE.SIMPLE,conceptOrderFinder);
+	public static File write(RCAFamily rcf, String outputPath, boolean compressed,
+			ConceptOrderFinder conceptOrderFinder) throws IOException {
+		return write(rcf, outputPath, compressed, MODE.SIMPLE, conceptOrderFinder);
 	}
 
 	/**
@@ -75,16 +76,27 @@ public class RCFTWriter {
 	 * @return the file
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public static File write(RCAFamily rcf, String outputPath, boolean compressed, MODE mode,ConceptOrderFinder conceptOrderFinder) throws IOException {
+	public static File write(RCAFamily rcf, String outputPath, boolean compressed, MODE mode,
+			ConceptOrderFinder conceptOrderFinder) throws IOException {
 		Writer fw;
-		File f = new File(outputPath);
-		if (compressed) {
-			fw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(f))));
+		File f=null;
+		if (outputPath == null) {
+			if (compressed)
+				throw new IOException(
+						"Compressed file format cannot be snet to standard output. Please specify target file");
+			else {
+				fw = new BufferedWriter(new OutputStreamWriter(System.out));
+			}
 		} else {
-			fw = new BufferedWriter(new FileWriter(f, false));
+			f = new File(outputPath);
+			if (compressed) {
+				fw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(f))));
+			} else {
+				fw = new BufferedWriter(new FileWriter(f, false));
+			}
 		}
 		for (FormalContext fc : rcf.getFormalContexts()) {
-			writeFC(fw, rcf, fc.getContext(), mode,conceptOrderFinder);
+			writeFC(fw, rcf, fc.getContext(), mode, conceptOrderFinder);
 		}
 		for (RelationalContext rc : rcf.getRelationalContexts()) {
 			writeRC(fw, rcf, rc.getContext(), rc.getRelationName(), rc.getOperator().getName(),
@@ -95,45 +107,44 @@ public class RCFTWriter {
 	}
 
 	/**
-     * Ecrit le contexte formel dans le fichier rcft.
-     *
-     * @param writer the writer
-     * @param context the context
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    private static void writeFC(Writer writer, RCAFamily rcf, IBinaryContext context,MODE mode,ConceptOrderFinder conceptOrderFinder) throws IOException {
-        //ecriture de l'en-tete du contexte formel
-        writer.write("FormalContext " + context.getName() + "\n"
-                + "||");
+	 * Ecrit le contexte formel dans le fichier rcft.
+	 *
+	 * @param writer  the writer
+	 * @param context the context
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	private static void writeFC(Writer writer, RCAFamily rcf, IBinaryContext context, MODE mode,
+			ConceptOrderFinder conceptOrderFinder) throws IOException {
+		// ecriture de l'en-tete du contexte formel
+		writer.write("FormalContext " + context.getName() + "\n" + "||");
 
-        //ecriture de la premiere ligne du contexte, cad les attributs
-        for (int numattr = 0; numattr < context.getAttributeCount(); numattr++) {
-        	String attrName=context.getAttributeName(numattr);
-        	if(mode!=MODE.SIMPLE)
-        	{
+		// ecriture de la premiere ligne du contexte, cad les attributs
+		for (int numattr = 0; numattr < context.getAttributeCount(); numattr++) {
+			String attrName = context.getAttributeName(numattr);
+			if (mode != MODE.SIMPLE) {
 //        		System.out.println("rename from rcft: "+attrName);
-        		attrName=AttributeRenamer.build(rcf, attrName, mode,-1,conceptOrderFinder);
-        	}
-            writer.write(attrName + "|");
-        }
-        writer.write("\n");
+				attrName = AttributeRenamer.build(rcf, attrName, mode, -1, conceptOrderFinder);
+			}
+			writer.write(attrName + "|");
+		}
+		writer.write("\n");
 
-        for (int numobj = 0; numobj < context.getObjectCount(); numobj++) {
-            //remplissage de l'intention de l'objet
-            String ret = "|";
-            ret += context.getObjectName(numobj) + "|";
-            for (int numattr = 0; numattr < context.getAttributeCount(); numattr++) {
-                if (context.get(numobj, numattr)) {
-                    ret += "x|";
-                } else {
-                    ret += "|";
-                }
-            }
-            ret += "\n";
-            writer.write(ret);
-        }
-        writer.write("\n");
-    }
+		for (int numobj = 0; numobj < context.getObjectCount(); numobj++) {
+			// remplissage de l'intention de l'objet
+			String ret = "|";
+			ret += context.getObjectName(numobj) + "|";
+			for (int numattr = 0; numattr < context.getAttributeCount(); numattr++) {
+				if (context.get(numobj, numattr)) {
+					ret += "x|";
+				} else {
+					ret += "|";
+				}
+			}
+			ret += "\n";
+			writer.write(ret);
+		}
+		writer.write("\n");
+	}
 
 	/**
 	 * Ecrit le contexte formel dans le fichier rcft.

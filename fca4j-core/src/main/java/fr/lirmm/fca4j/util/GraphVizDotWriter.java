@@ -33,8 +33,10 @@ package fr.lirmm.fca4j.util;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
@@ -47,6 +49,8 @@ import fr.lirmm.fca4j.util.AttributeRenamer.MODE;
  * The Class GraphVizDotWriter.
  */
 public class GraphVizDotWriter {
+	// for expé class
+	public Map<ISet, Double> classStabilities = new HashMap<>();
 
 	protected final static String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -139,7 +143,7 @@ public class GraphVizDotWriter {
 			sb.append(", ");
 			sb.append("E: " + lattice.getConceptExtent(concept).cardinality());
 			sb.append(", ");
-			sb.append("Sta: " + String.format("%.3f",stability.get(concept)));
+			sb.append("Sta: " + String.format("%.3f", stability.get(concept)));
 //			sb.append("Sta: " + String.format("%.3f",ConceptUtilities.computeNaiveStability(lattice.getConceptExtent(concept), lattice.getConceptIntent(concept), lattice.getContext())));
 			sb.append(")");
 		} else
@@ -234,11 +238,11 @@ public class GraphVizDotWriter {
 				attrToConcept.put(it.next(), numconcept);
 		}
 		// compute stability for each concepts
-		Chrono chrono=new Chrono("sta");
-		chrono.start("stability");
+//		Chrono chrono=new Chrono("sta");
+//		chrono.start("stability");
 		Map<Integer, Double> stability = ConceptUtilities.computeStability(lattice);
-		chrono.stop("stability");
-		System.out.println(chrono.getResult());
+//		chrono.stop("stability");
+//		System.out.println(chrono.getResult());
 		for (Iterator<Integer> it = lattice.getBasicIterator(); it.hasNext();) {
 			int concept = it.next();
 			writeConcept(sb, lattice, attrToConcept, stability, concept, null, MODE.SIMPLE);
@@ -261,11 +265,21 @@ public class GraphVizDotWriter {
 			for (Iterator<Integer> it = conceptOrder.getConceptReducedIntent(numconcept).iterator(); it.hasNext();)
 				attrToConcept.put(it.next(), numconcept);
 		}
-		Chrono chrono=new Chrono("sta");
-		chrono.start("stability");
+//		Chrono chrono=new Chrono("sta");
+//		chrono.start("stability");
 		Map<Integer, Double> stability = ConceptUtilities.computeStability(conceptOrder);
-		chrono.stop("stability");
-		System.out.println(chrono.getResult());
+		// for expé class
+		if (conceptOrder.getContext().getName().equals("class")) {
+			
+			classStabilities = new HashMap<>();
+			for(int concept:stability.keySet())
+			{				
+				classStabilities.put(conceptOrder.getConceptIntent(concept), stability.get(concept));
+			}
+		}
+
+//		chrono.stop("stability");
+//		System.out.println(chrono.getResult());
 
 		appendLine(buffer, "subgraph ", conceptOrder.getContext().getName(), " { ");
 		appendLine(buffer, "label=\"", conceptOrder.getContext().getName(), "\";");

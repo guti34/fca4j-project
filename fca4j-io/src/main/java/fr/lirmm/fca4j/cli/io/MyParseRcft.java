@@ -137,10 +137,10 @@ public class MyParseRcft {
 		int oAContextLine=lineNumber;
 		String oacName = desc.split("\\ ")[1]; 
 		String algoName=null;
-                String description=null;
-                int algoParam=0;
+        String description=null;
+        int algoParam=0;
 		
-		
+System.out.println("oacName="+oacName);		
 		
 		input.mark(0);
 		String line = input.readLine();

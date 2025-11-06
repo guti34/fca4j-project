@@ -56,6 +56,7 @@ import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.ExploRCA;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
+import fr.lirmm.fca4j.algo.RCABuilder;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.FamilyXMLWriter;
 import fr.lirmm.fca4j.cli.io.RCFALReader;
@@ -79,7 +80,7 @@ import fr.lirmm.fca4j.util.JSONFormatter;
 /**
  * The Class RCACommand.
  */
-public class RCACommand extends Command {
+public class RCACommand2 extends Command {
 	// for expé class
 	List<ConceptOrder> listCo = new ArrayList<>();
 	List<Map<ISet, Double>> listSta = new ArrayList<>();
@@ -173,7 +174,7 @@ public class RCACommand extends Command {
 	 *
 	 * @param setContext the set context
 	 */
-	public RCACommand(ISetContext setContext) {
+	public RCACommand2(ISetContext setContext) {
 		super("rca", "to create a conceptual structure family from a relational context family. "
 				+ "The output is a JSON file that can be opened in RCAviz, a DOT file that contains the graph of the conceptual structure family at the end of the process,"
 				+ "TXT files for tracing the size of structures at each step, and traces.csv that contains the formal and relational contexts and other settings used at each step."
@@ -344,6 +345,9 @@ public class RCACommand extends Command {
 	 * @throws Exception the exception
 	 */
 	@Override
+	public Object exec() throws Exception {return null;}
+/*	
+	@Override
 	public Object exec() throws Exception {
 		// expé class
 		List<Map<Integer, Double>> listStabilities = new ArrayList<>();
@@ -383,7 +387,7 @@ public class RCACommand extends Command {
 		System.out.println("execute " + algo);
 		String suffix = percent > 0 ? "" : "" + percent;
 		chrono.start(algo + suffix);
-		ExploRCA exploMFca = new ExploRCA(family, clean) {
+		RCABuilder exploMFca = new RCABuilder(family, clean) {
 
 			@Override
 			protected AbstractAlgo<ConceptOrder> createAlgo(IBinaryContext context, int numstep) {
@@ -407,34 +411,7 @@ public class RCACommand extends Command {
 		};
 		// construction
 		int step = 0;
-		HashMap<String, Integer> initAttrs = new HashMap<>();
-		StringBuilder trace = new StringBuilder();
-		StringBuilder results = new StringBuilder();
-		JSONArray conceptArray = null;
-		while (!exploMFca.isEnd()) {
-			// create json concept Array
-			conceptArray = new JSONArray();
-
-			// on trace l'�tape courante
-			trace.append("\n" + exploMFca.getNumStep() + "\n");
-			trace.append("OAContexts\n");
-			for (FormalContext c : family.getFormalContexts()) {
-				String algo2 = algo.name();
-				trace.append(c.getName() + "," + algo2 + (percent > 0 ? "," + percent : "") + "\n");
-			}
-			trace.append("OOContexts\n");
-			for (RelationalContext rc : family.getRelationalContexts()) {
-				AbstractScalingOperator scaling = rc.getOperator();
-				trace.append(rc.getRelationName() + "," + scaling.getName() + "\n");
-
-			}
-			// on calcule l'�tape
-			Chrono chronoStep = new Chrono("ChronoStep");
-			chronoStep.start("step");
-			exploMFca.computeStep();
-			chronoStep.stop("step");
-			boolean thisIsTheEnd = exploMFca.stopCondition() || step == maxStep - 1;
-			AttributeRenamer.MODE mode = AttributeRenamer.MODE.SIMPLE;
+		AttributeRenamer.MODE mode = AttributeRenamer.MODE.SIMPLE;
 			if (nameWithFullIntent) {
 				if (nativeOnly)
 					mode = AttributeRenamer.MODE.FULL_INTENT_NA;
@@ -451,6 +428,20 @@ public class RCACommand extends Command {
 				else
 					mode = AttributeRenamer.MODE.REDUCED_INTENT_FULL_WHEN_EMPTY;
 			}
+		HashMap<String, Integer> initAttrs = new HashMap<>();
+		StringBuilder results = new StringBuilder();
+		JSONArray conceptArray = null;
+		while (!exploMFca.isEnd()) {
+			// create json concept Array
+			conceptArray = new JSONArray();
+
+			// on calcule l'�tape
+			Chrono chronoStep = new Chrono("ChronoStep");
+			chronoStep.start("step");
+			exploMFca.computeStep();
+			chronoStep.stop("step");
+			boolean thisIsTheEnd = exploMFca.stopCondition() || step == maxStep - 1;
+			AttributeRenamer.MODE mode = AttributeRenamer.MODE.SIMPLE;
 			if (thisIsTheEnd || produceDot) {
 				FileWriter fw0 = new FileWriter(resultFolder.getPath() + "/step" + step + ".dot");
 				String senseLayout = "BT";
@@ -461,9 +452,7 @@ public class RCACommand extends Command {
 					if (co.getContext().getName().equals("class"))
 						listCo.add(co);
 				}
-				/************** for expé class ***********/
-				// construction CSV
-/*				if(listCo.size()>0) {
+				//************** for expé class ***********
 				listSta.add(dotWriter.classStabilities);
 				if (thisIsTheEnd) {
 					LinkedHashMap<ISet, List<Double>> resultTotal = new LinkedHashMap<>();
@@ -522,10 +511,7 @@ public class RCACommand extends Command {
 						System.out.println(s);
 					}
 				}
-
-				}
-				*/
-				//******************* end expé class**************/				
+//******************* end expé class*************				
 			}
 			int i = 0;
 			ArrayList<ConceptOrder> list_concept_orders = exploMFca.getConceptOrderFamily().getConceptOrders();
@@ -607,20 +593,16 @@ public class RCACommand extends Command {
 		}
 		chrono.stop(algo.toString() + suffix);
 		results.append("total time: " + chrono.getResult(algo.toString() + suffix));
-		// save trace
-		FileWriter fw_trace = new FileWriter(resultFolder.getPath() + "/trace.csv");
-		fw_trace.write(trace.toString());
-		fw_trace.close();
 		// save results
-		FileWriter fw_result = new FileWriter(resultFolder.getPath() + "/results.txt");
-		fw_result.write(results.toString());
-		fw_result.close();
+		FileWriter fwResult = new FileWriter(resultFolder.getPath() + "/results.txt");
+		fwResult.write(results.toString());
+		fwResult.close();
 		// save json file
 		writeJSon(familyName, conceptArray);
 
 		return null;
 	}
-
+*/
 	private void writeJSon(String name, JSONArray conceptArray) throws IOException {
 		String formattedString = new JSONFormatter(true, true).format(conceptArray);
 		Writer json_result = new OutputStreamWriter(new FileOutputStream(resultFolder.getPath() + "/" + name + ".json"),

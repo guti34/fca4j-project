@@ -208,7 +208,6 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		Set<ISet> minGens = computeMinimalGenerators(target);
 //		minGens=reduceMinimalGenerators(minGens);
 		chrono.stop("computeMinimalGenerators");
-
 		chrono.start("extractCovers");
 		Set<ISet> covers = extractCovers(minGens);
 		covers = computeMinimalCovers(covers, closures);

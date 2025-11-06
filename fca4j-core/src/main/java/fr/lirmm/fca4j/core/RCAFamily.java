@@ -32,6 +32,7 @@ package fr.lirmm.fca4j.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -618,7 +619,7 @@ public class RCAFamily {
     }
     private int cleanUnusedRelationalAttributes(FormalContext fc) {
     	int total=0;
-    	HashSet<Integer> attrToRemove=new HashSet<>();
+    	ArrayList<Integer> attrToRemove=new ArrayList<>();
     	for(int numAttr=0;numAttr<fc.getContext().getAttributeCount();numAttr++)
     	{    		
     		String attrName=fc.getContext().getAttributeName(numAttr);
@@ -643,6 +644,8 @@ public class RCAFamily {
 //    			System.out.println("remove "+attrName+" from "+fc.getName());
     		}
     	}
+    	// the last created attributes must be removed at first
+    	Collections.sort(attrToRemove, Collections.reverseOrder());    	
     	for(int numAttr:attrToRemove)
     	{
     		fc.getContext().removeAttribute(numAttr);

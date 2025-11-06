@@ -53,6 +53,7 @@ import fr.lirmm.fca4j.command.Inspect;
 import fr.lirmm.fca4j.command.Irreductible;
 import fr.lirmm.fca4j.command.LatticeBuilder;
 import fr.lirmm.fca4j.command.RCACommand;
+import fr.lirmm.fca4j.command.RCAImport;
 import fr.lirmm.fca4j.command.Reducer;
 import fr.lirmm.fca4j.command.RuleBasisBuilder;
 import fr.lirmm.fca4j.iset.AbstractSetContext;
@@ -81,7 +82,7 @@ public class Main {
 		commands = new Command[] { new LatticeBuilder(setContext), new AOCPosetBuilder(setContext),
 				new RuleBasisBuilder(setContext),new DBasisBuilder(setContext), new Clarifier(setContext), new Reducer(setContext),
 				new Inspect(setContext), new Irreductible(setContext), new Binarizer(setContext),
-				new Conversion(setContext), new FamilyCommand(setContext), new RCACommand(setContext) };
+				new Conversion(setContext), new FamilyCommand(setContext), new RCACommand(setContext),new RCAImport(setContext) };
 
 		boolean help = false;
 		for (String arg : args) {

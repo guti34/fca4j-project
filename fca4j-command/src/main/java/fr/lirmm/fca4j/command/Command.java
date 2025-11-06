@@ -68,65 +68,65 @@ import fr.lirmm.fca4j.util.ConceptOrderFinder;
  * The Class Command.
  */
 public abstract class Command {
-	
+
 	/** The options. */
 	protected Options options = new Options();
-	
+
 	/** The name. */
 	protected final String name;
-	
+
 	/** The description. */
 	protected final String description;
-	
+
 	/** The arg name 1. */
 	protected final String argName1;
-	
+
 	/** The arg name 2. */
 	protected final String argName2;
-	
+
 	/** The set context. */
 	protected ISetContext setContext;
-	
+
 	/** The impl. */
 	protected String impl;
-	
+
 	/** The factory. */
 	protected ISetFactory factory;
-	
+
 	/** The separator. */
-	protected char separator=',';
-	
+	protected char separator = ',';
+
 	/** The verbose. */
 	protected boolean verbose;
-	
+
 	/** generate attributes names. */
-	protected boolean generateAttrNames=false;
-	
+	protected boolean generateAttrNames = false;
+
 	/** generate object names. */
-	protected boolean generateObjNames=false;
+	protected boolean generateObjNames = false;
 
 	/**
 	 * The Enum ContextFormat.
 	 */
 	public enum ContextFormat {
-		
+
 		/** The cxt. */
-		CXT, 
+		CXT,
 		/** The slf. */
-		SLF, 
+		SLF,
 		/** The xml. */
-		XML, 
+		XML,
 		/** The cex. */
-		CEX, 
+		CEX,
 		/** The csv. */
 		CSV,
 	};
-	
+
 	/**
 	 * The Enum FamilyFormat.
 	 */
 	public enum FamilyFormat {
-		
+
 		/** The rcft format. */
 		RCFT,
 		/** The compressed rcft format. */
@@ -134,49 +134,48 @@ public abstract class Command {
 		/** The json format of adjacency list. */
 		RCFAL
 	};
-	
+
 	/**
 	 * The Enum Separator.
 	 */
 	public enum Separator {
-		
-		/** The comma. */
-		COMMA, 
-	 /** The semicolon. */
-	 SEMICOLON, 
-	 /** The tab. */
-	 TAB
-	};
 
+		/** The comma. */
+		COMMA,
+		/** The semicolon. */
+		SEMICOLON,
+		/** The tab. */
+		TAB
+	};
 
 	/**
 	 * Instantiates a new command.
 	 *
-	 * @param name the command name
+	 * @param name        the command name
 	 * @param description the description
-	 * @param setContext the set context
+	 * @param setContext  the set context
 	 */
-	Command(String name, String description,ISetContext setContext) {
-		this(name,description,"input","output-file",setContext);
+	Command(String name, String description, ISetContext setContext) {
+		this(name, description, "input", "output-file", setContext);
 	}
-		
-		/**
-		 * Instantiates a new command.
-		 *
-		 * @param name the name
-		 * @param description the description
-		 * @param argName1 the arg name 1
-		 * @param argName2 the arg name 2
-		 * @param setContext the set context
-		 */
-		Command(String name, String description, String argName1, String argName2,ISetContext setContext) {
-		this.setContext=setContext;
-		this.impl=setContext.getDefaultImplementation();
+
+	/**
+	 * Instantiates a new command.
+	 *
+	 * @param name        the name
+	 * @param description the description
+	 * @param argName1    the arg name 1
+	 * @param argName2    the arg name 2
+	 * @param setContext  the set context
+	 */
+	Command(String name, String description, String argName1, String argName2, ISetContext setContext) {
+		this.setContext = setContext;
+		this.impl = setContext.getDefaultImplementation();
 		this.name = name;
 		this.description = description;
 		createOptions();
-		this.argName1=argName1;
-		this.argName2=argName2;
+		this.argName1 = argName1;
+		this.argName2 = argName2;
 	}
 
 	/**
@@ -217,35 +216,35 @@ public abstract class Command {
 	public String description() {
 		return description;
 	}
-	
+
 	/**
 	 * Gets the arg name 1.
 	 *
 	 * @return the arg name 1
 	 */
-	public String getArgName1(){
+	public String getArgName1() {
 		return argName1;
 	}
-	
+
 	/**
 	 * Gets the arg name 2.
 	 *
 	 * @return the arg name 2
 	 */
-	public String getArgName2(){
+	public String getArgName2() {
 		return argName2;
 	}
-	   
-   	/**
-   	 * Read examples.
-   	 *
-   	 * @return the input stream
-   	 */
-   	private InputStream readExamples() {
-	        String path = "/examples.csv";
-	        return getClass().getResourceAsStream(path);		   
-	   }
-	
+
+	/**
+	 * Read examples.
+	 *
+	 * @return the input stream
+	 */
+	private InputStream readExamples() {
+		String path = "/examples.csv";
+		return getClass().getResourceAsStream(path);
+	}
+
 	/**
 	 * Examples.
 	 *
@@ -253,18 +252,17 @@ public abstract class Command {
 	 */
 	public List<String[]> examples() {
 		Reader examplesReader;
-		ArrayList<String[]> list=new ArrayList<>();
+		ArrayList<String[]> list = new ArrayList<>();
 		try {
 			examplesReader = new InputStreamReader(readExamples());
-			CSVReader reader=new CSVReader(examplesReader, ';');
-			List<String[]> records=reader.readAll();
-			boolean first_line=true;
-			for(String[] record:records)
-			{
-				if(first_line)
-					first_line=false;
-				else{
-					if(name.equalsIgnoreCase(record[0]))
+			CSVReader reader = new CSVReader(examplesReader, ';');
+			List<String[]> records = reader.readAll();
+			boolean first_line = true;
+			for (String[] record : records) {
+				if (first_line)
+					first_line = false;
+				else {
+					if (name.equalsIgnoreCase(record[0]))
 						list.add(record);
 				}
 			}
@@ -272,7 +270,7 @@ public abstract class Command {
 		}
 		return list;
 	}
-	
+
 	/**
 	 * Declare implementation.
 	 *
@@ -295,31 +293,31 @@ public abstract class Command {
 				.desc("supported implementations are " + sb_impl).hasArg().argName("IMPL").build());
 
 	}
-	
+
 	/**
 	 * Declare context format.
 	 *
-	 * @param key the key
+	 * @param key  the key
 	 * @param name the format name
 	 */
-	void declareContextFormat(String key,String name) {
+	void declareContextFormat(String key, String name) {
 		// input format
-		options.addOption(Option.builder(key)
-				.desc("supported formats are:\n* CXT (Burmeisters ConImp)\n* SLF (HTK Standard Latice Format)\n* XML (Galicia v3)\n* CEX (ConExp)\n* CSV (Comma separated values)")
+		options.addOption(Option.builder(key).desc(
+				"supported formats are:\n* CXT (Burmeisters ConImp)\n* SLF (HTK Standard Latice Format)\n* XML (Galicia v3)\n* CEX (ConExp)\n* CSV (Comma separated values)")
 				.hasArg().argName(name).build());
 
 	}
-	
+
 	/**
 	 * Declare family format.
 	 *
-	 * @param key the key
+	 * @param key  the key
 	 * @param name the format name
 	 */
-	void declareFamilyFormat(String key,String name) {
+	void declareFamilyFormat(String key, String name) {
 		// input format
-		options.addOption(Option.builder(key)
-				.desc("supported formats are:\n* RCFT (default)\n* RCFGZ (compressed RCFT)\n* RCFAL (adjacency list JSON)\n")
+		options.addOption(Option.builder(key).desc(
+				"supported formats are:\n* RCFT (default)\n* RCFGZ (compressed RCFT)\n* RCFAL (adjacency list JSON)\n")
 				.hasArg().argName(name).build());
 
 	}
@@ -329,23 +327,21 @@ public abstract class Command {
 	 */
 	void declareCommon() {
 		// separator
-		options.addOption(Option.builder("s")
-				.desc("separator (CSV format only):\n* COMMA (default)\n* SEMICOLON\n* TAB")
-				.hasArg().argName("SEPARATOR").build());
-		// timeout
 		options.addOption(
-				Option.builder("timeout").desc("set timeout for algorithm execution, in seconds")
-				.hasArg().argName("SECONDS").build());
+				Option.builder("s").desc("separator (CSV format only):\n* COMMA (default)\n* SEMICOLON\n* TAB").hasArg()
+						.argName("SEPARATOR").build());
+		// timeout
+		options.addOption(Option.builder("timeout").desc("set timeout for algorithm execution, in seconds").hasArg()
+				.argName("SECONDS").build());
 		// verbose
 		options.addOption(
-				Option.builder("v").longOpt("verbose").desc("print a final report of the algorithm execution")
-				.build());
+				Option.builder("v").longOpt("verbose").desc("print a final report of the algorithm execution").build());
 	}
 
 	/**
 	 * Read context.
 	 *
-	 * @param iformat the context format
+	 * @param iformat   the context format
 	 * @param inputFile the input file
 	 * @return the resulting binary context
 	 * @throws Exception the exception
@@ -354,23 +350,23 @@ public abstract class Command {
 		IBinaryContext context;
 		switch (iformat) {
 		case CXT:
-			context=CXTReader.read(inputFile, factory);
+			context = CXTReader.read(inputFile, factory);
 			break;
 		case CEX:
-			context=ConExpReader.read(inputFile, factory).get(0);
+			context = ConExpReader.read(inputFile, factory).get(0);
 			break;
 		case SLF:
-			context=SLFReader.read(inputFile, factory);
+			context = SLFReader.read(inputFile, factory);
 			break;
 		case CSV:
-			context=MyCSVReader.read(inputFile, separator, factory);
+			context = MyCSVReader.read(inputFile, separator, factory);
 			break;
 		case XML:
-			context=GaliciaXMLReader.read(inputFile, factory);
+			context = GaliciaXMLReader.read(inputFile, factory);
 			break;
 		default:
 			throw new Exception("unknown input file format");
-			
+
 		}
 		return context;
 	}
@@ -399,7 +395,7 @@ public abstract class Command {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Suggest family format.
 	 *
@@ -428,47 +424,50 @@ public abstract class Command {
 	/**
 	 * Check context format.
 	 *
-	 * @param line the command line
+	 * @param line     the command line
 	 * @param fileName the file name
-	 * @param opt the option to check
+	 * @param opt      the option to check
 	 * @return the context format
 	 * @throws Exception the exception
 	 */
-	protected ContextFormat checkContextFormat(CommandLine line, String fileName,String opt) throws Exception {
-		ContextFormat ctxFormat=null;
+	protected ContextFormat checkContextFormat(CommandLine line, String fileName, String opt) throws Exception {
+		ContextFormat ctxFormat = null;
 		if (line.hasOption(opt)) {
 			try {
 				ctxFormat = ContextFormat.valueOf(line.getOptionValue(opt).toUpperCase());
 			} catch (IllegalArgumentException e) {
 			}
 		}
-		if (ctxFormat == null && fileName!=null) {
+		if (ctxFormat == null && fileName != null) {
 			ctxFormat = suggestContextFormat(fileName);
 		}
 		return ctxFormat;
 	}
-	
+
 	/**
 	 * Check family format.
 	 *
-	 * @param line the command line
+	 * @param line     the command line
 	 * @param fileName the file name
-	 * @param opt the option to check
+	 * @param opt      the option to check
 	 * @return the family format
 	 * @throws Exception the exception
 	 */
-	protected FamilyFormat checkFamilyFormat(CommandLine line, String fileName,String opt) throws Exception {
-		FamilyFormat ctxFormat=null;
+	protected FamilyFormat checkFamilyFormat(CommandLine line, String fileName, String opt) throws Exception {
+		FamilyFormat ctxFormat = null;
 		if (line.hasOption(opt)) {
 			try {
 				ctxFormat = FamilyFormat.valueOf(line.getOptionValue(opt).toUpperCase());
 			} catch (IllegalArgumentException e) {
 			}
 		}
-		if (ctxFormat == null && fileName!=null) {
+		if (ctxFormat == null && fileName != null) {
 			ctxFormat = suggestFamilyFormat(fileName);
 		}
-		return ctxFormat;
+		if (ctxFormat == null)
+			return FamilyFormat.RCFT;
+		else
+			return ctxFormat;
 	}
 
 	/**
@@ -489,8 +488,8 @@ public abstract class Command {
 			}
 		}
 
-	}	
-	
+	}
+
 	/**
 	 * Check verbose.
 	 *
@@ -498,31 +497,31 @@ public abstract class Command {
 	 * @throws Exception the exception
 	 */
 	protected void checkVerbose(CommandLine line) throws Exception {
-		verbose=line.hasOption("v");
+		verbose = line.hasOption("v");
 	}
-		
-		/**
-		 * Check separator.
-		 *
-		 * @param line the line
-		 * @throws Exception the exception
-		 */
-		protected void checkSeparator(CommandLine line) throws Exception {
-	separator = ',';
-	if (line.hasOption("s")) {
-		switch (Separator.valueOf(line.getOptionValue("s"))) {
-		case SEMICOLON:
-			separator = ';';
-			break;
-		case TAB:
-			separator = '\t';
-			break;
-		case COMMA:
-		default:
+
+	/**
+	 * Check separator.
+	 *
+	 * @param line the line
+	 * @throws Exception the exception
+	 */
+	protected void checkSeparator(CommandLine line) throws Exception {
+		separator = ',';
+		if (line.hasOption("s")) {
+			switch (Separator.valueOf(line.getOptionValue("s"))) {
+			case SEMICOLON:
+				separator = ';';
+				break;
+			case TAB:
+				separator = '\t';
+				break;
+			case COMMA:
+			default:
+			}
 		}
 	}
-	}
-	
+
 	/**
 	 * Gets the options.
 	 *
@@ -531,16 +530,17 @@ public abstract class Command {
 	public Options getOptions() {
 		return options;
 	}
-	
+
 	/**
 	 * Write context.
 	 *
-	 * @param tContext the binary context
-	 * @param writer the writer
+	 * @param tContext     the binary context
+	 * @param writer       the writer
 	 * @param outputFormat the output format
 	 * @throws Exception the exception
 	 */
-	public void writeContext(IBinaryContext tContext, BufferedWriter writer,ContextFormat outputFormat) throws Exception {
+	public void writeContext(IBinaryContext tContext, BufferedWriter writer, ContextFormat outputFormat)
+			throws Exception {
 		// write
 		switch (outputFormat) {
 		case SLF:
@@ -563,26 +563,27 @@ public abstract class Command {
 		}
 
 	}
-	
+
 	/**
 	 * Write family.
 	 *
-	 * @param family the family
-	 * @param outputPath the output path
+	 * @param family       the family
+	 * @param outputPath   the output path
 	 * @param familyFormat the family format
 	 * @throws Exception the exception
 	 */
-	public void writeFamily(RCAFamily family, String outputPath,FamilyFormat familyFormat,ConceptOrderFinder conceptOrderFinder) throws Exception {
+	public void writeFamily(RCAFamily family, String outputPath, FamilyFormat familyFormat,
+			ConceptOrderFinder conceptOrderFinder) throws Exception {
 		// write
 		switch (familyFormat) {
 		case RCFAL:
-			RCFALWriter.write(family, outputPath,conceptOrderFinder);
+			RCFALWriter.write(family, outputPath, conceptOrderFinder);
 			break;
 		case RCFGZ:
-			RCFTWriter.write(family, outputPath, true,conceptOrderFinder);
+			RCFTWriter.write(family, outputPath, true, conceptOrderFinder);
 			break;
 		case RCFT:
-			RCFTWriter.write(family, outputPath, false,conceptOrderFinder);
+			RCFTWriter.write(family, outputPath, false, conceptOrderFinder);
 			break;
 		default:
 			throw new Exception("unknown family output format ?");
