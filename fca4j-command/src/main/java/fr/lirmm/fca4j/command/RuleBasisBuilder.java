@@ -38,6 +38,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -51,6 +52,10 @@ import fr.lirmm.fca4j.algo.ClosureDirectWithForkJoinPool;
 import fr.lirmm.fca4j.algo.ClosureStrategy;
 import fr.lirmm.fca4j.algo.ClosureWithHistory;
 import fr.lirmm.fca4j.algo.DBaseV18;
+import fr.lirmm.fca4j.algo.DBaseV19;
+import fr.lirmm.fca4j.algo.DBaseV2;
+import fr.lirmm.fca4j.algo.DBaseV20;
+import fr.lirmm.fca4j.algo.DBaseV23;
 import fr.lirmm.fca4j.algo.LinCbO;
 import fr.lirmm.fca4j.algo.LinCbOWithPruning;
 import fr.lirmm.fca4j.cli.io.RuleBasisReader;
@@ -554,7 +559,7 @@ public class RuleBasisBuilder extends Command {
 //		compareBasis("association_r","association");
 //		compareBasis("example16","example16");
 //		compareBasis("example16_r","example16");
-		compareBasisWithReduced("example16","example16");
+//		compareBasisWithReduced("example16","example16");
 //		findCycles2("example16_r");
 //		compareBasis("dbasis_10x21");
 //		compareBasis("dbasis_10x22");
@@ -587,9 +592,10 @@ public class RuleBasisBuilder extends Command {
 //		test("dbasis_10x21");
 //		test("dbasis_9x8");
 //		compareBasis("ProtectedOrganism","ProtectedOrganism");
+		test18vs23();
 	}
 
-	final static int DIRECT_TEST_DEEP = 5;
+	final static int DIRECT_TEST_DEEP = 3;
 
 	private static void findCycles2(String name1) throws IOException {
 		IBinaryContext context = SLFReader.read(new File("c:/projects/rules/ebasis/" + name1 + ".slf"));
@@ -650,7 +656,67 @@ public class RuleBasisBuilder extends Command {
 
 	}
 
-	private static void test(String name) throws IOException {
+		private static void test18vs23() throws IOException {
+		IBinaryContext initial_context = SLFReader.read(new File("c:\\projects\\rules\\inter1shuttle\\inter4shuttle.slf"));
+		System.out.println("context=" + initial_context.getObjectCount() + "x" + initial_context.getAttributeCount());
+		// compute duquenne guigues
+		ClosureStrategy closureEngine = new ClosureDirect(initial_context);
+		LinCbO linCbO = new LinCbO(initial_context, null, closureEngine, false);
+		linCbO.run();
+		List<Implication> dqBasis = linCbO.getResult();
+		DBaseV23 calculator23 = new DBaseV23(initial_context, 1, -1);
+		calculator23.run();
+		RuleBasis ruleBaseDB23 = new RuleBasis(calculator23.getResult(), initial_context);
+		DBaseV18 calculator18 = new DBaseV18(initial_context, 1 , -1);
+		calculator18.run();
+		RuleBasis ruleBaseDB18 = new RuleBasis(calculator18.getResult(), initial_context);
+		
+		compareNonBinaryBasis(ruleBaseDB18.getImplications(), ruleBaseDB23.getImplications());
+		System.out.println(
+				"ruleBaseDQ<ruleBaseDB23=" + RuleUtilities.isIncludedIn(dqBasis, ruleBaseDB23.getImplications()));
+		System.out.println(
+				"ruleBaseDB23<ruleBaseDQ=" + RuleUtilities.isIncludedIn(ruleBaseDB23.getImplications(), dqBasis));
+		System.out.println("DB18 is direct= " + RuleUtilities.isDirect(ruleBaseDB18.getImplications(), DIRECT_TEST_DEEP,
+				initial_context.getFactory()));
+		System.out.println("DB23 is direct= " + RuleUtilities.isDirect(ruleBaseDB23.getImplications(), DIRECT_TEST_DEEP,
+				initial_context.getFactory()));
+		System.out.println(
+				"ruleBaseDB18<ruleBase23=" + RuleUtilities.isIncludedIn(ruleBaseDB18.getImplications(), ruleBaseDB23.getImplications()));
+		System.out.println(
+				"ruleBaseDB23<ruleBase18=" + RuleUtilities.isIncludedIn(ruleBaseDB23.getImplications(), ruleBaseDB18.getImplications()));
+		System.out.println("ruleBaseDB23 card="+ruleBaseDB23.getImplications().size());
+		System.out.println("ruleBaseDB18 card="+ruleBaseDB18.getImplications().size());
+		
+/*		System.out.println("*****V18************************");
+		for(Implication impl:ruleBaseDB18.getImplications())
+		{
+				System.out.println(impl);
+		}
+		System.out.println("*****V23************************");
+		for(Implication impl:calculator23.getResult())
+		{
+				System.out.println(impl);
+		}
+*/			
+		}
+		private static void compareNonBinaryBasis(List<Implication> list1,List<Implication> list2) {
+			HashSet<Implication> basis1=new HashSet<>();
+			HashSet<Implication> basis2=new HashSet<>();
+			for(Implication impl:list1) basis1.add(impl);
+			for(Implication impl:list2) basis2.add(impl);
+			for(Implication impl:basis1)
+			{
+				if(!basis2.contains(impl))
+					System.out.println("only in basis1:"+impl);
+			}
+			for(Implication impl:basis2)
+			{
+				if(!basis1.contains(impl))
+					System.out.println("only in basis2:"+impl);
+			}
+			
+		}
+		private static void test(String name) throws IOException {
 		IBinaryContext initial_context = SLFReader.read(new File("c:/projects/rules/expe/" + name + ".slf"));
 		System.out.println("context=" + initial_context.getObjectCount() + "x" + initial_context.getAttributeCount());
 
@@ -659,7 +725,7 @@ public class RuleBasisBuilder extends Command {
 		LinCbO linCbO = new LinCbO(initial_context, null, closureEngine, false);
 		linCbO.run();
 		List<Implication> dqBasis = linCbO.getResult();
-		DBaseV18 calculator = new DBaseV18(initial_context, -1);
+		DBaseV20 calculator = new DBaseV20(initial_context, 0, -1);
 		calculator.run();
 		// print result
 		PrintWriter pw = new PrintWriter("c:/projects/rules/dbasis/" + name + "DB2.txt");

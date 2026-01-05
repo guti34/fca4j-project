@@ -44,6 +44,9 @@ import org.apache.commons.cli.Option;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.lirmm.fca4j.algo.DBaseV18;
+import fr.lirmm.fca4j.algo.DBaseV19;
+import fr.lirmm.fca4j.algo.DBaseV20;
+import fr.lirmm.fca4j.algo.DBaseV23;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.iset.ISetContext;
@@ -74,13 +77,16 @@ public class DBasisBuilder extends Command {
 	protected IBinaryContext ctx;
 
 	/** The algorithm. */
-	protected DBaseV18 algo;
+	protected DBaseV23 algo;
 
 	/** The input format. */
 	protected ContextFormat inputFormat;
 
 	/** Limit thread usage */
 	protected int maxThreads = DEFAULT_MAXTHREAD;
+	
+	/** Minimal support */
+	protected int minSupport=0;
 
 	/** threading */
 	protected PoolMode poolMode=PoolMode.MULTITHREAD;
@@ -110,6 +116,9 @@ public class DBasisBuilder extends Command {
 	 */
 	@Override
 	void createOptions() {
+		// specify minimal support
+		options.addOption(
+				Option.builder("x").desc("Retain only implications whose support is minimal").hasArg().argName("MINIMAL-SUPPORT").build());
 		// multithreading
 		options.addOption(Option.builder("t")// .longOpt("multithreading"
 				.desc("multithreading options are:\n* MONO \n* MULTITHREAD(default)").hasArg().argName("POOL-MODE")
@@ -184,6 +193,18 @@ public class DBasisBuilder extends Command {
 				reportExist = true;
 		} else
 			reportFile = null;
+		// min support
+		if (line.hasOption("x")) {
+			try {
+				String minSupportString = line.getOptionValue("x");
+				minSupport = Integer.parseInt(minSupportString);
+				if (minSupport < 0)
+					throw new Exception();
+			} catch (Exception e) {
+				throw new Exception(
+						"invalid parameter for minimal support  (-x option) specify a positive integer");
+			}
+		} 
 
 		// separator
 		checkSeparator(line);
@@ -290,7 +311,7 @@ public class DBasisBuilder extends Command {
 		ctx = readContext(inputFormat, inputFile);
 		if(poolMode==PoolMode.MONO)
 			maxThreads=1;
-		algo=new DBaseV18(ctx,maxThreads);
+		algo=new DBaseV23(ctx,minSupport,maxThreads);
 		System.out.println("running " + algo + " (" + impl + "/"  + poolMode
 				 + ") data: " + inputFile.getName() + " ( "
 				+ ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");

@@ -19,6 +19,7 @@ import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.BiconnectivityInspector;
 import org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector;
 import org.jgrapht.graph.DefaultEdge;
@@ -97,8 +98,8 @@ public class RuleUtilities {
 				assert powerSet.get(0).isEmpty();
 				powerSet.remove(0);
 				chrono.stop("main");
-				System.out.println("N=" + last + " maxCardinality=" + maxCardinality);
-				System.out.println("powerset size=" + powerSet.size());
+//				System.out.println("N=" + last + " maxCardinality=" + maxCardinality);
+//				System.out.println("powerset size=" + powerSet.size());
 			}
 			try {
 				return isDirect(powerSet, implications, factory.createSet());
@@ -454,38 +455,80 @@ public class RuleUtilities {
 		}
 		return new TopologicalOrderIterator<Implication, DefaultEdge>(graph);
 	}
+    public static List<ISet> findDCycles(
+            List<Implication> dBasis) {
 
-	public static List<ISet> findDCycles(List<Implication> basis) {
+        Graph<Integer, DefaultEdge> dGraph =
+                new SimpleDirectedGraph<>(DefaultEdge.class);
+
+        // Build D-relation graph
+        for (Implication impl : dBasis) {
+
+            // binary implications DO NOT generate D-relation
+            if (impl.getPremise().cardinality() <= 1)
+                continue;
+
+            int x = impl.getConclusion().iterator().next();
+            dGraph.addVertex(x);
+
+            for (Iterator<Integer> it = impl.getPremise().iterator(); it.hasNext();) {
+                int y = it.next();
+                dGraph.addVertex(y);
+
+                // xDy : edge x -> y
+                dGraph.addEdge(x, y);
+            }
+        }
+
+        // Strongly connected components
+        GabowStrongConnectivityInspector<Integer, DefaultEdge> scc =
+                new GabowStrongConnectivityInspector<>(dGraph);
+
+        List<ISet> cycles = new ArrayList<>();
+		BitSetFactory factory = new BitSetFactory();
+
+        for (Set<Integer> component : scc.stronglyConnectedSets()) {
+            if (component.size() > 1) {
+                ISet cycle = factory.createSet();
+                for (int v : component)
+                    cycle.add(v);
+                cycles.add(cycle);
+            }
+        }
+
+        return cycles;
+    }
+    
+	public static List<ISet> findDCycles2(List<Implication> basis) {
 		SimpleDirectedGraph<Integer, DefaultEdge> graph = new SimpleDirectedGraph<>(DefaultEdge.class);
 		for (Implication impl : basis) {
-			for (Iterator<Integer> itConclusion = impl.getConclusion().iterator(); itConclusion.hasNext();) {
-				int conclusion = itConclusion.next();
-				graph.addVertex(conclusion);
-				for (Iterator<Integer> itPremise = impl.getPremise().iterator(); itPremise.hasNext();) {
-					int premise = itPremise.next();
-					graph.addVertex(premise);
-					graph.addEdge(conclusion, premise);
+			if (impl.getPremise().cardinality() > 1) {
+				for (Iterator<Integer> itConclusion = impl.getConclusion().iterator(); itConclusion.hasNext();) {
+					int conclusion = itConclusion.next();
+					graph.addVertex(conclusion);
+					for (Iterator<Integer> itPremise = impl.getPremise().iterator(); itPremise.hasNext();) {
+						int premise = itPremise.next();
+						graph.addVertex(premise);
+						graph.addEdge(premise,conclusion);
+					}
 				}
 			}
 		}
 		org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector<Integer, DefaultEdge> sci = new GabowStrongConnectivityInspector<>(
 				graph);
 		List<Set<Integer>> stronglyConnectedSets = sci.stronglyConnectedSets();
-		ArrayList<ISet> cycles=new ArrayList<>();
-		BitSetFactory factory=new BitSetFactory();
-		for(Set<Integer> set:stronglyConnectedSets)
-		{
-			if(set.size()>1)
-			{
-				ISet iset=factory.createSet();
-				for(int vertex:set)
-				{
+		ArrayList<ISet> cycles = new ArrayList<>();
+		BitSetFactory factory = new BitSetFactory();
+		for (Set<Integer> set : stronglyConnectedSets) {
+			if (set.size() > 1) {
+				ISet iset = factory.createSet();
+				for (int vertex : set) {
 					iset.add(vertex);
 				}
 				cycles.add(iset);
 			}
 		}
 		return cycles;
-		}
-		
+	}
+
 }

@@ -161,7 +161,7 @@ public class RuleBasis {
             // Extraire les ensembles source et cible
             ISet source = ruleGraph.getEdgeSource(edge);
             ISet target = ruleGraph.getEdgeTarget(edge);
-            implications.add(new Implication(source,target,source)); // TODO manage support
+            implications.add(new Implication(source,target,edge.getSupport())); // TODO manage support
         }
     	return implications;
     }

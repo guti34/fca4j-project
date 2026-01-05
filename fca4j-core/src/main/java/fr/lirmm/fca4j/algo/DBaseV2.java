@@ -1,27 +1,13 @@
 package fr.lirmm.fca4j.algo;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Set;
-import java.util.Stack;
-import java.util.TreeSet;
 
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
-import fr.lirmm.fca4j.core.RuleBasis;
 import fr.lirmm.fca4j.iset.ISet;
-import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
-import fr.lirmm.fca4j.util.RuleUtilities;
 
 public class DBaseV2 implements AbstractAlgo<List<Implication>> {
 	ISet supportBidon;

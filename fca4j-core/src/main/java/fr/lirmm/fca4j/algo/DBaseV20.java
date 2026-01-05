@@ -30,7 +30,7 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.MinGenUtils;
 
-public class DBaseV18 implements AbstractAlgo<List<Implication>> {
+public class DBaseV20 implements AbstractAlgo<List<Implication>> {
 	protected int minSupport = 0;
 	/** The matrix. */
 	protected IBinaryContext context; // ressource de depart
@@ -45,7 +45,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 	/** The implications. */
 	protected List<Implication> implications;
 
-	public DBaseV18(IBinaryContext context, int minSupport, int maxThreads) {
+	public DBaseV20(IBinaryContext context, int minSupport, int maxThreads) {
 		this.minSupport = minSupport;
 		this.context = context;
 		this.closureEngine = new ClosureDirect(context);
@@ -100,7 +100,6 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		ParallelBasisBuilder builder = new ParallelBasisBuilder(closures);
 		try {
 			List<Implication> nonBinaryImplications = builder.run();
-			System.out.println("nonBinaryImplications="+nonBinaryImplications.size());
 			tempBasis.addAll(nonBinaryImplications);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -124,8 +123,15 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 			ISet premise = convert(impl.getPremise());
 			ISet conclusion = convert(impl.getConclusion());
 			ISet support = closureEngine.computeExtent(premise);
-			if(impl.getPremise().cardinality()<2 || support.cardinality()>=minSupport)
+			if(support.cardinality()>=minSupport)
 				dBasis.add(new Implication(premise, conclusion, support));
+			/*
+			 * ISet doublons = attrClasses.get(impl.getConclusion().first()); if
+			 * (doublons.cardinality() > 1) { Iterator<Integer> it = doublons.iterator();
+			 * it.next(); while (it.hasNext()) { ISet otherConclusion = createEmptySet();
+			 * otherConclusion.add(it.next()); dBasis.add(new Implication(premise,
+			 * otherConclusion, support)); } }
+			 */
 		}
 		chrono.stop("correct clarification and supports");
 		return dBasis;
@@ -187,6 +193,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 
 		chrono.start("computeMinimalGenerators");
 		Set<ISet> minGens = computeMinimalGenerators(target);
+//		minGens=reduceMinimalGenerators(minGens);
 		chrono.stop("computeMinimalGenerators");
 		chrono.start("extractCovers");
 		Set<ISet> covers = extractCovers(minGens);
@@ -311,60 +318,92 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		}
 		return result;
 	}
-
+/**
+ * compute minimal generators of an attribute using Murakami–Khachiyan algorithm
+ * @param b attribute
+ * @return all minimal generators of attribute b
+ */
 	protected Set<ISet> computeMinimalGenerators(int b) {
-		List<ISet> hypergraph = new ArrayList<>();
 
-		// Étape 1 : récupérer les objets ne contenant pas b (non-supports)
-		ISet objectsWithoutB = createEmptySet();
-		objectsWithoutB.fill(clarifiedContext.getObjectCount());
-		objectsWithoutB.removeAll(clarifiedContext.getExtent(b));
-		// build hypergraph
-		for (Iterator<Integer> it = objectsWithoutB.iterator(); it.hasNext();) {
-			int o = it.next();
-			ISet edge = createEmptySet();
-			edge.fill(clarifiedContext.getAttributeCount()); // M
-			edge.removeAll(clarifiedContext.getIntent(o)); // M \ intent(o)
-			edge.remove(b);
-			hypergraph.add(edge);
-		}
-		// Étape 2 : appel au générateur de transversaux minimaux
-	    // sort edges
+	    // 1. Construction du hypergraphe
+	    List<ISet> hypergraph = new ArrayList<>();
+
+	    ISet objectsWithoutB = createEmptySet();
+	    objectsWithoutB.fill(clarifiedContext.getObjectCount());
+	    objectsWithoutB.removeAll(clarifiedContext.getExtent(b));
+
+	    for (Iterator<Integer> it = objectsWithoutB.iterator(); it.hasNext();) {
+	        int o = it.next();
+	        ISet edge = createEmptySet();
+	        edge.fill(clarifiedContext.getAttributeCount());
+	        edge.removeAll(clarifiedContext.getIntent(o));
+	        edge.remove(b);
+	        if (!edge.isEmpty()) {
+	            hypergraph.add(edge);
+	        }
+	    }
+
+	    // Tri crucial : petites arêtes d’abord
 	    hypergraph.sort(Comparator.comparingInt(ISet::cardinality));
-		Set<ISet> result = new HashSet<>();
-		ISet current = createEmptySet();
-		chrono.start("generateTransversals");
-		generateTransversals(hypergraph, 0, current, result);
-		chrono.stop("generateTransversals");
-		return result;
+
+	    Set<ISet> result = new HashSet<>();
+
+	    ISet current = createEmptySet();
+	    ISet forbidden = createEmptySet();
+
+	    mkEnumerate(hypergraph, current, forbidden, result);
+
+	    return result;
 	}
+	private void mkEnumerate(
+	        List<ISet> hypergraph,
+	        ISet current,
+	        ISet forbidden,
+	        Set<ISet> result) {
 
-	protected void generateTransversals(List<ISet> hypergraph, int index, ISet current, Set<ISet> result) {
-		// Si toutes les hyperarêtes sont concernées : on a un transversal
-		if (index == hypergraph.size()) {
-			result.add(current.clone());
-			return;
-		}
-		ISet edge = hypergraph.get(index);
-		// Si l’arête est déjà là -> passer à la suivante
-		if (current.intersects(edge)) {
-			generateTransversals(hypergraph, index + 1, current, result);
-			return;
-		}
+	    // Trouver une arête non couverte
+	    ISet uncovered = null;
+	    for (ISet edge : hypergraph) {
+	        if (!current.intersects(edge)) {
+	            uncovered = edge;
+	            break;
+	        }
+	    }
 
-		// Sinon : pour chaque attribut de l’arête, essayer de l’ajouter
-		for (Iterator<Integer> it = edge.iterator(); it.hasNext();) {
-			int attr = it.next();
-			if (current.contains(attr))
-				continue;
-			current.add(attr);
-//			if (closureEngine.computeExtent(edge).cardinality() < minSupport) {
-//				current.remove(attr);
-//				break;
-//			}
-			generateTransversals(hypergraph, index + 1, current, result);
-			current.remove(attr);
-		}
+	    // Si toutes les arêtes sont couvertes → transversal minimal
+	    if (uncovered == null) {
+	        result.add(current.clone());
+	        return;
+	    }
+
+	    // Brancher uniquement sur les attributs admissibles
+	    for (Iterator<Integer> it = uncovered.iterator(); it.hasNext();) {
+	        int attr = it.next();
+
+	        if (forbidden.contains(attr)) continue;
+
+	        // Préparer les nouveaux ensembles
+	        ISet nextCurrent = current.clone();
+	        nextCurrent.add(attr);
+
+	        ISet nextForbidden = forbidden.clone();
+	        nextForbidden.add(attr);
+
+	        // Réduction du hypergraphe
+	        List<ISet> reduced = reduceHypergraph(hypergraph, attr);
+
+	        mkEnumerate(reduced, nextCurrent, nextForbidden, result);
+	    }
+	}
+	private List<ISet> reduceHypergraph(List<ISet> hypergraph, int attr) {
+	    List<ISet> reduced = new ArrayList<>();
+
+	    for (ISet edge : hypergraph) {
+	        if (!edge.contains(attr)) {
+	            reduced.add(edge);
+	        }
+	    }
+	    return reduced;
 	}
 
 	

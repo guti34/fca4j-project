@@ -30,13 +30,14 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.MinGenUtils;
 
-public class DBaseV18 implements AbstractAlgo<List<Implication>> {
+public class DBaseV19 implements AbstractAlgo<List<Implication>> {
 	protected int minSupport = 0;
 	/** The matrix. */
 	protected IBinaryContext context; // ressource de depart
 	protected IBinaryContext clarifiedContext; // ressource pour le calcul
 	protected List<ISet> attrClasses;
 	protected ClosureDirect closureEngine;
+	protected List<Implication> dqBasis;
 	private int maxThreads;
 
 	protected Chrono chrono = new Chrono("myChrono"); // eventually a chrono to store execution
@@ -45,7 +46,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 	/** The implications. */
 	protected List<Implication> implications;
 
-	public DBaseV18(IBinaryContext context, int minSupport, int maxThreads) {
+	public DBaseV19(IBinaryContext context, int minSupport, int maxThreads) {
 		this.minSupport = minSupport;
 		this.context = context;
 		this.closureEngine = new ClosureDirect(context);
@@ -91,21 +92,21 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		chrono.start("compute binary basis");
 		List<Implication> binaryBasis = computeBinaryBasis();
 		chrono.stop("compute binary basis");
+		
+		chrono.start("compute dq basis");
+		LinCbO linCbO = new LinCbO(clarifiedContext, chrono, new ClosureDirect(clarifiedContext), false);
+		linCbO.run();
+		dqBasis=linCbO.getResult();
 
 		List<Implication> tempBasis = new ArrayList<>(binaryBasis);
 
 		// compute non binary basis
 		chrono.start("compute non binary basis");
 		ISet[] closures = computeAttributesClosure();
-		ParallelBasisBuilder builder = new ParallelBasisBuilder(closures);
-		try {
-			List<Implication> nonBinaryImplications = builder.run();
-			System.out.println("nonBinaryImplications="+nonBinaryImplications.size());
-			tempBasis.addAll(nonBinaryImplications);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ISet M=clarifiedContext.getFactory().createSet();
+		M.fill(clarifiedContext.getAttributeCount());
+		List<Implication> nonBinaryBasis=computeNonBinaryBasis(M,closures);
+		tempBasis.addAll(nonBinaryBasis);
 		chrono.stop("compute non binary basis");
 		// rewrite results
 		chrono.start("rewrite results");
@@ -124,8 +125,15 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 			ISet premise = convert(impl.getPremise());
 			ISet conclusion = convert(impl.getConclusion());
 			ISet support = closureEngine.computeExtent(premise);
-			if(impl.getPremise().cardinality()<2 || support.cardinality()>=minSupport)
+			if(support.cardinality()>=minSupport)
 				dBasis.add(new Implication(premise, conclusion, support));
+			/*
+			 * ISet doublons = attrClasses.get(impl.getConclusion().first()); if
+			 * (doublons.cardinality() > 1) { Iterator<Integer> it = doublons.iterator();
+			 * it.next(); while (it.hasNext()) { ISet otherConclusion = createEmptySet();
+			 * otherConclusion.add(it.next()); dBasis.add(new Implication(premise,
+			 * otherConclusion, support)); } }
+			 */
 		}
 		chrono.stop("correct clarification and supports");
 		return dBasis;
@@ -182,25 +190,30 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		return equivBasis;
 	}
 
-	protected List<Implication> computeNonBinaryBasis(int target, ISet[] closures) {
+	protected List<Implication> computeNonBinaryBasis(ISet M,ISet[] closures) {
 		List<Implication> basis = new ArrayList<>();
 
 		chrono.start("computeMinimalGenerators");
-		Set<ISet> minGens = computeMinimalGenerators(target);
-		chrono.stop("computeMinimalGenerators");
-		chrono.start("extractCovers");
-		Set<ISet> covers = extractCovers(minGens);
-		covers = computeMinimalCovers(covers, closures);
-		chrono.stop("extractCovers");
-		chrono.start("create implications");
-		for (ISet premise : covers) {
-			if (premise.cardinality() > 1) {
-				ISet conclusion = createEmptySet();
-				conclusion.add(target);
-				basis.add(new Implication(premise, conclusion, 0));
+		MinGenUtils minGenUtils=new MinGenUtils(context.getFactory());
+		Map<ISet, Set<ISet>> map=minGenUtils.minGen(M, dqBasis);
+		for(ISet key:map.keySet()) {
+			Set<ISet> minGens=map.get(key);
+			for(ISet minGen:minGens) {
+				ISet set=key.clone();
+				set.removeAll(minGen);
+				if(!set.isEmpty())
+					basis.add(new Implication(minGen, set, 0));
 			}
+/*			Set<ISet> covers = extractCovers(minGens);
+			covers = computeMinimalCovers(covers, closures);
+			for (ISet conclusion : covers) {
+					ISet premise = key.clone();
+					basis.add(new Implication(premise, conclusion, 0));
+			}
+*/			
 		}
-		chrono.stop("create implications");
+		chrono.stop("computeMinimalGenerators");
+		
 		return basis;
 	}
 
@@ -278,9 +291,10 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 			if (isCover)
 				covers.add(gen);
 		}
+
 		return covers;
 	}
-	
+
 	protected Set<ISet> computeMinimalCovers(Set<ISet> covers, ISet[] closures) {
 		Set<ISet> result = new HashSet<>(covers);
 		for (ISet g : covers) {
@@ -329,13 +343,9 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 			hypergraph.add(edge);
 		}
 		// Étape 2 : appel au générateur de transversaux minimaux
-	    // sort edges
-	    hypergraph.sort(Comparator.comparingInt(ISet::cardinality));
 		Set<ISet> result = new HashSet<>();
 		ISet current = createEmptySet();
-		chrono.start("generateTransversals");
 		generateTransversals(hypergraph, 0, current, result);
-		chrono.stop("generateTransversals");
 		return result;
 	}
 
@@ -345,6 +355,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 			result.add(current.clone());
 			return;
 		}
+
 		ISet edge = hypergraph.get(index);
 		// Si l’arête est déjà là -> passer à la suivante
 		if (current.intersects(edge)) {
@@ -367,7 +378,6 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		}
 	}
 
-	
 	protected class ImplicationEdge extends DefaultEdge {
 		private final Implication implication;
 
@@ -385,62 +395,4 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		}
 	}
 
-	public class ParallelBasisBuilder {
-
-		private static final int POISON_PILL = -1;
-
-		private final BlockingQueue<Integer> queue;
-		private final List<Implication> resultList = Collections.synchronizedList(new ArrayList<>());
-		private final ISet[] closures;
-		private final int nbThreads;
-
-		public ParallelBasisBuilder(ISet[] closures) {
-			this.closures = closures;
-			this.queue = new LinkedBlockingQueue<>();
-			if (maxThreads < 1) {
-				int cores = Runtime.getRuntime().availableProcessors();
-				this.nbThreads = Math.min(cores, context.getAttributeCount());
-			} else
-				this.nbThreads = 1; // mono
-		}
-
-		public List<Implication> run() throws InterruptedException {
-			ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
-
-			// Lancer les workers
-			for (int i = 0; i < nbThreads; i++) {
-				executor.submit(() -> {
-					try {
-						while (true) {
-							int attr = queue.take();
-							if (attr == POISON_PILL) {
-								break; // Fin pour ce worker
-							}
-							// Calculer et stocker
-							List<Implication> basisPart = computeNonBinaryBasis(attr, closures);
-							resultList.addAll(basisPart);
-						}
-					} catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-				});
-			}
-
-			// Placer les jobs dans la queue
-			for (int attr = 0; attr < clarifiedContext.getAttributeCount(); attr++) {
-				queue.put(attr);
-			}
-
-			// Envoyer les pilules empoisonnées
-			for (int i = 0; i < nbThreads; i++) {
-				queue.put(POISON_PILL);
-			}
-
-			// Attendre la fin
-			executor.shutdown();
-			executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-
-			return resultList;
-		}
-	}
 }

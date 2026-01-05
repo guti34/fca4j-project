@@ -1,10 +1,8 @@
 package fr.lirmm.fca4j.algo;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,9 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.jgrapht.Graph;
 import org.jgrapht.alg.TransitiveReduction;
-import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
@@ -28,9 +24,9 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.util.Chrono;
-import fr.lirmm.fca4j.util.MinGenUtils;
+import fr.lirmm.fca4j.util.RuleUtilities;
 
-public class DBaseV18 implements AbstractAlgo<List<Implication>> {
+public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 	protected int minSupport = 0;
 	/** The matrix. */
 	protected IBinaryContext context; // ressource de depart
@@ -38,6 +34,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 	protected List<ISet> attrClasses;
 	protected ClosureDirect closureEngine;
 	private int maxThreads;
+	protected Map<Integer, ISet> binaryPremises = new HashMap<>();
 
 	protected Chrono chrono = new Chrono("myChrono"); // eventually a chrono to store execution
 	// time
@@ -45,7 +42,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 	/** The implications. */
 	protected List<Implication> implications;
 
-	public DBaseV18(IBinaryContext context, int minSupport, int maxThreads) {
+	public DBaseV23(IBinaryContext context, int minSupport, int maxThreads) {
 		this.minSupport = minSupport;
 		this.context = context;
 		this.closureEngine = new ClosureDirect(context);
@@ -76,7 +73,7 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		return context;
 	}
 
-	public List<Implication> computeDBasis() {
+	protected List<Implication> computeDBasis() {
 		// clarify context and compute corresponding equivalence rules
 		chrono.start("clarify");
 		List<Implication> eqBasis = clarify();
@@ -98,13 +95,14 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		chrono.start("compute non binary basis");
 		ISet[] closures = computeAttributesClosure();
 		ParallelBasisBuilder builder = new ParallelBasisBuilder(closures);
+		List<Implication> nonBinaryImplications;
 		try {
-			List<Implication> nonBinaryImplications = builder.run();
-			System.out.println("nonBinaryImplications="+nonBinaryImplications.size());
+			nonBinaryImplications = builder.run();
+			System.out.println("nonBinaryImplications=" + nonBinaryImplications.size());
 			tempBasis.addAll(nonBinaryImplications);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		}
 		chrono.stop("compute non binary basis");
 		// rewrite results
@@ -124,11 +122,17 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 			ISet premise = convert(impl.getPremise());
 			ISet conclusion = convert(impl.getConclusion());
 			ISet support = closureEngine.computeExtent(premise);
-			if(impl.getPremise().cardinality()<2 || support.cardinality()>=minSupport)
-				dBasis.add(new Implication(premise, conclusion, support));
+			if (impl.getPremise().cardinality() < 2 || support.cardinality() >= minSupport) {
+				Implication implWithSupport = new Implication(premise, conclusion, support);
+				dBasis.add(implWithSupport);
+			}
 		}
 		chrono.stop("correct clarification and supports");
-		return dBasis;
+		chrono.start("buildEBasis");
+		List<Implication> eBasis = buildEBasis(dBasis);
+//		List<Implication> eBasis=dBasis;
+		chrono.stop("buildEBasis");
+		return eBasis;
 	}
 
 	private ISet convert(ISet set) {
@@ -188,10 +192,9 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		chrono.start("computeMinimalGenerators");
 		Set<ISet> minGens = computeMinimalGenerators(target);
 		chrono.stop("computeMinimalGenerators");
-		chrono.start("extractCovers");
-		Set<ISet> covers = extractCovers(minGens);
-		covers = computeMinimalCovers(covers, closures);
-		chrono.stop("extractCovers");
+		chrono.start("computeMinimalCovers");
+		Set<ISet> covers = computeMinimalCovers(minGens, closures);
+		chrono.stop("computeMinimalCovers");
 		chrono.start("create implications");
 		for (ISet premise : covers) {
 			if (premise.cardinality() > 1) {
@@ -224,6 +227,12 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 						graph.addVertex(attr2);
 						graph.addEdge(attr1, attr2, new ImplicationEdge(
 								new Implication(premise, conclusion, clarifiedContext.getExtent(attr1))));
+						ISet premises = binaryPremises.get(attr2);
+						if (premises == null) {
+							premises = context.getFactory().createSet();
+							binaryPremises.put(attr2, premises);
+						}
+						premises.add(attr1);
 					}
 				}
 		}
@@ -261,26 +270,6 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		return orderedEdges;
 	}
 
-	protected Set<ISet> extractCovers(Set<ISet> minGenerators) {
-		Set<ISet> covers = new HashSet<>();
-
-		for (ISet gen : minGenerators) {
-			boolean isCover = true;
-			for (Iterator<Integer> it = gen.iterator(); it.hasNext();) {
-				int attr = it.next();
-				ISet subset = gen.clone();
-				subset.remove(attr);
-				if (minGenerators.contains(subset)) {
-					isCover = false;
-					break;
-				}
-			}
-			if (isCover)
-				covers.add(gen);
-		}
-		return covers;
-	}
-	
 	protected Set<ISet> computeMinimalCovers(Set<ISet> covers, ISet[] closures) {
 		Set<ISet> result = new HashSet<>(covers);
 		for (ISet g : covers) {
@@ -312,62 +301,160 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 		return result;
 	}
 
+	/**
+	 * @param b attribute
+	 * @return all minimal generators of attribute b
+	 */
 	protected Set<ISet> computeMinimalGenerators(int b) {
+
+		// Pré-calcul des extents des attributs (lecture seule, thread-safe)
+		ISet[] attrExtents = new ISet[clarifiedContext.getAttributeCount()];
+		for (int a = 0; a < attrExtents.length; a++) {
+			attrExtents[a] = clarifiedContext.getExtent(a);
+		}
+		// 1. Construction du hypergraphe
 		List<ISet> hypergraph = new ArrayList<>();
 
-		// Étape 1 : récupérer les objets ne contenant pas b (non-supports)
 		ISet objectsWithoutB = createEmptySet();
 		objectsWithoutB.fill(clarifiedContext.getObjectCount());
 		objectsWithoutB.removeAll(clarifiedContext.getExtent(b));
-		// build hypergraph
+
 		for (Iterator<Integer> it = objectsWithoutB.iterator(); it.hasNext();) {
 			int o = it.next();
 			ISet edge = createEmptySet();
-			edge.fill(clarifiedContext.getAttributeCount()); // M
-			edge.removeAll(clarifiedContext.getIntent(o)); // M \ intent(o)
+			edge.fill(clarifiedContext.getAttributeCount());
+			edge.removeAll(clarifiedContext.getIntent(o));
 			edge.remove(b);
+			// OPT 1 : élimination des attributs binaires connus
+			if (binaryPremises.get(b) != null) {
+				edge.removeAll(binaryPremises.get(b));
+			}
+			// CAS CRITIQUE : arête vide
+			if (edge.isEmpty()) {
+				// Aucun générateur minimal possible
+				return Collections.emptySet();
+			}
 			hypergraph.add(edge);
 		}
-		// Étape 2 : appel au générateur de transversaux minimaux
-	    // sort edges
-	    hypergraph.sort(Comparator.comparingInt(ISet::cardinality));
-		Set<ISet> result = new HashSet<>();
+
+		// -------------------------
+		// edge size ordering
+		// -------------------------
+		hypergraph.sort(Comparator.comparingInt(ISet::cardinality));
+		// -------------------------
+		// rare-first ordering
+		// -------------------------
+		Map<Integer, Integer> freq = new HashMap<>();
+
+		for (ISet edge : hypergraph) {
+			for (Iterator<Integer> it = edge.iterator(); it.hasNext();) {
+				int a = it.next();
+				freq.put(a, freq.getOrDefault(a, 0) + 1);
+			}
+		}
+		for (int i = 0; i < hypergraph.size(); i++) {
+			ISet edge = hypergraph.get(i);
+
+			List<Integer> attrs = new ArrayList<>();
+			for (Iterator<Integer> it = edge.iterator(); it.hasNext();) {
+				attrs.add(it.next());
+			}
+
+			attrs.sort(Comparator.comparingInt(a -> freq.getOrDefault(a, 0)));
+
+			ISet ordered = createEmptySet();
+			for (int a : attrs) {
+				ordered.add(a);
+			}
+
+			hypergraph.set(i, ordered);
+		}
+
+		Set<ISet> covers = new HashSet<>();
 		ISet current = createEmptySet();
-		chrono.start("generateTransversals");
-		generateTransversals(hypergraph, 0, current, result);
-		chrono.stop("generateTransversals");
-		return result;
+
+		generateCovers(hypergraph, 0, current, covers, attrExtents);
+
+		return covers;
 	}
 
-	protected void generateTransversals(List<ISet> hypergraph, int index, ISet current, Set<ISet> result) {
-		// Si toutes les hyperarêtes sont concernées : on a un transversal
+	protected void generateCovers(List<ISet> hypergraph, int index, ISet current, Set<ISet> result,
+			ISet[] attrExtents) {
+
+		// Toutes les arêtes sont couvertes → générateur trouvé
 		if (index == hypergraph.size()) {
 			result.add(current.clone());
 			return;
 		}
+
 		ISet edge = hypergraph.get(index);
-		// Si l’arête est déjà là -> passer à la suivante
+
+		// Arête déjà couverte
 		if (current.intersects(edge)) {
-			generateTransversals(hypergraph, index + 1, current, result);
+			generateCovers(hypergraph, index + 1, current, result, attrExtents);
 			return;
 		}
 
-		// Sinon : pour chaque attribut de l’arête, essayer de l’ajouter
+		// Choix d’un attribut de l’arête
 		for (Iterator<Integer> it = edge.iterator(); it.hasNext();) {
 			int attr = it.next();
+
 			if (current.contains(attr))
 				continue;
+
 			current.add(attr);
-//			if (closureEngine.computeExtent(edge).cardinality() < minSupport) {
-//				current.remove(attr);
-//				break;
-//			}
-			generateTransversals(hypergraph, index + 1, current, result);
+			boolean tooSmall = false;
+			if (minSupport > 0) {
+				// PRUNE 1 : support == 0 when minSupport > 0 
+				ISet support = null;
+				for (Iterator<Integer> it2 = current.iterator(); it2.hasNext();) {
+					int a = it2.next();
+					if (support == null) {
+						support = attrExtents[a].clone();
+					} else {
+						support.retainAll(attrExtents[a]);
+						if (support.cardinality() == 0) {
+							tooSmall = true;
+							break;
+						}
+					}
+				}
+			}
+			if (!tooSmall) {
+
+				// PRUNE 2 : minimalité
+				if (!isAlreadyCovered(current, hypergraph)) {
+					generateCovers(hypergraph, index + 1, current, result, attrExtents);
+				}
+			}
+
 			current.remove(attr);
 		}
 	}
 
-	
+	private boolean isAlreadyCovered(ISet candidate, List<ISet> hypergraph) {
+
+		for (Iterator<Integer> it = candidate.iterator(); it.hasNext();) {
+			int attr = it.next();
+
+			ISet subset = candidate.clone();
+			subset.remove(attr);
+
+			boolean coversAll = true;
+			for (ISet edge : hypergraph) {
+				if (!subset.intersects(edge)) {
+					coversAll = false;
+					break;
+				}
+			}
+
+			if (coversAll)
+				return true; // candidate non-cover
+		}
+
+		return false;
+	}
+
 	protected class ImplicationEdge extends DefaultEdge {
 		private final Implication implication;
 
@@ -443,4 +530,115 @@ public class DBaseV18 implements AbstractAlgo<List<Implication>> {
 			return resultList;
 		}
 	}
+
+	/**
+	 * Construction de la E-Basis à partir de la D-Basis conformément à Adaricheva
+	 * et al. (2013), Section 9.
+	 *
+	 * Hypothèse : la D-basis est déjà calculée. Si des D-cycles sont détectés, la
+	 * D-basis est retournée telle quelle.
+	 */
+	/**
+	 * Construit la E-basis si le système est sans D-cycles, sinon retourne la
+	 * D-basis inchangée.
+	 */
+	public List<Implication> buildEBasis(List<Implication> basis) {
+		// 1) Détection des D-cycles
+		if (!RuleUtilities.findDCycles(basis).isEmpty()) {
+			// Pas de E-basis possible
+			System.out.println("E-basis cannot be built: " + RuleUtilities.findDCycles(basis).size()+" DCycle(s) found");
+			for (ISet set : RuleUtilities.findDCycles(basis))
+				System.out.println(set);
+			return basis;
+		}
+
+		// 2) Regroupement des implications par conclusion
+		Map<Integer, List<Implication>> byConclusion = groupByConclusion(basis);
+
+		List<Implication> eBasis = new ArrayList<>();
+
+		// 3) Pour chaque élément x, calcul de M*(x)
+		for (Map.Entry<Integer, List<Implication>> entry : byConclusion.entrySet()) {
+			List<Implication> impls = entry.getValue();
+
+			// (a) garder toutes les implications binaires
+			List<Implication> nonBinary = new ArrayList<>();
+			for (Implication impl : impls) {
+				if (impl.getPremise().cardinality() == 1) {
+					eBasis.add(impl);
+				} else {
+					nonBinary.add(impl);
+				}
+			}
+
+			// (b) filtrer les non-binaires par minimalité de φ(X)
+			eBasis.addAll(filterByMinimalClosure(nonBinary));
+		}
+
+		return eBasis;
+	}
+
+	/**
+	 * Filtre les implications X -> x en ne gardant que celles dont φ(X) est
+	 * minimale par inclusion.
+	 */
+	private List<Implication> filterByMinimalClosure(List<Implication> impls) {
+		List<Implication> result = new ArrayList<>();
+		int n = impls.size();
+
+		if (n <= 1)
+			return impls;
+
+		// Pré-calcul des fermetures
+		Map<Implication, ISet> closures = new HashMap<>(n);
+		for (Implication impl : impls) {
+			ISet closure = createEmptySet();
+			closureEngine.closure(closure, impl.getPremise(), null, null);
+			closures.put(impl, closure);
+		}
+
+		for (int i = 0; i < n; i++) {
+			Implication implI = impls.get(i);
+			ISet ci = closures.get(implI);
+
+			boolean dominated = false;
+			for (int j = 0; j < n; j++) {
+				if (i == j)
+					continue;
+
+				Implication implJ = impls.get(j);
+				ISet cj = closures.get(implJ);
+
+				// cj ⊂ ci
+				if (cj.containsAll(ci) == false && ci.containsAll(cj)) {
+					dominated = true;
+					break;
+				}
+			}
+
+			if (!dominated)
+				result.add(implI);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Regroupe les implications par attribut de conclusion. On suppose que les
+	 * conclusions sont des singletons.
+	 */
+	private Map<Integer, List<Implication>> groupByConclusion(List<Implication> basis) {
+		Map<Integer, List<Implication>> map = new HashMap<>();
+
+		for (Implication impl : basis) {
+			Iterator<Integer> it = impl.getConclusion().iterator();
+			if (!it.hasNext())
+				continue;
+
+			int x = it.next();
+			map.computeIfAbsent(x, k -> new ArrayList<>()).add(impl);
+		}
+		return map;
+	}
+
 }
