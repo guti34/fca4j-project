@@ -26,21 +26,69 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.RuleUtilities;
 
+/**
+ * Implementation of the D-Basis construction algorithm for Formal Concept Analysis.
+ *
+ * <p>
+ * This algorithm computes an ordered-direct implicational basis (the D-basis)
+ * from a binary context. The construction is organized as follows:
+ * </p>
+ *
+ * <ol>
+ *   <li>Context clarification (attribute equivalence removal)</li>
+ *   <li>Computation of all binary implications</li>
+ *   <li>Independent computation of non-binary implications for each attribute</li>
+ *   <li>Optional reduction to the E-basis when no D-cycles are present</li>
+ * </ol>
+ *
+ * <p>
+ * The algorithm relies on the characterization of minimal generators of
+ * attributes as minimal transversals of a hypergraph.
+ * Each attribute is processed independently, allowing natural parallelization.
+ * </p>
+ *
+ * <p>
+ * The resulting basis is ordered-direct: all binary implications precede
+ * non-binary ones, and no fixed-point iteration is required for closure.
+ * </p>
+ */
 public class DBaseV23 implements AbstractAlgo<List<Implication>> {
-	protected int minSupport = 0;
-	/** The matrix. */
-	protected IBinaryContext context; // ressource de depart
-	protected IBinaryContext clarifiedContext; // ressource pour le calcul
-	protected List<ISet> attrClasses;
-	protected ClosureDirect closureEngine;
-	private int maxThreads;
-	protected Map<Integer, ISet> binaryPremises = new HashMap<>();
+    /** Minimum support threshold for implications */
+    protected int minSupport = 0;
 
-	protected Chrono chrono = new Chrono("myChrono"); // eventually a chrono to store execution
-	// time
+    /** Original binary context */
+    protected IBinaryContext context;
 
-	/** The implications. */
-	protected List<Implication> implications;
+    /**
+     * Clarified context where equivalent attributes have been merged.
+     * All computations are performed on this reduced context.
+     */
+    protected IBinaryContext clarifiedContext;
+
+    /**
+     * Equivalence classes of attributes induced by clarification.
+     * Used to rewrite implications back to the original context.
+     */
+    protected List<ISet> attrClasses;
+
+    /** Closure engine used for closure and support computation */
+    protected ClosureDirect closureEngine;
+
+    /** Maximum number of worker threads */
+    private int maxThreads;
+
+    /**
+     * For each attribute b, stores attributes a such that a → b
+     * is a known binary implication.
+     * Used as a pruning rule during hypergraph construction.
+     */
+    protected Map<Integer, ISet> binaryPremises = new HashMap<>();
+
+    /** Execution time monitoring */
+    protected Chrono chrono = new Chrono("myChrono");
+
+    /** Resulting implicational basis */
+    protected List<Implication> implications;
 
 	public DBaseV23(IBinaryContext context, int minSupport, int maxThreads) {
 		this.minSupport = minSupport;
@@ -49,15 +97,18 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 		this.maxThreads = maxThreads;
 	}
 
-	@Override
-	public void run() {
-		// compute d-basis
-		implications = computeDBasis();
-		for (String serie : chrono.getSerieNames()) {
-			System.out.println(serie + " time: " + chrono.getResult(serie));
-		}
-		System.out.println("Total time: " + chrono.getResult());
-	}
+    /**
+     * Executes the complete D-basis computation pipeline.
+     */
+    @Override
+    public void run() {
+        implications = computeDBasis();
+
+        for (String serie : chrono.getSerieNames()) {
+            System.out.println(serie + " time: " + chrono.getResult(serie));
+        }
+        System.out.println("Total time: " + chrono.getResult());
+    }
 
 	@Override
 	public List<Implication> getResult() {
@@ -77,7 +128,7 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 		// clarify context and compute corresponding equivalence rules
 		chrono.start("clarify");
 		List<Implication> eqBasis = clarify();
-		chrono.start("clarify");
+		chrono.stop("clarify");
 
 		closureEngine.setContext(clarifiedContext);
 		if (clarifiedContext.getAttributeCount() < context.getAttributeCount()) {
@@ -98,7 +149,6 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 		List<Implication> nonBinaryImplications;
 		try {
 			nonBinaryImplications = builder.run();
-			System.out.println("nonBinaryImplications=" + nonBinaryImplications.size());
 			tempBasis.addAll(nonBinaryImplications);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -117,22 +167,26 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 		chrono.stop("rewrite results");
 
 		chrono.start("correct clarification and supports");
+		nonBinaryImplications.clear();
 		// adapt results to not clarified context and compute supports
 		for (Implication impl : tempBasis) {
 			ISet premise = convert(impl.getPremise());
 			ISet conclusion = convert(impl.getConclusion());
 			ISet support = closureEngine.computeExtent(premise);
-			if (impl.getPremise().cardinality() < 2 || support.cardinality() >= minSupport) {
-				Implication implWithSupport = new Implication(premise, conclusion, support);
+			Implication implWithSupport = new Implication(premise, conclusion, support);
+			// add directly binary implications
+			// populate non binary implications list to compute EBasis
+			if (impl.getPremise().cardinality() < 2) {
 				dBasis.add(implWithSupport);
+			} else if (support.cardinality() >= minSupport) {
+				nonBinaryImplications.add(implWithSupport);
 			}
 		}
 		chrono.stop("correct clarification and supports");
 		chrono.start("buildEBasis");
-		List<Implication> eBasis = buildEBasis(dBasis);
-//		List<Implication> eBasis=dBasis;
+		dBasis.addAll(buildEBasis(nonBinaryImplications));
 		chrono.stop("buildEBasis");
-		return eBasis;
+		return dBasis;
 	}
 
 	private ISet convert(ISet set) {
@@ -189,13 +243,8 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 	protected List<Implication> computeNonBinaryBasis(int target, ISet[] closures) {
 		List<Implication> basis = new ArrayList<>();
 
-		chrono.start("computeMinimalGenerators");
 		Set<ISet> minGens = computeMinimalGenerators(target);
-		chrono.stop("computeMinimalGenerators");
-		chrono.start("computeMinimalCovers");
 		Set<ISet> covers = computeMinimalCovers(minGens, closures);
-		chrono.stop("computeMinimalCovers");
-		chrono.start("create implications");
 		for (ISet premise : covers) {
 			if (premise.cardinality() > 1) {
 				ISet conclusion = createEmptySet();
@@ -203,7 +252,6 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 				basis.add(new Implication(premise, conclusion, 0));
 			}
 		}
-		chrono.stop("create implications");
 		return basis;
 	}
 
@@ -301,41 +349,63 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 		return result;
 	}
 
-	/**
-	 * @param b attribute
-	 * @return all minimal generators of attribute b
-	 */
-	protected Set<ISet> computeMinimalGenerators(int b) {
+    /**
+     * Computes all minimal generators of an attribute b.
+     *
+     * <p>
+     * A minimal generator of b is a minimal set X of attributes such that
+     * X → b holds in the context.
+     * </p>
+     *
+     * <p>
+     * The computation is reduced to the enumeration of minimal transversals
+     * of a hypergraph:
+     * </p>
+     *
+     * <ul>
+     *   <li>Vertices: attributes ≠ b</li>
+     *   <li>Each hyperedge corresponds to an object not having b</li>
+     *   <li>A transversal hits all such hyperedges</li>
+     * </ul>
+     *
+     * <p>
+     * Binary premises already known for b are removed as a pruning rule.
+     * </p>
+     *
+     * @param b target attribute
+     * @return the set of minimal generators of b
+     */
+    protected Set<ISet> computeMinimalGenerators(int b) {
 
-		// Pré-calcul des extents des attributs (lecture seule, thread-safe)
-		ISet[] attrExtents = new ISet[clarifiedContext.getAttributeCount()];
-		for (int a = 0; a < attrExtents.length; a++) {
-			attrExtents[a] = clarifiedContext.getExtent(a);
-		}
 		// 1. Construction du hypergraphe
 		List<ISet> hypergraph = new ArrayList<>();
 
-		ISet objectsWithoutB = createEmptySet();
-		objectsWithoutB.fill(clarifiedContext.getObjectCount());
-		objectsWithoutB.removeAll(clarifiedContext.getExtent(b));
+        // Objects not supporting attribute b
+        ISet objectsWithoutB = createEmptySet();
+        objectsWithoutB.fill(clarifiedContext.getObjectCount());
+        objectsWithoutB.removeAll(clarifiedContext.getExtent(b));
 
-		for (Iterator<Integer> it = objectsWithoutB.iterator(); it.hasNext();) {
-			int o = it.next();
-			ISet edge = createEmptySet();
-			edge.fill(clarifiedContext.getAttributeCount());
-			edge.removeAll(clarifiedContext.getIntent(o));
-			edge.remove(b);
-			// OPT 1 : élimination des attributs binaires connus
-			if (binaryPremises.get(b) != null) {
-				edge.removeAll(binaryPremises.get(b));
-			}
-			// CAS CRITIQUE : arête vide
-			if (edge.isEmpty()) {
-				// Aucun générateur minimal possible
-				return Collections.emptySet();
-			}
-			hypergraph.add(edge);
-		}
+        for (Iterator<Integer> it = objectsWithoutB.iterator(); it.hasNext();) {
+            int o = it.next();
+
+            // Hyperedge = attributes missing in object o
+            ISet edge = createEmptySet();
+            edge.fill(clarifiedContext.getAttributeCount());
+            edge.removeAll(clarifiedContext.getIntent(o));
+            edge.remove(b);
+
+            // OPT 1: remove known binary premises
+            if (binaryPremises.get(b) != null) {
+                edge.removeAll(binaryPremises.get(b));
+            }
+
+            // Empty edge ⇒ no generator exists
+            if (edge.isEmpty()) {
+                return Collections.emptySet();
+            }
+
+            hypergraph.add(edge);
+        }
 
 		// -------------------------
 		// edge size ordering
@@ -373,13 +443,28 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 		Set<ISet> covers = new HashSet<>();
 		ISet current = createEmptySet();
 
-		generateCovers(hypergraph, 0, current, covers, attrExtents);
+		generateCovers(hypergraph, 0, current, covers);
 
 		return covers;
 	}
 
-	protected void generateCovers(List<ISet> hypergraph, int index, ISet current, Set<ISet> result,
-			ISet[] attrExtents) {
+    /**
+     * Recursive enumeration of minimal transversals of the hypergraph.
+     *
+     * <p>
+     * The algorithm explores attribute choices edge by edge, ensuring:
+     * </p>
+     * <ul>
+     *   <li>Coverage of all hyperedges</li>
+     *   <li>Minimality by subset checking</li>
+     *   <li>Early pruning when support becomes zero</li>
+     * </ul>
+     */
+    protected void generateCovers(
+        List<ISet> hypergraph,
+        int index,
+        ISet current,
+        Set<ISet> result) {
 
 		// Toutes les arêtes sont couvertes → générateur trouvé
 		if (index == hypergraph.size()) {
@@ -391,7 +476,7 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 
 		// Arête déjà couverte
 		if (current.intersects(edge)) {
-			generateCovers(hypergraph, index + 1, current, result, attrExtents);
+			generateCovers(hypergraph, index + 1, current, result);
 			return;
 		}
 
@@ -405,14 +490,14 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 			current.add(attr);
 			boolean tooSmall = false;
 			if (minSupport > 0) {
-				// PRUNE 1 : support == 0 when minSupport > 0 
+				// PRUNE 1 : support == 0 when minSupport > 0
 				ISet support = null;
 				for (Iterator<Integer> it2 = current.iterator(); it2.hasNext();) {
 					int a = it2.next();
 					if (support == null) {
-						support = attrExtents[a].clone();
+						support = clarifiedContext.getExtent(a).clone();
 					} else {
-						support.retainAll(attrExtents[a]);
+						support.retainAll(clarifiedContext.getExtent(a));
 						if (support.cardinality() == 0) {
 							tooSmall = true;
 							break;
@@ -424,7 +509,7 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 
 				// PRUNE 2 : minimalité
 				if (!isAlreadyCovered(current, hypergraph)) {
-					generateCovers(hypergraph, index + 1, current, result, attrExtents);
+					generateCovers(hypergraph, index + 1, current, result);
 				}
 			}
 
@@ -472,7 +557,19 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 		}
 	}
 
-	public class ParallelBasisBuilder {
+    /**
+     * Parallel builder for non-binary implications.
+     *
+     * <p>
+     * Each attribute is processed independently:
+     * minimal generators of b depend only on b and the clarified context.
+     * </p>
+     *
+     * <p>
+     * This makes attribute-level parallelism sound and optimal.
+     * </p>
+     */
+    public class ParallelBasisBuilder {
 
 		private static final int POISON_PILL = -1;
 
@@ -531,24 +628,27 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 		}
 	}
 
-	/**
-	 * Construction de la E-Basis à partir de la D-Basis conformément à Adaricheva
-	 * et al. (2013), Section 9.
-	 *
-	 * Hypothèse : la D-basis est déjà calculée. Si des D-cycles sont détectés, la
-	 * D-basis est retournée telle quelle.
-	 */
-	/**
-	 * Construit la E-basis si le système est sans D-cycles, sinon retourne la
-	 * D-basis inchangée.
-	 */
-	public List<Implication> buildEBasis(List<Implication> basis) {
+    /**
+     * Builds the E-basis from the D-basis when no D-cycles are present.
+     *
+     * <p>
+     * According to Adaricheva et al. (2013), the E-basis exists iff
+     * the dependency graph of the D-basis is acyclic.
+     * </p>
+     *
+     * <p>
+     * The reduction keeps all binary implications and selects,
+     * for each conclusion x, the premises with minimal closures.
+     * </p>
+     */
+    public List<Implication> buildEBasis(List<Implication> basis) {
 		// 1) Détection des D-cycles
 		if (!RuleUtilities.findDCycles(basis).isEmpty()) {
 			// Pas de E-basis possible
-			System.out.println("E-basis cannot be built: " + RuleUtilities.findDCycles(basis).size()+" DCycle(s) found");
-			for (ISet set : RuleUtilities.findDCycles(basis))
-				System.out.println(set);
+			System.out.println(
+					"E-basis cannot be built: " + RuleUtilities.findDCycles(basis).size() + " DCycle(s) found");
+//			for (ISet set : RuleUtilities.findDCycles(basis))
+//				System.out.println(set);
 			return basis;
 		}
 
@@ -564,7 +664,7 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 			// (a) garder toutes les implications binaires
 			List<Implication> nonBinary = new ArrayList<>();
 			for (Implication impl : impls) {
-				if (impl.getPremise().cardinality() == 1) {
+				if (impl.getPremise().cardinality() <= 1) {
 					eBasis.add(impl);
 				} else {
 					nonBinary.add(impl);
