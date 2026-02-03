@@ -506,6 +506,8 @@ public abstract class Command {
 				return RuleBasisFormat.XML;
 			case "TXT":
 				return RuleBasisFormat.TXT;
+			case "DL":
+			case "DLG":
 			case "DATALOG":
 				return RuleBasisFormat.DATALOG;
 			}
