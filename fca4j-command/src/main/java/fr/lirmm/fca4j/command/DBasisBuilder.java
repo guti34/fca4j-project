@@ -47,6 +47,8 @@ import fr.lirmm.fca4j.algo.DBaseV18;
 import fr.lirmm.fca4j.algo.DBaseV19;
 import fr.lirmm.fca4j.algo.DBaseV20;
 import fr.lirmm.fca4j.algo.DBaseV23;
+import fr.lirmm.fca4j.cli.io.RuleExporter;
+import fr.lirmm.fca4j.cli.io.RuleExporters;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.iset.ISetContext;
@@ -84,13 +86,15 @@ public class DBasisBuilder extends Command {
 
 	/** Limit thread usage */
 	protected int maxThreads = DEFAULT_MAXTHREAD;
-	
+
 	/** Minimal support */
-	protected int minSupport=0;
+	protected int minSupport = 0;
 
 	/** threading */
-	protected PoolMode poolMode=PoolMode.MULTITHREAD;
-
+	protected PoolMode poolMode = PoolMode.MULTITHREAD;
+	
+	/** basis rule export format */
+	protected RuleBasisFormat ruleBasisFormat;
 	/**
 	 * The Enum PoolMode.
 	 */
@@ -99,7 +103,7 @@ public class DBasisBuilder extends Command {
 		/** The mono thread mode. */
 		MONO,
 		/** The multitheading mode. */
-		MULTITHREAD //(default)
+		MULTITHREAD // (default)
 	};
 
 	/**
@@ -117,8 +121,8 @@ public class DBasisBuilder extends Command {
 	@Override
 	void createOptions() {
 		// specify minimal support
-		options.addOption(
-				Option.builder("x").desc("Retain only implications whose support is minimal").hasArg().argName("MINIMAL-SUPPORT").build());
+		options.addOption(Option.builder("x").desc("Retain only implications whose support is minimal").hasArg()
+				.argName("MINIMAL-SUPPORT").build());
 		// multithreading
 		options.addOption(Option.builder("t")// .longOpt("multithreading"
 				.desc("multithreading options are:\n* MONO \n* MULTITHREAD(default)").hasArg().argName("POOL-MODE")
@@ -129,8 +133,7 @@ public class DBasisBuilder extends Command {
 		// input format
 		declareContextFormat("i", "INPUT-FORMAT");
 		// output format
-		options.addOption(Option.builder("o").desc("supported formats are:\n* TXT (default)\n* JSON\n* XML\n* DATALOG")
-				.hasArg().argName("OUTPUT-FORMAT").build());
+		declareRuleBasisFormat("o", "OUTPUT-FORMAT");
 
 		// implementation
 		declareImplementation(true);
@@ -181,7 +184,7 @@ public class DBasisBuilder extends Command {
 			if (poolMode == null)
 				throw new Exception("not recognized thread pool mode: " + line.getOptionValue("t"));
 		} else
-		poolMode = PoolMode.MULTITHREAD;
+			poolMode = PoolMode.MULTITHREAD;
 		// report
 		if (line.hasOption("r")) {
 			reportFile = new File(line.getOptionValue("r"));
@@ -201,11 +204,11 @@ public class DBasisBuilder extends Command {
 				if (minSupport < 0)
 					throw new Exception();
 			} catch (Exception e) {
-				throw new Exception(
-						"invalid parameter for minimal support  (-x option) specify a positive integer");
+				throw new Exception("invalid parameter for minimal support  (-x option) specify a positive integer");
 			}
-		} 
-
+		}
+		// output format
+		ruleBasisFormat=checkRuleBasisFormat(line, outputFileName,"o");
 		// separator
 		checkSeparator(line);
 		// verbose
@@ -234,13 +237,17 @@ public class DBasisBuilder extends Command {
 			FileWriter fileWriter = new FileWriter(
 					folder.getPath() + File.separator + ctx.getName() + support + "Rules.txt");
 			PrintWriter printWriter = new PrintWriter(fileWriter);
-			RuleUtilities.printImplications(printWriter, map.get(support), ctx);
+			// output results
+			RuleExporter exporter = RuleExporters.fromFormat(ruleBasisFormat.name());
+			exporter.export(printWriter, map.get(support), ctx);
+			printWriter.flush();
 			printWriter.close();
 		}
-		StringBuilder sb = new StringBuilder();
+/*		StringBuilder sb = new StringBuilder();
 		for (int support : map.keySet()) {
 			sb.append(String.format("support %d: %d rules\n", support, map.get(support).size()));
 		}
+*/		
 	}
 
 	/**
@@ -309,11 +316,10 @@ public class DBasisBuilder extends Command {
 	@Override
 	public Object exec() throws Exception {
 		ctx = readContext(inputFormat, inputFile);
-		if(poolMode==PoolMode.MONO)
-			maxThreads=1;
-		algo=new DBaseV23(ctx,minSupport,maxThreads);
-		System.out.println("running " + algo + " (" + impl + "/"  + poolMode
-				 + ") data: " + inputFile.getName() + " ( "
+		if (poolMode == PoolMode.MONO)
+			maxThreads = 1;
+		algo = new DBaseV23(ctx, minSupport, maxThreads);
+		System.out.println("running " + algo + " (" + impl + "/" + poolMode + ") data: " + inputFile.getName() + " ( "
 				+ ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
 		Chrono chrono = new Chrono("dbasis");
 		chrono.start(algo.getDescription());
@@ -331,7 +337,8 @@ public class DBasisBuilder extends Command {
 			pw = new PrintWriter(outputFile);
 		else
 			pw = new PrintWriter(System.out);
-			RuleUtilities.printImplications(pw, result, ctx);
+		RuleExporter exporter = RuleExporters.fromFormat(ruleBasisFormat.name());
+		exporter.export(pw, result, ctx);
 		pw.flush();
 		pw.close();
 

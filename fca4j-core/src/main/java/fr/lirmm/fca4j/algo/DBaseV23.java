@@ -411,35 +411,7 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 		// edge size ordering
 		// -------------------------
 		hypergraph.sort(Comparator.comparingInt(ISet::cardinality));
-		// -------------------------
-		// rare-first ordering
-		// -------------------------
-		Map<Integer, Integer> freq = new HashMap<>();
-
-		for (ISet edge : hypergraph) {
-			for (Iterator<Integer> it = edge.iterator(); it.hasNext();) {
-				int a = it.next();
-				freq.put(a, freq.getOrDefault(a, 0) + 1);
-			}
-		}
-		for (int i = 0; i < hypergraph.size(); i++) {
-			ISet edge = hypergraph.get(i);
-
-			List<Integer> attrs = new ArrayList<>();
-			for (Iterator<Integer> it = edge.iterator(); it.hasNext();) {
-				attrs.add(it.next());
-			}
-
-			attrs.sort(Comparator.comparingInt(a -> freq.getOrDefault(a, 0)));
-
-			ISet ordered = createEmptySet();
-			for (int a : attrs) {
-				ordered.add(a);
-			}
-
-			hypergraph.set(i, ordered);
-		}
-
+		
 		Set<ISet> covers = new HashSet<>();
 		ISet current = createEmptySet();
 
@@ -577,6 +549,7 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 		private final List<Implication> resultList = Collections.synchronizedList(new ArrayList<>());
 		private final ISet[] closures;
 		private final int nbThreads;
+		private double counter=0.0;
 
 		public ParallelBasisBuilder(ISet[] closures) {
 			this.closures = closures;
@@ -599,6 +572,8 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
 							int attr = queue.take();
 							if (attr == POISON_PILL) {
 								break; // Fin pour ce worker
+							}else {
+								System.out.println(++counter);								
 							}
 							// Calculer et stocker
 							List<Implication> basisPart = computeNonBinaryBasis(attr, closures);

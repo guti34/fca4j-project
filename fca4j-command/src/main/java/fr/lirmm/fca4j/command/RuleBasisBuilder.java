@@ -59,7 +59,10 @@ import fr.lirmm.fca4j.algo.DBaseV23;
 import fr.lirmm.fca4j.algo.LinCbO;
 import fr.lirmm.fca4j.algo.LinCbOWithPruning;
 import fr.lirmm.fca4j.cli.io.RuleBasisReader;
+import fr.lirmm.fca4j.cli.io.RuleExporter;
+import fr.lirmm.fca4j.cli.io.RuleExporters;
 import fr.lirmm.fca4j.cli.io.SLFReader;
+import fr.lirmm.fca4j.command.Command.RuleBasisFormat;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.core.RuleBasis;
@@ -108,6 +111,9 @@ public class RuleBasisBuilder extends Command {
 	/** The input format. */
 	protected ContextFormat inputFormat;
 
+	/** basis rule export format */
+	protected RuleBasisFormat ruleBasisFormat;
+	
 	/** The threshold. */
 	protected int threshold = DEFAULT_THRESHOLD;
 
@@ -193,8 +199,7 @@ public class RuleBasisBuilder extends Command {
 		// input format
 		declareContextFormat("i", "INPUT-FORMAT");
 		// output format
-		options.addOption(Option.builder("o").desc("supported formats are:\n* TXT (default)\n* JSON\n* XML\n* DATALOG")
-				.hasArg().argName("OUTPUT-FORMAT").build());
+		declareRuleBasisFormat("o","OUTPUT-FORMAT");
 
 		// implementation
 		declareImplementation(true);
@@ -307,6 +312,8 @@ public class RuleBasisBuilder extends Command {
 				reportExist = true;
 		} else
 			reportFile = null;
+		// output format
+		ruleBasisFormat=checkRuleBasisFormat(line, outputFileName,"o");
 
 		// separator
 		checkSeparator(line);
@@ -360,7 +367,11 @@ public class RuleBasisBuilder extends Command {
 			FileWriter fileWriter = new FileWriter(
 					folder.getPath() + File.separator + ctx.getName() + support + "Rules.txt");
 			PrintWriter printWriter = new PrintWriter(fileWriter);
-			RuleUtilities.printImplications(printWriter, map.get(support), ctx);
+			// output results
+			RuleExporter exporter = RuleExporters.fromFormat(ruleBasisFormat.name());
+			exporter.export(printWriter, map.get(support), ctx);
+			printWriter.flush();
+			printWriter.close();
 			printWriter.close();
 		}
 		StringBuilder sb = new StringBuilder();
@@ -390,7 +401,11 @@ public class RuleBasisBuilder extends Command {
 		for (int support : map.keySet()) {
 			result.addAll(map.get(support));
 		}
-		RuleUtilities.printImplications(printWriter, result, ctx);
+		// output results
+		RuleExporter exporter = RuleExporters.fromFormat(ruleBasisFormat.name());
+		exporter.export(printWriter, result, ctx);
+		printWriter.flush();
+		printWriter.close();
 	}
 
 	/**
@@ -532,8 +547,11 @@ public class RuleBasisBuilder extends Command {
 			pw = new PrintWriter(System.out);
 		if (sortedPrint)
 			printSortedImplications(pw, result);
-		else
-			RuleUtilities.printImplications(pw, result, ctx);
+		else {
+			// output results
+			RuleExporter exporter = RuleExporters.fromFormat(ruleBasisFormat.name());
+			exporter.export(pw, result, ctx);
+		}
 		pw.flush();
 		pw.close();
 
@@ -729,7 +747,11 @@ public class RuleBasisBuilder extends Command {
 		calculator.run();
 		// print result
 		PrintWriter pw = new PrintWriter("c:/projects/rules/dbasis/" + name + "DB2.txt");
-		RuleUtilities.printImplications(pw, calculator.getResult(), initial_context);
+		RuleExporter exporter = RuleExporters.fromFormat(RuleBasisFormat.TXT.name());
+		exporter.export(pw, calculator.getResult(), initial_context);
+		pw.flush();
+		pw.close();
+
 		RuleBasis ruleBaseDB2 = new RuleBasis(calculator.getResult(), initial_context);
 		System.out.println(
 				"ruleBaseDQ<ruleBaseDB2=" + RuleUtilities.isIncludedIn(dqBasis, ruleBaseDB2.getImplications()));

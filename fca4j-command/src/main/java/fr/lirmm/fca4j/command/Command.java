@@ -134,6 +134,7 @@ public abstract class Command {
 		/** The json format of adjacency list. */
 		RCFAL
 	};
+
 	/**
 	 * The Enum ModelFormat.
 	 */
@@ -143,6 +144,21 @@ public abstract class Command {
 		JSON,
 		/** The xml format. */
 		XML
+	};
+
+	/**
+	 * The Enum RuleBasisFormat.
+	 */
+	public enum RuleBasisFormat {
+
+		/** The json format. */
+		TXT,
+		/** The json format. */
+		JSON,
+		/** The xml format. */
+		XML,
+		/** The Datalog format: https://graphik-team.github.io/graal/papers/datalog+_v2.0_en.pdf */
+		DATALOG
 	};
 
 	/**
@@ -331,6 +347,19 @@ public abstract class Command {
 				.hasArg().argName(name).build());
 
 	}
+
+	/**
+	 * Declare rukle basis format.
+	 *
+	 * @param key  the key
+	 * @param name the format name
+	 */
+	void declareRuleBasisFormat(String key, String name) {
+		// ouput format
+		options.addOption(Option.builder(key).desc("supported formats are:\n* TXT (default)\n* JSON\n* XML\n* DATALOG")
+				.hasArg().argName(name).build());
+	}
+
 	/**
 	 * Declare model format.
 	 *
@@ -339,8 +368,8 @@ public abstract class Command {
 	 */
 	void declareModelFormat(String key, String name) {
 		// input format
-		options.addOption(Option.builder(key).desc("supported formats are:\n* JSON (default)\n* XML")
-				.hasArg().argName(name).build());
+		options.addOption(Option.builder(key).desc("supported formats are:\n* JSON (default)\n* XML").hasArg()
+				.argName(name).build());
 	}
 
 	/**
@@ -462,6 +491,29 @@ public abstract class Command {
 	}
 
 	/**
+	 * Suggest family format.
+	 *
+	 * @param filename the filename
+	 * @return the suggested family format
+	 */
+	protected static RuleBasisFormat suggestRuleBasisFormat(String filename) {
+		int beginIndex = filename.lastIndexOf('.');
+		if (beginIndex >= 0) {
+			switch (filename.substring(beginIndex + 1).toUpperCase()) {
+			case "JSON":
+				return RuleBasisFormat.JSON;
+			case "XML":
+				return RuleBasisFormat.XML;
+			case "TXT":
+				return RuleBasisFormat.TXT;
+			case "DATALOG":
+				return RuleBasisFormat.DATALOG;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Check context format.
 	 *
 	 * @param line     the command line
@@ -509,6 +561,7 @@ public abstract class Command {
 		else
 			return ctxFormat;
 	}
+
 	/**
 	 * Check model format.
 	 *
@@ -533,6 +586,31 @@ public abstract class Command {
 			return ModelFormat.JSON;
 		else
 			return modelFormat;
+	}
+	/**
+	 * Check model format.
+	 *
+	 * @param line     the command line
+	 * @param fileName the file name
+	 * @param opt      the option to check
+	 * @return the model format
+	 * @throws Exception the exception
+	 */
+	protected RuleBasisFormat checkRuleBasisFormat(CommandLine line, String fileName, String opt) throws Exception {
+		RuleBasisFormat ruleBasisFormat = null;
+		if (line.hasOption(opt)) {
+			try {
+				ruleBasisFormat = RuleBasisFormat.valueOf(line.getOptionValue(opt).toUpperCase());
+			} catch (IllegalArgumentException e) {
+			}
+		}
+		if (ruleBasisFormat == null && fileName != null) {
+			ruleBasisFormat = suggestRuleBasisFormat(fileName);
+		}
+		if (ruleBasisFormat == null)
+			return RuleBasisFormat.TXT;
+		else
+			return ruleBasisFormat;
 	}
 
 	/**
