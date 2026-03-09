@@ -43,6 +43,8 @@ import org.json.simple.JSONObject;
 
 import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
+import fr.lirmm.fca4j.algo.Lattice_AddExtent_Indexed;
+import fr.lirmm.fca4j.algo.Lattice_AddIntent;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.ConceptOrderXMLWriter;
@@ -51,7 +53,6 @@ import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.GraphVizDotWriter;
-import fr.lirmm.fca4j.util.GraphVizDotWriter.DisplayFormat;
 
 /**
  * The Class LatticeBuilder.
@@ -81,8 +82,12 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 	 */
 	enum AlgoLattice {
 		
+		/** choose algo dynamically algo. */
+		AUTO, 
 		/** The add extent algo. */
 		ADD_EXTENT, 
+		/** The LYAB algo */
+		ADD_INTENT,
 		 /** The iceberg algo. */
 		 ICEBERG
 	};
@@ -113,7 +118,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		}
 		// algo
 		options.addOption(
-				Option.builder("a").desc("supported algorithms are:" + sb_algo_lat).hasArg().argName("ALGO").build());
+				Option.builder("a").desc("choose AUTO to select dynamically the best algorithm. Supported algorithms are:" + sb_algo_lat).hasArg().argName("ALGO").build());
 		// percent
 		options.addOption(Option.builder("p").desc("for ICEBERG: percentage (of extent) to keep the top-most concepts")
 				.hasArg().argName("PERCENT").build());
@@ -127,6 +132,8 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 //		declareImplicationsOptions();
 		// implementation
 		declareImplementation(false);
+		// concept descriptors
+		declareConceptDescriptorOptions();
 		// common options
 		declareCommon();
 	}
@@ -195,6 +202,8 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 						"invalid parameter for ICEBERG  (-p option) specify a positive integer between [0-100]%");
 			}
 		}
+		// concept descriptor options
+		checkConceptDescriptorOptions(line);
 		// separator
 		checkSeparator(line);
 		// verbose
@@ -212,9 +221,34 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		ctx = readContext(inputFormat, inputFile);
 		Chrono chrono = new Chrono("lattice");
 		AbstractAlgo<ConceptOrder> lat_algo;
+		// choose algo dynamically
+		if(algo==AlgoLattice.AUTO) {
+	          double sumIntentSize = 0.0;
+	            for (int obj = 0; obj < ctx.getObjectCount(); obj++)
+	                sumIntentSize += ctx.getIntent(obj).cardinality();
+
+	            double sumExtentSize = 0.0;
+	            for (int attr = 0; attr < ctx.getAttributeCount(); attr++)
+	                sumExtentSize += ctx.getExtent(attr).cardinality();
+
+	            double avgIntent = sumIntentSize / ctx.getObjectCount();
+	            double avgExtent = sumExtentSize / ctx.getAttributeCount();
+	            boolean useAddIntent = avgIntent < avgExtent;
+	        if(useAddIntent)
+	        	algo=AlgoLattice.ADD_INTENT;
+	        else 
+	        	algo=AlgoLattice.ADD_EXTENT;
+			
+		}
 		switch (algo) {
 		case ADD_EXTENT:
+//			lat_algo = new LCMConceptOrderBuilder(ctx,chrono);
+//			lat_algo = new LatticeBuilderFromLCM(ctx);
+//			lat_algo = new Lattice_AddExtent_Indexed(ctx, chrono);
 			lat_algo = new Lattice_AddExtent(ctx, chrono);
+			break;
+		case ADD_INTENT:			
+			lat_algo = new Lattice_AddIntent(ctx,chrono);
 			break;
 		case ICEBERG:
 			lat_algo = new Lattice_Iceberg(ctx, percent, chrono);
@@ -260,7 +294,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 			boolean displaySize = true;
 			boolean alignSibling = true;
 			String senseLayout = "BT";
-			GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, displaySize,false,senseLayout);
+			GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, displaySize,false,senseLayout,computeStability);
 			dotWriter.write(bw, result );
 		}
 		// implications (topological sort)
@@ -284,6 +318,8 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 			bw.flush();
 			bw.close();
 		}
+		if(cdFolder!=null)
+			produceConceptDescriptors(result);
 		// display chrono
 
 		System.out.println("duration: " + chrono.getResult(lat_algo.getDescription()) + " ms");

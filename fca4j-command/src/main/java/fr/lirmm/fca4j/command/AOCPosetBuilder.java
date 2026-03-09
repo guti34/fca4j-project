@@ -128,6 +128,8 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 //		declareImplicationsOptions();
 		// implementation
 		declareImplementation(false);
+		// concept descriptors
+		declareConceptDescriptorOptions();
 		// common options
 		declareCommon();
 	}
@@ -180,6 +182,8 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 				throw new Exception("unknown algorithm: " + line.getOptionValue("a"));
 		} else
 			algo = AlgoAOCPoset.HERMES;
+		// concept descriptor options
+		checkConceptDescriptorOptions(line);
 		// separator
 		checkSeparator(line);
 		// verbose
@@ -254,7 +258,7 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 			boolean displaySize = true;
 //			boolean alignSibling = true;
 			String senseLayout = "BT";
-			GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, displaySize,false,senseLayout);
+			GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, displaySize,false,senseLayout,computeStability);
 			dotWriter.write(bw, result );
 		}
 		// implications (topological sort)
@@ -278,6 +282,8 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 			pw.flush();
 			pw.close();
 		}
+		if(cdFolder!=null)
+			produceConceptDescriptors(result);
 		// display chrono
 		System.out.println("duration: " + chrono.getResult(aoc_algo.getDescription()) + " ms");
 		if (verbose) {

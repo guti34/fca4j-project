@@ -49,8 +49,6 @@ import fr.lirmm.fca4j.util.AttributeRenamer.MODE;
  * The Class GraphVizDotWriter.
  */
 public class GraphVizDotWriter {
-	// for expé class
-	public Map<ISet, Double> classStabilities = new HashMap<>();
 
 	protected final static String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -87,6 +85,10 @@ public class GraphVizDotWriter {
 	private String orientation;
 
 	/**
+	 * Stability compute stability
+	 */
+	private boolean computeStability;
+	/**
 	 * conceptOrder finder to retrieve ghost concepts in RCA process
 	 */
 	private ConceptOrderFinder conceptOrderFinder = null;
@@ -102,17 +104,19 @@ public class GraphVizDotWriter {
 	 * @param alignSibling the align sibling
 	 * @param orientation  the orientation
 	 */
-	public GraphVizDotWriter(DisplayFormat df, boolean displaySize, boolean displayConceptNumber, String orientation) {
-		this(df, displaySize, displayConceptNumber, orientation, null);
+	public GraphVizDotWriter(DisplayFormat df, boolean displaySize, boolean displayConceptNumber, String orientation,
+			boolean computeStability) {
+		this(df, displaySize, displayConceptNumber, orientation, computeStability, null);
 	}
 
 	public GraphVizDotWriter(DisplayFormat df, boolean displaySize, boolean displayConceptNumber, String orientation,
-			ConceptOrderFinder conceptOrderFinder) {
+			boolean computeStability, ConceptOrderFinder conceptOrderFinder) {
 		this.df = df;
 		this.displaySize = displaySize;
 		this.displayConceptNumber = displayConceptNumber;
 		this.useColor = true;
 		this.orientation = orientation;
+		this.computeStability = computeStability;
 		this.conceptOrderFinder = conceptOrderFinder;
 	}
 
@@ -142,9 +146,10 @@ public class GraphVizDotWriter {
 			sb.append("I: " + lattice.getConceptIntent(concept).cardinality());
 			sb.append(", ");
 			sb.append("E: " + lattice.getConceptExtent(concept).cardinality());
-			sb.append(", ");
-			sb.append("Sta: " + String.format("%.3f", stability.get(concept)));
-//			sb.append("Sta: " + String.format("%.3f",ConceptUtilities.computeNaiveStability(lattice.getConceptExtent(concept), lattice.getConceptIntent(concept), lattice.getContext())));
+			if (computeStability) {
+				sb.append(", ");
+				sb.append("Sta: " + String.format("%.3f", stability.get(concept)));
+			}
 			sb.append(")");
 		} else
 			append(sb, "C_" + lattice.getContext().getName() + "_" + concept);
@@ -240,7 +245,9 @@ public class GraphVizDotWriter {
 		// compute stability for each concepts
 //		Chrono chrono=new Chrono("sta");
 //		chrono.start("stability");
-		Map<Integer, Double> stability = ConceptUtilities.computeStability(lattice);
+		Map<Integer, Double> stability = null;
+		if (computeStability)
+			ConceptUtilities.computeStability(lattice);
 //		chrono.stop("stability");
 //		System.out.println(chrono.getResult());
 		for (Iterator<Integer> it = lattice.getBasicIterator(); it.hasNext();) {
@@ -267,16 +274,9 @@ public class GraphVizDotWriter {
 		}
 //		Chrono chrono=new Chrono("sta");
 //		chrono.start("stability");
-		Map<Integer, Double> stability = ConceptUtilities.computeStability(conceptOrder);
-		// for expé class
-		if (conceptOrder.getContext().getName().equals("class")) {
-			
-			classStabilities = new HashMap<>();
-			for(int concept:stability.keySet())
-			{				
-				classStabilities.put(conceptOrder.getConceptIntent(concept), stability.get(concept));
-			}
-		}
+		Map<Integer, Double> stability = null;
+		if (computeStability)
+			stability = ConceptUtilities.computeStability(conceptOrder);
 
 //		chrono.stop("stability");
 //		System.out.println(chrono.getResult());

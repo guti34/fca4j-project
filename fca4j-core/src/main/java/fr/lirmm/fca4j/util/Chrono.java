@@ -116,8 +116,8 @@ public class Chrono {
 	public long getResult(String serieName)
 	{
 		long l=0L;
-		for(Duration mesure:results.get(serieName)) l+=mesure.toNanos();
-		return l/1_000_000L;
+		for(Duration mesure:results.get(serieName)) l+=mesure.toMillis();
+		return l;
 	}
 	
 	/**
@@ -140,8 +140,8 @@ public class Chrono {
 	{
 		long l=0L;
 		for(ArrayList<Duration> mesures:results.values())
-			for(Duration mesure:mesures) l+=mesure.toNanos();
-		return l/1_000_000L;
+			for(Duration mesure:mesures) l+=mesure.toMillis();
+		return l;
 	}
 	
 	/**

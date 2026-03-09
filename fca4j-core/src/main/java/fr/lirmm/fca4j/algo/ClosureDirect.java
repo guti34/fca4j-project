@@ -161,7 +161,9 @@ public ISet computeIntent2(ISet extent) {
         if(extent.cardinality()<matrix.getAttributeCount()){
         intent.fill(matrix.getAttributeCount());
         for (Iterator<Integer> it = extent.iterator(); it.hasNext();) {
-            intent.retainAll(matrix.getIntent(it.next()));
+        	int obj=it.next();
+        	ISet intentOfObj=matrix.getIntent(obj);
+            intent.retainAll(intentOfObj);
         }                        
         }
         else{

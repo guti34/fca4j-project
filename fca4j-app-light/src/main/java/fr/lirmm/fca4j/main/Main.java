@@ -56,6 +56,7 @@ import fr.lirmm.fca4j.command.RCACommand;
 import fr.lirmm.fca4j.command.RCAImport;
 import fr.lirmm.fca4j.command.Reducer;
 import fr.lirmm.fca4j.command.RuleBasisBuilder;
+import fr.lirmm.fca4j.command.ConceptDescriptor;
 import fr.lirmm.fca4j.iset.AbstractSetContext;
 
 /**

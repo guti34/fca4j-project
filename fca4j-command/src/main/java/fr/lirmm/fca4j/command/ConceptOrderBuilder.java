@@ -31,17 +31,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package fr.lirmm.fca4j.command;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 
+import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
+import fr.lirmm.fca4j.util.ConceptUtilities;
 import fr.lirmm.fca4j.util.GraphVizDotWriter;
 import fr.lirmm.fca4j.util.GraphVizDotWriter.DisplayFormat;
 
@@ -75,7 +80,11 @@ public abstract class ConceptOrderBuilder extends Command {
 	File ibfFile;
 	/** The itp file. */
 	File itpFile;
-
+	/** compute stability */
+	boolean computeStability=false;
+	boolean siblingDeepSearch=false;
+	/** The concept descriptor folder. */
+	protected File cdFolder;
 	/**
 	 * Instantiates a new concept order builder.
 	 *
@@ -96,7 +105,12 @@ public abstract class ConceptOrderBuilder extends Command {
 				.argName("OUTPUT-FORMAT").build());
 
 	}
-
+	protected void declareConceptDescriptorOptions() {
+		options.addOption(Option.builder("cd").desc("folder to generate a datalog file by concept for results").hasArg()
+				.argName("PATH").build());
+		options.addOption(
+				Option.builder("nds").desc("limit datalog concept descriptions to immediate siblings (it reduces production of negative constraints)").build());		
+	}
 	/**
 	 * Declare Graphviz DOT options.
 	 */
@@ -107,6 +121,7 @@ public abstract class ConceptOrderBuilder extends Command {
 		options.addOption(Option.builder("d")// .longOpt("format")
 				.desc("display format of the concepts for GraphViz. Available formats are:\n* FULL\n* SIMPLIFIED (default)\n* MINIMAL")
 				.hasArg().argName("DISPLAY-MODE").build());
+		options.addOption(Option.builder("sta").desc("compute concept stability for dot file").build());
 	}
 	/**
 	 * Declare Implications options.
@@ -122,7 +137,30 @@ public abstract class ConceptOrderBuilder extends Command {
 		options.addOption(
 				Option.builder("ibf").desc("output file for implications in breadth first order").hasArg().argName("IMPFILE").build());
 	}
-
+	protected void checkConceptDescriptorOptions(CommandLine line)  throws Exception{
+		if(line.hasOption("s") && !line.hasOption("cd"))
+		{
+				throw new Exception("option -s is reserved to concept description. Must be used with -cd option");			
+		}
+		if (line.hasOption("cd")) {
+		String cdFolderPath = line.getOptionValue("cd");
+		cdFolder = new File(cdFolderPath);
+		if (!cdFolder.exists()) {
+			try {
+				if (!cdFolder.mkdirs())
+					throw new Exception();
+			} catch (Exception e) {
+				throw new Exception("folder " + cdFolderPath + " cannot be created. " + e.getMessage());
+			}
+		}
+		if (!cdFolder.isDirectory()) {
+			throw new Exception("path " + cdFolderPath + " to store concept descriptions is not a directory");
+		}
+		// s option limit search of siblings to produce constraints 
+		siblingDeepSearch=!line.hasOption("s");
+		}
+	}
+	
 	/**
 	 * Check dot file.
 	 *
@@ -144,6 +182,7 @@ public abstract class ConceptOrderBuilder extends Command {
 			}
 		} else
 			dotFile = null;
+		computeStability= line.hasOption("sta");
 	}
 	/**
 	 * Check itp file.
@@ -246,5 +285,17 @@ public abstract class ConceptOrderBuilder extends Command {
 		}
 		return sb.toString();
 	}
-	
+	protected void produceConceptDescriptors(ConceptOrder order) throws IOException {
+		IBinaryContext ctx=order.getContext();
+		Map<Integer,String> descriptors=ConceptUtilities.buildDatalogDescriptor(order, siblingDeepSearch);
+		for (int concept : descriptors.keySet()) {
+			String descriptor=descriptors.get(concept);
+			FileWriter fileWriter = new FileWriter(
+					cdFolder.getPath() + File.separator + ctx.getName() + "Concept" + concept + ".datalog");
+			PrintWriter printWriter = new PrintWriter(fileWriter);
+			printWriter.append(descriptor);
+			printWriter.flush();
+			printWriter.close();
+	}
+	}
 }

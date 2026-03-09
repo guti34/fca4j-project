@@ -35,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ import fr.lirmm.fca4j.algo.AOC_poset_Pluton;
 import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.ExploRCA;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
+import fr.lirmm.fca4j.algo.Lattice_AddIntent;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.FamilyXMLWriter;
@@ -72,6 +74,7 @@ import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.AttributeRenamer;
 import fr.lirmm.fca4j.util.Chrono;
+import fr.lirmm.fca4j.util.ConceptUtilities;
 import fr.lirmm.fca4j.util.GraphVizDotWriter;
 import fr.lirmm.fca4j.util.GraphVizDotWriter.DisplayFormat;
 import fr.lirmm.fca4j.util.JSONFormatter;
@@ -83,8 +86,7 @@ public class RCACommand extends Command {
 	// for expé class
 	List<ConceptOrder> listCo = new ArrayList<>();
 	List<Map<ISet, Double>> listSta = new ArrayList<>();
-	
-	
+
 	protected boolean clean = false;
 
 	/** The family file. */
@@ -146,8 +148,18 @@ public class RCACommand extends Command {
 	/** store xml. */
 	boolean storeXml = false;
 
+	/** compute stability */
+	boolean computeStability = false;
+
 	/** The max step. */
 	int maxStep = -1;
+	/**
+	 * use deep search to find siblings to produce constraints in concept
+	 * descriptors
+	 */
+	boolean siblingDeepSearch = false;
+	/** The concept descriptor folder. */
+	protected File cdFolder;
 
 	/**
 	 * The Enum AlgoRCA.
@@ -164,6 +176,8 @@ public class RCACommand extends Command {
 		HERMES,
 		/** The add extent algorithm. */
 		ADD_EXTENT,
+		/** The add intent algorithm. */
+		ADD_INTENT,
 		/** The iceberg algorithm. */
 		ICEBERG
 	};
@@ -210,6 +224,7 @@ public class RCACommand extends Command {
 		options.addOption(Option.builder("d")// .longOpt("format")
 				.desc("display format of the concepts for GraphViz. Available formats are:\n* FULL\n* SIMPLIFIED (default)\n* MINIMAL")
 				.hasArg().argName("DISPLAY-MODE").build());
+		options.addOption(Option.builder("sta").desc("compute concept stability for dot file").build());
 		options.addOption(Option.builder("json").desc("build json files at each step").build());
 		options.addOption(Option.builder("xml").desc("build xml files").build());
 		options.addOption(Option.builder("fe").desc("add full concept extents").build());
@@ -222,6 +237,11 @@ public class RCACommand extends Command {
 				.hasArg().argName("PERCENT").build());
 		// family format
 		declareFamilyFormat("f", "FAMILY-FORMAT");
+		options.addOption(Option.builder("cd").desc("folder to generate a datalog file by concept for results").hasArg()
+				.argName("PATH").build());
+		options.addOption(Option.builder("nds").desc(
+				"limit datalog concept descriptions to immediate siblings (it reduces production of negative constraints)")
+				.build());
 		// common options
 		declareCommon();
 
@@ -244,6 +264,7 @@ public class RCACommand extends Command {
 		storeAllExtendedFamily = line.hasOption("es");
 		fullExtents = line.hasOption("fe");
 		fullIntents = line.hasOption("fi");
+		computeStability = line.hasOption("sta");
 		// family file
 		List<String> args = line.getArgList();
 		for (String arg : args) {
@@ -326,15 +347,27 @@ public class RCACommand extends Command {
 		if (nameWithFullIntent)
 			nameWithReducedIntent = false;
 		nameWithReducedIntent2 = line.hasOption("rai");
-	}
+		if (line.hasOption("s") && !line.hasOption("cd")) {
+			throw new Exception("option -s is reserved to concept description. Must be used with -cd option");
+		}
+		if (line.hasOption("cd")) {
+			String cdFolderPath = line.getOptionValue("cd");
+			cdFolder = new File(cdFolderPath);
+			if (!cdFolder.exists()) {
+				try {
+					if (!cdFolder.mkdirs())
+						throw new Exception();
+				} catch (Exception e) {
+					throw new Exception("folder " + cdFolderPath + " cannot be created. " + e.getMessage());
+				}
+			}
+			if (!cdFolder.isDirectory()) {
+				throw new Exception("path " + cdFolderPath + " to store concept descriptions is not a directory");
+			}
+			// s option limit search of siblings to produce constraints
+			siblingDeepSearch = !line.hasOption("s");
+		}
 
-	/**
-	 * Declare Graphviz DOT options.
-	 */
-	protected void declareGraphvizOptions() {
-		options.addOption(Option.builder("d")// .longOpt("format")
-				.desc("display format of the concepts for GraphViz. Available formats are:\n* FULL\n* SIMPLIFIED (default)\n* MINIMAL")
-				.hasArg().argName("DISPLAY-MODE").build());
 	}
 
 	/**
@@ -390,6 +423,8 @@ public class RCACommand extends Command {
 				switch (algo) {
 				case ADD_EXTENT:
 					return new Lattice_AddExtent(context, chrono);
+				case ADD_INTENT:
+					return new Lattice_AddIntent(context, chrono);
 				case ICEBERG:
 					return new Lattice_Iceberg(context, percent, chrono);
 				case HERMES:
@@ -455,77 +490,12 @@ public class RCACommand extends Command {
 				FileWriter fw0 = new FileWriter(resultFolder.getPath() + "/step" + step + ".dot");
 				String senseLayout = "BT";
 				GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, true, false, senseLayout,
-						exploMFca.createConceptFinder());
+						computeStability, exploMFca.createConceptFinder());
 				dotWriter.write(fw0, family, exploMFca.getConceptOrderFamily(), true, mode);
 				for (ConceptOrder co : exploMFca.getConceptOrderFamily().getConceptOrders()) {
 					if (co.getContext().getName().equals("class"))
 						listCo.add(co);
 				}
-				/************** for expé class ***********/
-				// construction CSV
-/*				if(listCo.size()>0) {
-				listSta.add(dotWriter.classStabilities);
-				if (thisIsTheEnd) {
-					LinkedHashMap<ISet, List<Double>> resultTotal = new LinkedHashMap<>();
-					ConceptOrder co = listCo.get(listCo.size() - 1);
-					for (int step2 = 0; step2 < listSta.size(); step2++) {
-						Map<ISet, Double> stabOfAStep = listSta.get(step2);
-						for (Iterator<Integer> it = co.getBasicIterator(); it.hasNext();) {
-							int concept = it.next();
-							ISet intent = listCo.get(step2).getConceptIntent(concept);
-							List<Double> ld = resultTotal.get(intent);
-							if (ld == null) {
-								ld = new ArrayList<>();
-								for (int i = 0; i < step2; i++)
-									ld.add(Double.valueOf(0));
-								resultTotal.put(intent, ld);
-							}
-							Double val = stabOfAStep.get(intent);
-							if (val == null)
-								val = Double.valueOf(0);
-							ld.add(val);
-						}
-					}
-					for (ISet intent : resultTotal.keySet()) {
-						if (intent == null)
-							continue;
-						boolean found=false;
-						String s=""; 
-						for(int concept:co.getConcepts())
-						{
-							if(co.getConceptIntent(concept).equals(intent)) {
-								s+="c_class_"+concept+";";
-								found=true;
-								break;
-								
-							}
-						}
-						if(!found)
-							s+="concept not_found;";
-						s += "[";
-						int count = 0;
-						for (Iterator<Integer> it = intent.iterator(); it.hasNext();) {
-							int attr = it.next();
-							s += "" + co.getContext().getAttributeName(attr);
-							count++;
-							if (count < intent.cardinality())
-								s += "&";
-						}
-						s += "];";
-
-						for (double val : resultTotal.get(intent)) {
-							s += "" + val + ";";
-						}
-						int staSize = resultTotal.get(intent).size();
-						for (int i = staSize - 1; i < step; i++)
-							s += "0.0;";
-						System.out.println(s);
-					}
-				}
-
-				}
-				*/
-				//******************* end expé class**************/				
 			}
 			int i = 0;
 			ArrayList<ConceptOrder> list_concept_orders = exploMFca.getConceptOrderFamily().getConceptOrders();
@@ -559,6 +529,15 @@ public class RCACommand extends Command {
 								mode, exploMFca.createConceptFinder());
 						break;
 					}
+				}
+				if(thisIsTheEnd && cdFolder!=null) {
+					IBinaryContext ctx=cPoset.getContext();
+					String[] attrNames=new String[ctx.getAttributeCount()];
+					for(int attr=0;attr<ctx.getAttributeCount();attr++)
+					{
+					attrNames[attr] = AttributeRenamer.build(family, ctx.getAttributeName(attr), mode, -1, exploMFca.createConceptFinder());
+					}
+					produceConceptDescriptors(cPoset,attrNames);
 				}
 				if (storeAllExtendedFamily) {
 					String ext_name = "_step" + step;
@@ -627,5 +606,19 @@ public class RCACommand extends Command {
 				StandardCharsets.UTF_8);
 		json_result.write(formattedString);
 		json_result.close();
+	}
+
+	protected void produceConceptDescriptors(ConceptOrder order,String[] attrNames) throws IOException {
+		IBinaryContext ctx=order.getContext();
+		Map<Integer, String> descriptors = ConceptUtilities.buildDatalogDescriptor(order, attrNames,siblingDeepSearch);
+		for (int concept : descriptors.keySet()) {
+			String descriptor = descriptors.get(concept);
+			FileWriter fileWriter = new FileWriter(
+					cdFolder.getPath() + File.separator + ctx.getName() + "Concept" + concept + ".datalog");
+			PrintWriter printWriter = new PrintWriter(fileWriter);
+			printWriter.append(descriptor);
+			printWriter.flush();
+			printWriter.close();
+		}
 	}
 }
