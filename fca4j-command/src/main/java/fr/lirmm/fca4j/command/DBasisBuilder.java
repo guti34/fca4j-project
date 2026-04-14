@@ -260,6 +260,7 @@ public class DBasisBuilder extends Command {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private void printReport(List<Implication> implications, Chrono chrono) throws IOException {
+		if(separator=='?') separator=',';
 		CSVWriter writer = new CSVWriter(new FileWriter(reportFile, reportExist), separator);
 		ArrayList<String> keys = new ArrayList<>();
 		ArrayList<String> values = new ArrayList<>();

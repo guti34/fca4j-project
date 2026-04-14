@@ -37,6 +37,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPOutputStream;
 
 import fr.lirmm.fca4j.core.IBinaryContext;
@@ -79,7 +80,7 @@ public class RCFTWriter {
 	public static File write(RCAFamily rcf, String outputPath, boolean compressed, MODE mode,
 			ConceptOrderFinder conceptOrderFinder) throws IOException {
 		Writer fw;
-		File f=null;
+		File f = null;
 		if (outputPath == null) {
 			if (compressed)
 				throw new IOException(
@@ -90,7 +91,7 @@ public class RCFTWriter {
 		} else {
 			f = new File(outputPath);
 			if (compressed) {
-				fw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(f))));
+				fw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(f)), "UTF-8"));
 			} else {
 				fw = new BufferedWriter(new FileWriter(f, false));
 			}

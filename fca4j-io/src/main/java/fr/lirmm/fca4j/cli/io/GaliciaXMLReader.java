@@ -84,7 +84,7 @@ public class GaliciaXMLReader implements ErrorHandler {
             throw new Exception("Not valid format for Galicia XML Binary Context");
         }
         Element root = (Element) nl.item(0);
-        String name = "Context from Galicia";
+        String name = "Galicia_Context";
         nl = root.getElementsByTagName("Name");
         if (nl != null && nl.getLength() > 0) {
             name = nl.item(0).getTextContent().trim();

@@ -44,6 +44,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import au.com.bytecode.opencsv.CSVReader;
+import fr.lirmm.fca4j.cli.io.CSVUtilities;
 import fr.lirmm.fca4j.cli.io.CXTReader;
 import fr.lirmm.fca4j.cli.io.CXTWriter;
 import fr.lirmm.fca4j.cli.io.ConExpReader;
@@ -94,7 +95,7 @@ public abstract class Command {
 	protected ISetFactory factory;
 
 	/** The separator. */
-	protected char separator = ',';
+	protected char separator = '?';
 
 	/** The verbose. */
 	protected boolean verbose;
@@ -409,8 +410,11 @@ public abstract class Command {
 			context = SLFReader.read(inputFile, factory);
 			break;
 		case CSV:
+		{
+			separator=separator=='?'?CSVUtilities.detectSeparator(inputFile):separator;
 			context = MyCSVReader.read(inputFile, separator, factory);
 			break;
+		}
 		case XML:
 			context = GaliciaXMLReader.read(inputFile, factory);
 			break;
@@ -652,7 +656,7 @@ public abstract class Command {
 	 * @throws Exception the exception
 	 */
 	protected void checkSeparator(CommandLine line) throws Exception {
-		separator = ',';
+		separator = '?';
 		if (line.hasOption("s")) {
 			switch (Separator.valueOf(line.getOptionValue("s"))) {
 			case SEMICOLON:
@@ -662,7 +666,7 @@ public abstract class Command {
 				separator = '\t';
 				break;
 			case COMMA:
-			default:
+				separator = ',';
 			}
 		}
 	}
@@ -701,8 +705,11 @@ public abstract class Command {
 			GaliciaWriter.write(writer, tContext);
 			break;
 		case CSV:
-			MyCSVWriter.writeContext(writer, tContext, separator);
+		{
+			char sep=separator=='?'?',':separator;
+			MyCSVWriter.writeContext(writer, tContext, sep);
 			break;
+		}
 		default:
 			throw new Exception("unknown context output format");
 		}

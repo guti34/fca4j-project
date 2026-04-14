@@ -35,6 +35,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipInputStream;
 
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.iset.ISetFactory;
@@ -68,7 +69,11 @@ public class RCFTReader {
      */
     public static RCAFamily read(String filePath,ISetFactory factory,boolean compressed) throws Exception {
         MyParseRcft parser = new MyParseRcft();
-        Reader reader= compressed ? new InputStreamReader(new GZIPInputStream(new FileInputStream(filePath))):new InputStreamReader(new FileInputStream(filePath));
+        Reader reader = compressed
+        	    ? new InputStreamReader(
+        	          new GZIPInputStream(new FileInputStream(filePath)), "UTF-8")
+        	    : new InputStreamReader(
+        	          new FileInputStream(filePath), "UTF-8");
         return parser.parse(new BufferedReader(reader),factory);
     }
 }

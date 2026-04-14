@@ -65,7 +65,10 @@ public class CXTReader {
     	 * @throws IOException Signals that an I/O exception has occurred.
     	 */
     	public static IBinaryContext read(File file, ISetFactory factory) throws IOException {
-	            BufferedReader buff = new BufferedReader(new FileReader(file));
+    		BufferedReader buff = new BufferedReader(new FileReader(file));
+    		return read(buff,factory);
+    	}
+	public static IBinaryContext read(BufferedReader buff, ISetFactory factory) throws IOException {
 	            try{
 	            int nbObj = 0;
 	            int nbAtt = 0;
@@ -76,7 +79,7 @@ public class CXTReader {
 	                throw new IOException("File must begin with letter B");
 	            }
 	            // optional second line contains context name
-	            String name = "Context from CXT";
+	            String name = "CXT_Context";
 	            line = buff.readLine().trim();
 	            try {
 	                nbObj = Integer.parseInt(buff.readLine().trim());

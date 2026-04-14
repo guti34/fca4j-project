@@ -81,7 +81,7 @@ public class SLFReader {
 		nbObj = Integer.parseInt(buff.readLine().trim());
 		nbAtt = Integer.parseInt(buff.readLine().trim());
 
-		binRel = new BinaryContext(nbObj, nbAtt, "Context from SLF", factory);
+		binRel = new BinaryContext(nbObj, nbAtt, "SLF_Context", factory);
 
 		// La ligne suivante contient la mention [Objects]
 		if (!buff.readLine().trim().equalsIgnoreCase("[Objects]")) {

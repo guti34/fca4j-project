@@ -283,7 +283,9 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 			pw.close();
 		}
 		if(cdFolder!=null)
-			produceConceptDescriptors(result);
+			produceConceptDescriptorsInFolder(result);
+		if (cdFile != null)
+			produceConceptDescriptorsInFile(result);
 		// display chrono
 		System.out.println("duration: " + chrono.getResult(aoc_algo.getDescription()) + " ms");
 		if (verbose) {

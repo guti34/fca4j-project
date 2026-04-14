@@ -59,19 +59,19 @@ public abstract class ConceptOrderBuilder extends Command {
 	 * The Enum ConceptOrderFormat.
 	 */
 	enum ConceptOrderFormat {
-		
-	/** The json format. */
-	JSON, 
-	/** The xml format. */
-	 XML
+
+		/** The json format. */
+		JSON,
+		/** The xml format. */
+		XML
 	};
 
 	/** The output format. */
 	ConceptOrderFormat outputFormat;
-	
+
 	/** The display mode. */
-	DisplayFormat displayMode=DisplayFormat.SIMPLIFIED;
-	
+	DisplayFormat displayMode = DisplayFormat.SIMPLIFIED;
+
 	/** The dot file. */
 	File dotFile;
 	/** The idf file. */
@@ -81,19 +81,22 @@ public abstract class ConceptOrderBuilder extends Command {
 	/** The itp file. */
 	File itpFile;
 	/** compute stability */
-	boolean computeStability=false;
-	boolean siblingDeepSearch=false;
+	boolean computeStability = false;
+	boolean siblingDeepSearch = false;
 	/** The concept descriptor folder. */
 	protected File cdFolder;
+	/** The concept descriptor file. */
+	protected File cdFile;
+
 	/**
 	 * Instantiates a new concept order builder.
 	 *
-	 * @param name the name
+	 * @param name        the name
 	 * @param description the description
-	 * @param setContext the set context
+	 * @param setContext  the set context
 	 */
-	ConceptOrderBuilder(String name, String description,ISetContext setContext) {
-		super(name, description,setContext);
+	ConceptOrderBuilder(String name, String description, ISetContext setContext) {
+		super(name, description, setContext);
 	}
 
 	/**
@@ -105,12 +108,17 @@ public abstract class ConceptOrderBuilder extends Command {
 				.argName("OUTPUT-FORMAT").build());
 
 	}
+
 	protected void declareConceptDescriptorOptions() {
 		options.addOption(Option.builder("cd").desc("folder to generate a datalog file by concept for results").hasArg()
 				.argName("PATH").build());
-		options.addOption(
-				Option.builder("nds").desc("limit datalog concept descriptions to immediate siblings (it reduces production of negative constraints)").build());		
+		options.addOption(Option.builder("cdu").desc("generate a unique datalog file with all concepts descriptions").hasArg()
+				.argName("DLGPFILE").build());
+		options.addOption(Option.builder("nds").desc(
+				"limit datalog concept descriptions to immediate siblings (it reduces production of negative constraints)")
+				.build());
 	}
+
 	/**
 	 * Declare Graphviz DOT options.
 	 */
@@ -123,74 +131,86 @@ public abstract class ConceptOrderBuilder extends Command {
 				.hasArg().argName("DISPLAY-MODE").build());
 		options.addOption(Option.builder("sta").desc("compute concept stability for dot file").build());
 	}
+
 	/**
 	 * Declare Implications options.
 	 */
 	protected void declareImplicationsOptions() {
 		// depth first implications
-		options.addOption(
-				Option.builder("itp").desc("output file for implications in topological order").hasArg().argName("IMPFILE").build());
+		options.addOption(Option.builder("itp").desc("output file for implications in topological order").hasArg()
+				.argName("IMPFILE").build());
 		// depth first implications
-		options.addOption(
-				Option.builder("idf").desc("output file for implications in depth first order").hasArg().argName("IMPFILE").build());
+		options.addOption(Option.builder("idf").desc("output file for implications in depth first order").hasArg()
+				.argName("IMPFILE").build());
 		// breadth first implications
-		options.addOption(
-				Option.builder("ibf").desc("output file for implications in breadth first order").hasArg().argName("IMPFILE").build());
+		options.addOption(Option.builder("ibf").desc("output file for implications in breadth first order").hasArg()
+				.argName("IMPFILE").build());
 	}
-	protected void checkConceptDescriptorOptions(CommandLine line)  throws Exception{
-		if(line.hasOption("s") && !line.hasOption("cd"))
-		{
-				throw new Exception("option -s is reserved to concept description. Must be used with -cd option");			
+
+	protected void checkConceptDescriptorOptions(CommandLine line) throws Exception {
+		if (line.hasOption("s") && !(line.hasOption("cd") || line.hasOption("cdu"))) {
+			throw new Exception("option -s is reserved to concept description. Must be used with -cd option");
 		}
 		if (line.hasOption("cd")) {
-		String cdFolderPath = line.getOptionValue("cd");
-		cdFolder = new File(cdFolderPath);
-		if (!cdFolder.exists()) {
-			try {
-				if (!cdFolder.mkdirs())
-					throw new Exception();
-			} catch (Exception e) {
-				throw new Exception("folder " + cdFolderPath + " cannot be created. " + e.getMessage());
+			String cdFolderPath = line.getOptionValue("cd");
+			cdFolder = new File(cdFolderPath);
+			if (!cdFolder.exists()) {
+				try {
+					if (!cdFolder.mkdirs())
+						throw new Exception();
+				} catch (Exception e) {
+					throw new Exception("folder " + cdFolderPath + " cannot be created. " + e.getMessage());
+				}
 			}
+			if (!cdFolder.isDirectory()) {
+				throw new Exception("path " + cdFolderPath + " to store concept descriptions is not a directory");
+			}
+			// s option limit search of siblings to produce constraints
+			siblingDeepSearch = !line.hasOption("s");
 		}
-		if (!cdFolder.isDirectory()) {
-			throw new Exception("path " + cdFolderPath + " to store concept descriptions is not a directory");
-		}
-		// s option limit search of siblings to produce constraints 
-		siblingDeepSearch=!line.hasOption("s");
+		if (line.hasOption("cdu")) {
+			String filePath = line.getOptionValue("cdu");
+			cdFile = new File(filePath);
+			if (!cdFile.exists()) {
+				cdFile.createNewFile();
+			} else if (!cdFile.canWrite())
+				throw new Exception("the specified datalog file path is not writable !");
+			// s option limit search of siblings to produce constraints
+			siblingDeepSearch = !line.hasOption("s");
 		}
 	}
-	
+
 	/**
 	 * Check dot file.
 	 *
 	 * @param line the command line
 	 * @throws Exception the exception
 	 */
-	protected void checkDotFile(CommandLine line)  throws Exception{
+	protected void checkDotFile(CommandLine line) throws Exception {
 		if (line.hasOption("g")) {
 			dotFile = new File(line.getOptionValue("g"));
 			if (!dotFile.exists()) {
 				dotFile.createNewFile();
 			} else if (!dotFile.canWrite())
 				throw new Exception("the specified graphviz file path is not writable !");
-			try{
-				if(line.hasOption("d"))
-					displayMode=DisplayFormat.valueOf(line.getOptionValue("d").toUpperCase());
-			}catch(Exception e){
+			try {
+				if (line.hasOption("d"))
+					displayMode = DisplayFormat.valueOf(line.getOptionValue("d").toUpperCase());
+			} catch (Exception e) {
 				throw new Exception("display mode option not recognized: " + line.getOptionValue("d"));
 			}
 		} else
 			dotFile = null;
-		computeStability= line.hasOption("sta");
+		computeStability = line.hasOption("sta");
 	}
+
 	/**
 	 * Check itp file.
 	 *
 	 * @param line the command line
 	 * @throws Exception the exception
 	 */
-	protected void checkITPFile(CommandLine line)  throws Exception{
+	protected void checkITPFile(CommandLine line) throws Exception {
 		if (line.hasOption("itp")) {
 			itpFile = new File(line.getOptionValue("itp"));
 			if (!itpFile.exists()) {
@@ -200,13 +220,14 @@ public abstract class ConceptOrderBuilder extends Command {
 		} else
 			itpFile = null;
 	}
+
 	/**
 	 * Check idf file.
 	 *
 	 * @param line the command line
 	 * @throws Exception the exception
 	 */
-	protected void checkIDFFile(CommandLine line)  throws Exception{
+	protected void checkIDFFile(CommandLine line) throws Exception {
 		if (line.hasOption("idf")) {
 			idfFile = new File(line.getOptionValue("idf"));
 			if (!idfFile.exists()) {
@@ -216,13 +237,14 @@ public abstract class ConceptOrderBuilder extends Command {
 		} else
 			idfFile = null;
 	}
+
 	/**
 	 * Check ibf file.
 	 *
 	 * @param line the command line
 	 * @throws Exception the exception
 	 */
-	protected void checkIBFFile(CommandLine line)  throws Exception{
+	protected void checkIBFFile(CommandLine line) throws Exception {
 		if (line.hasOption("ibf")) {
 			ibfFile = new File(line.getOptionValue("ibf"));
 			if (!ibfFile.exists()) {
@@ -232,11 +254,11 @@ public abstract class ConceptOrderBuilder extends Command {
 		} else
 			ibfFile = null;
 	}
-	
+
 	/**
 	 * Check output format.
 	 *
-	 * @param line the command line
+	 * @param line        the command line
 	 * @param outFileName the output file name
 	 * @throws Exception the exception
 	 */
@@ -256,26 +278,28 @@ public abstract class ConceptOrderBuilder extends Command {
 				throw new Exception("output format must be specified for file " + outFileName);
 		}
 	}
+
 	/**
 	 * Prints the implications.
 	 *
-	 * @param printWriter the print writer
+	 * @param printWriter  the print writer
 	 * @param implications the implications
 	 */
-	protected void printImplications(PrintWriter printWriter,List<Implication> implications, IBinaryContext ctx) {
+	protected void printImplications(PrintWriter printWriter, List<Implication> implications, IBinaryContext ctx) {
 		for (Implication implication : implications) {
-			printWriter.printf("<%d> %s => %s\n", implication.getSupport().cardinality(), displayAttrs(implication.getPremise(),ctx),
-					displayAttrs(implication.getConclusion(),ctx));
+			printWriter.printf("<%d> %s => %s\n", implication.getSupport().cardinality(),
+					displayAttrs(implication.getPremise(), ctx), displayAttrs(implication.getConclusion(), ctx));
 		}
 
 	}
+
 	/**
 	 * Display attributes.
 	 *
 	 * @param set the set
 	 * @return the string
 	 */
-	protected String displayAttrs(ISet set,IBinaryContext ctx) {
+	protected String displayAttrs(ISet set, IBinaryContext ctx) {
 		StringBuilder sb = new StringBuilder();
 		for (Iterator<Integer> it = set.iterator(); it.hasNext();) {
 			if (sb.length() != 0) {
@@ -285,17 +309,31 @@ public abstract class ConceptOrderBuilder extends Command {
 		}
 		return sb.toString();
 	}
-	protected void produceConceptDescriptors(ConceptOrder order) throws IOException {
-		IBinaryContext ctx=order.getContext();
-		Map<Integer,String> descriptors=ConceptUtilities.buildDatalogDescriptor(order, siblingDeepSearch);
+
+	protected void produceConceptDescriptorsInFolder(ConceptOrder order) throws IOException {
+		IBinaryContext ctx = order.getContext();
+		Map<Integer, String> descriptors = ConceptUtilities.buildDatalogDescriptor(order, siblingDeepSearch);
 		for (int concept : descriptors.keySet()) {
-			String descriptor=descriptors.get(concept);
+			String descriptor = descriptors.get(concept);
 			FileWriter fileWriter = new FileWriter(
 					cdFolder.getPath() + File.separator + ctx.getName() + "Concept" + concept + ".datalog");
 			PrintWriter printWriter = new PrintWriter(fileWriter);
 			printWriter.append(descriptor);
 			printWriter.flush();
 			printWriter.close();
+		}
 	}
+	protected void produceConceptDescriptorsInFile(ConceptOrder order) throws IOException {
+		IBinaryContext ctx = order.getContext();
+		Map<Integer, String> descriptors = ConceptUtilities.buildDatalogDescriptor(order, siblingDeepSearch);
+		FileWriter fileWriter = new FileWriter(cdFile);
+		PrintWriter printWriter = new PrintWriter(fileWriter);
+		for (int concept : descriptors.keySet()) {
+			String descriptor = descriptors.get(concept);
+			printWriter.append(descriptor);
+			printWriter.append("\n");
+		}
+		printWriter.flush();
+		printWriter.close();
 	}
 }

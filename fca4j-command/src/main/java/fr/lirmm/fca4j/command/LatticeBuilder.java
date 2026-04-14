@@ -319,7 +319,9 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 			bw.close();
 		}
 		if(cdFolder!=null)
-			produceConceptDescriptors(result);
+			produceConceptDescriptorsInFolder(result);
+		if (cdFile != null)
+			produceConceptDescriptorsInFile(result);
 		// display chrono
 
 		System.out.println("duration: " + chrono.getResult(lat_algo.getDescription()) + " ms");

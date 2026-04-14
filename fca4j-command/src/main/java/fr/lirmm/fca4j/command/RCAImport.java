@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 
 import au.com.bytecode.opencsv.CSVReader;
+import fr.lirmm.fca4j.cli.io.CSVUtilities;
 import fr.lirmm.fca4j.cli.io.RCFALWriter;
 import fr.lirmm.fca4j.cli.io.RCFTWriter;
 import fr.lirmm.fca4j.core.BinaryContext;
@@ -195,6 +195,7 @@ public class RCAImport extends Command {
 			try {
 				String joiningCSVPath = workingPath + "/" + rc.path;
 				File csvFile = new File(joiningCSVPath);
+				separator=CSVUtilities.detectSeparator(csvFile);
 				CSVReader csvReader = new CSVReader(new FileReader(csvFile), separator);
 
 				List<String[]> records = csvReader.readAll();
@@ -244,6 +245,7 @@ public class RCAImport extends Command {
 			int[] d_q_base = convertListToArray(d_list_base_q);
 			// ---Ouverture du fichier CSV---
 			File csvFile = new File(input);
+			separator=CSVUtilities.detectSeparator(csvFile);			
 			CSVReader csvReader = new CSVReader(new FileReader(csvFile), separator);
 
 			List<String[]> records = csvReader.readAll();

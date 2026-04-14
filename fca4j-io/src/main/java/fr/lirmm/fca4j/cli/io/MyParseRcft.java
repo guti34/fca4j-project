@@ -140,8 +140,6 @@ public class MyParseRcft {
         String description=null;
         int algoParam=0;
 		
-System.out.println("oacName="+oacName);		
-		
 		input.mark(0);
 		String line = input.readLine();
 		String trimmedLine = line.trim();
@@ -206,6 +204,8 @@ System.out.println("oacName="+oacName);
 				}
 			}
 			else {
+				if(tokens.length==0)
+					throw new MyParserException("Invalid row: "+tline+" in formal context "+oacName, currentRow, 0);
 				String name = tokens[1].trim();
                                 objs.add(name);
 //				System.out.println("Entity " + name + " created. Line: " + currentRow);
@@ -277,8 +277,10 @@ System.out.println("oacName="+oacName);
 			String parameterName=trimmedLine.split("\\ ")[0];
 			if (parameterName.equals("description")) {
 				description=trimmedLine.substring(trimmedLine.split("\\ ")[0].length()).trim();
-			} else if (trimmedLine.split("\\ ").length!=2)
+			} else if (trimmedLine.split("\\ ").length!=2) {
+				System.out.println("bug: line="+line+" trimmed line="+trimmedLine);
 				throw new MyParserException("invalid number of arguments.",lineNumber,0);
+			}
 			else if (parameterName.equals("source")) {
 				source=trimmedLine.split("\\ ")[1];
 			} else if (parameterName.equals("target")) {

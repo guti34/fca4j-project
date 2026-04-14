@@ -56,7 +56,6 @@ import fr.lirmm.fca4j.command.RCACommand;
 import fr.lirmm.fca4j.command.RCAImport;
 import fr.lirmm.fca4j.command.Reducer;
 import fr.lirmm.fca4j.command.RuleBasisBuilder;
-import fr.lirmm.fca4j.command.ConceptDescriptor;
 import fr.lirmm.fca4j.iset.AbstractSetContext;
 
 /**
@@ -72,6 +71,8 @@ public class Main {
 	
 	/** The timeout. */
 	static long timeout = -1L;
+	/** exit code */
+	static int exitCode=0;
 
 	/**
 	 * The main method.
@@ -128,6 +129,7 @@ public class Main {
 			e.printStackTrace();
 			System.out.println(e.getClass().getName() + ": " + e.getMessage());
 			System.out.println("\nTry \"help " + command.name() + "\" to get help on command syntax\n");
+			exitCode=1;
 			return;
 		}
 		Runnable task = new Runnable() {
@@ -138,6 +140,7 @@ public class Main {
 					e.printStackTrace();
 //					System.out.println(e.getClass().getName() + ": " + e.getMessage());
 					System.out.println("Abort during algorithm execution\n");
+					exitCode=1;
 				}
 			}
 		};
@@ -153,6 +156,7 @@ public class Main {
 			executor.shutdown();
 		} else
 			task.run();
+		System.exit(exitCode);
 	}
 
 	/**

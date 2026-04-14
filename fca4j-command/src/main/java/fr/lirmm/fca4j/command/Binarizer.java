@@ -44,6 +44,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 
 import au.com.bytecode.opencsv.CSVReader;
+import fr.lirmm.fca4j.cli.io.CSVUtilities;
 import fr.lirmm.fca4j.core.BinaryContext;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISetContext;
@@ -52,22 +53,22 @@ import fr.lirmm.fca4j.iset.ISetContext;
  * The Class Binarizer.
  */
 public class Binarizer extends Command {
-	
+
 	/** The output file. */
 	protected File outputFile;
-	
+
 	/** The input file. */
 	protected File inputFile;
-	
+
 	/** The input format. */
 	protected ContextFormat inputFormat;
-	
+
 	/** The output format. */
 	protected ContextFormat outputFormat;
-	
+
 	/** all attributes are processed. */
 	protected boolean allAttributes = true;
-	
+
 	/** The selected attributes. */
 	protected String[] selectedAttributes = new String[0];
 
@@ -77,7 +78,7 @@ public class Binarizer extends Command {
 	 * @param setContext the set context
 	 */
 	public Binarizer(ISetContext setContext) {
-		super("binarize", "transform multivalued data table to formal context",setContext);
+		super("binarize", "transform multivalued data table to formal context", setContext);
 	}
 
 	/**
@@ -94,31 +95,28 @@ public class Binarizer extends Command {
 				.desc("supported formats are:\n* CSV (Comma separated values)\n* [upcoming formats...]").hasArg()
 				.argName("INPUT-FORMAT").build());
 		// output format
-		options.addOption(Option.builder("o")
-				.desc("supported formats are:\n* CXT (Burmeisters ConImp)\n* SLF (HTK Standard Latice Format)\n* XML (Galicia v3)\n* CEX (ConExp)\n* CSV (Comma separated values)")
+		options.addOption(Option.builder("o").desc(
+				"supported formats are:\n* CXT (Burmeisters ConImp)\n* SLF (HTK Standard Latice Format)\n* XML (Galicia v3)\n* CEX (ConExp)\n* CSV (Comma separated values)")
 				.hasArg().argName("OUTPUT-FORMAT").build());
 
 		declareCommon();
 	}
 
-/**
- * Check options.
- *
- * @param line the line
- * @throws Exception the exception
- */
-/*	
-	void declareNameGenerator(){		
-	// include obj names
-	options.addOption(Option.builder("gobj")
-			.desc("generate missing objet names (CSV format only)")
-			.hasArg().argName("SEPARATOR").build());
-	// include attr names
-	options.addOption(Option.builder("gattr")
-			.desc("generate missing attribute names (CSV format only)")
-			.hasArg().argName("SEPARATOR").build());
-}
-*/
+	/**
+	 * Check options.
+	 *
+	 * @param line the line
+	 * @throws Exception the exception
+	 */
+	/*
+	 * void declareNameGenerator(){ // include obj names
+	 * options.addOption(Option.builder("gobj")
+	 * .desc("generate missing objet names (CSV format only)")
+	 * .hasArg().argName("SEPARATOR").build()); // include attr names
+	 * options.addOption(Option.builder("gattr")
+	 * .desc("generate missing attribute names (CSV format only)")
+	 * .hasArg().argName("SEPARATOR").build()); }
+	 */
 	@Override
 	public void checkOptions(CommandLine line) throws Exception {
 		// input file
@@ -156,20 +154,19 @@ public class Binarizer extends Command {
 		if (outputFormat == null)
 			outputFormat = inputFormat;
 		// attribute selection
-		if (line.hasOption("excl")&& line.hasOption("incl")) 
+		if (line.hasOption("excl") && line.hasOption("incl"))
 			throw new Exception("options -incl and -excl are not compatible");
-			if (line.hasOption("excl")) {
-				selectedAttributes = line.getOptionValues("excl");
-			}
-			else if (line.hasOption("incl")) {
-				allAttributes=false;
-				selectedAttributes = line.getOptionValues("incl");
-			} 		
-			checkSeparator(line);
+		if (line.hasOption("excl")) {
+			selectedAttributes = line.getOptionValues("excl");
+		} else if (line.hasOption("incl")) {
+			allAttributes = false;
+			selectedAttributes = line.getOptionValues("incl");
+		}
+		checkSeparator(line);
 		// verbose
 		checkVerbose(line);
 	}
-	
+
 	/**
 	 * Check name generator.
 	 *
@@ -177,8 +174,8 @@ public class Binarizer extends Command {
 	 * @throws Exception the exception
 	 */
 	protected void checkNameGenerator(CommandLine line) throws Exception {
-		generateObjNames=line.hasOption("gobj");
-		generateAttrNames=line.hasOption("gattr");
+		generateObjNames = line.hasOption("gobj");
+		generateAttrNames = line.hasOption("gattr");
 	}
 
 	/**
@@ -199,7 +196,8 @@ public class Binarizer extends Command {
 			outputName = "standard output stream";
 		}
 		System.out.println(name() + " from " + inputFile.getName() + " to " + outputName);
-
+		if(separator=='?')
+			separator=CSVUtilities.detectSeparator(inputFile);
 		CSVReader csvReader = new CSVReader(new FileReader(inputFile), separator);
 		List<String[]> records = csvReader.readAll();
 		csvReader.close();

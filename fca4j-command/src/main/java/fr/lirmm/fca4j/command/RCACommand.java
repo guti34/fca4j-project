@@ -160,6 +160,8 @@ public class RCACommand extends Command {
 	boolean siblingDeepSearch = false;
 	/** The concept descriptor folder. */
 	protected File cdFolder;
+	/** The concept descriptor file. */
+	protected File cdFile;
 
 	/**
 	 * The Enum AlgoRCA.
@@ -239,6 +241,8 @@ public class RCACommand extends Command {
 		declareFamilyFormat("f", "FAMILY-FORMAT");
 		options.addOption(Option.builder("cd").desc("folder to generate a datalog file by concept for results").hasArg()
 				.argName("PATH").build());
+		options.addOption(Option.builder("cdu").desc("generate a unique datalog file with all concepts descriptions")
+				.hasArg().argName("DLGPFILE").build());
 		options.addOption(Option.builder("nds").desc(
 				"limit datalog concept descriptions to immediate siblings (it reduces production of negative constraints)")
 				.build());
@@ -347,7 +351,7 @@ public class RCACommand extends Command {
 		if (nameWithFullIntent)
 			nameWithReducedIntent = false;
 		nameWithReducedIntent2 = line.hasOption("rai");
-		if (line.hasOption("s") && !line.hasOption("cd")) {
+		if (line.hasOption("s") && !(line.hasOption("cd") || line.hasOption("cdu"))) {
 			throw new Exception("option -s is reserved to concept description. Must be used with -cd option");
 		}
 		if (line.hasOption("cd")) {
@@ -364,6 +368,16 @@ public class RCACommand extends Command {
 			if (!cdFolder.isDirectory()) {
 				throw new Exception("path " + cdFolderPath + " to store concept descriptions is not a directory");
 			}
+			// s option limit search of siblings to produce constraints
+			siblingDeepSearch = !line.hasOption("s");
+		}
+		if (line.hasOption("cdu")) {
+			String filePath = line.getOptionValue("cdu");
+			cdFile = new File(filePath);
+			if (!cdFile.exists()) {
+				cdFile.createNewFile();
+			} else if (!cdFile.canWrite())
+				throw new Exception("the specified datalog file path is not writable !");
 			// s option limit search of siblings to produce constraints
 			siblingDeepSearch = !line.hasOption("s");
 		}
@@ -530,14 +544,17 @@ public class RCACommand extends Command {
 						break;
 					}
 				}
-				if(thisIsTheEnd && cdFolder!=null) {
-					IBinaryContext ctx=cPoset.getContext();
-					String[] attrNames=new String[ctx.getAttributeCount()];
-					for(int attr=0;attr<ctx.getAttributeCount();attr++)
-					{
-					attrNames[attr] = AttributeRenamer.build(family, ctx.getAttributeName(attr), mode, -1, exploMFca.createConceptFinder());
+				if (thisIsTheEnd && (cdFolder != null || cdFile != null)) {
+					IBinaryContext ctx = cPoset.getContext();
+					String[] attrNames = new String[ctx.getAttributeCount()];
+					for (int attr = 0; attr < ctx.getAttributeCount(); attr++) {
+						attrNames[attr] = AttributeRenamer.build(family, ctx.getAttributeName(attr), mode, -1,
+								exploMFca.createConceptFinder());
 					}
-					produceConceptDescriptors(cPoset,attrNames);
+					if (cdFolder != null)
+						produceConceptDescriptorsInFolder(cPoset, attrNames);
+					if (cdFile != null)
+						produceConceptDescriptorsInFile(cPoset, attrNames);
 				}
 				if (storeAllExtendedFamily) {
 					String ext_name = "_step" + step;
@@ -608,9 +625,9 @@ public class RCACommand extends Command {
 		json_result.close();
 	}
 
-	protected void produceConceptDescriptors(ConceptOrder order,String[] attrNames) throws IOException {
-		IBinaryContext ctx=order.getContext();
-		Map<Integer, String> descriptors = ConceptUtilities.buildDatalogDescriptor(order, attrNames,siblingDeepSearch);
+	protected void produceConceptDescriptorsInFolder(ConceptOrder order, String[] attrNames) throws IOException {
+		IBinaryContext ctx = order.getContext();
+		Map<Integer, String> descriptors = ConceptUtilities.buildDatalogDescriptor(order, attrNames, siblingDeepSearch);
 		for (int concept : descriptors.keySet()) {
 			String descriptor = descriptors.get(concept);
 			FileWriter fileWriter = new FileWriter(
@@ -620,5 +637,19 @@ public class RCACommand extends Command {
 			printWriter.flush();
 			printWriter.close();
 		}
+	}
+
+	protected void produceConceptDescriptorsInFile(ConceptOrder order, String[] attrNames) throws IOException {
+		IBinaryContext ctx = order.getContext();
+		Map<Integer, String> descriptors = ConceptUtilities.buildDatalogDescriptor(order, attrNames, siblingDeepSearch);
+		FileWriter fileWriter = new FileWriter(cdFile);
+		PrintWriter printWriter = new PrintWriter(fileWriter);
+		for (int concept : descriptors.keySet()) {
+			String descriptor = descriptors.get(concept);
+			printWriter.append(descriptor);
+			printWriter.append("\n");
+		}
+		printWriter.flush();
+		printWriter.close();
 	}
 }

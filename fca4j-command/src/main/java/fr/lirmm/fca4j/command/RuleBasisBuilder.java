@@ -419,6 +419,7 @@ public class RuleBasisBuilder extends Command {
 	 */
 	private void printReport(List<Implication> implications, AlgoRuleBasis algo, ClosureStrategy closureStrategy,
 			Chrono chrono) throws IOException {
+		if(separator=='?') separator=',';
 		CSVWriter writer = new CSVWriter(new FileWriter(reportFile, reportExist), separator);
 		ArrayList<String> keys = new ArrayList<>();
 		ArrayList<String> values = new ArrayList<>();

@@ -96,7 +96,8 @@ public class UniversalReader {
 			}
 		}
 		buff.close();
-		IBinaryContext context=new BinaryContext(objects.size(), attributes.size(), file.getName(), factory);
+		String contextName=file.getName().replaceAll("\\s+", "_");
+		IBinaryContext context=new BinaryContext(objects.size(), attributes.size(), contextName, factory);
 		for(int numobj=0;numobj<objects.size();numobj++)
 			context.addObjectName(objects.get(numobj));
 		for(int numattr=0;numattr<attributes.size();numattr++)

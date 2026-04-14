@@ -99,7 +99,7 @@ public class ConExpReader {
                 Element contextElem = (Element) context_nl.item(numCtx);
                 String ctxName = "_" + numCtx;
                 if (contextElem.hasAttribute("Identifier")) {
-                    ctxName = contextElem.getAttribute("Identifier");
+                    ctxName = contextElem.getAttribute("Identifier").replaceAll("\\s+", "_");                    
                 }
                 IBinaryContext matrix = new BinaryContext(0, 0, ctxName,factory);
             HashMap<String, Integer> mapAttrId2Num = new HashMap<>();

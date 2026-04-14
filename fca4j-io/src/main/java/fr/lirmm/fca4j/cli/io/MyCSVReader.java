@@ -84,7 +84,7 @@ public class MyCSVReader {
         int nb_elem = lines.get(0).length;
         int nb_attr = inclObjNames ? nb_elem - 1 : nb_elem;
         int nb_obj = inclAttrNames ? lines.size() - 1 : lines.size();
-        IBinaryContext matrix = new BinaryContext(nb_obj, nb_attr, "Context from CSV",factory);
+        IBinaryContext matrix = new BinaryContext(nb_obj, nb_attr, "CSV_Context",factory);
         if (inclAttrNames) {
             for (int numcol = 0; numcol < nb_elem; numcol++) {
                 if (inclObjNames&& numcol == 0) continue;

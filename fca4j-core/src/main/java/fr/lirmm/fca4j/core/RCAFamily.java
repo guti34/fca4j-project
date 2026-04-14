@@ -692,4 +692,8 @@ public class RCAFamily {
     	}
     	return total;
     }
+
+	public void setOperator(RelationalContext rc, String newOp) {
+		rc.operator=newOp;		
+	}
 }
