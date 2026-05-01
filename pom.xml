@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.lirmm.fca4j</groupId>
 	<artifactId>fca4j-parent</artifactId>
-	<version>0.4.6</version>
+	<version>0.4.7</version>
 	<packaging>pom</packaging>
 	<name>FCA4J</name>
 	<description>a Java toolkit for formal concept analysis purposes</description>
@@ -24,7 +24,7 @@
 		<url>https://gite.lirmm.fr/gutierre/fca4j-project/</url>
 		<connection>scm:git:git@gite.lirmm.fr:gutierre/fca4j-project.git</connection>
 		<developerConnection>scm:git:git@gite.lirmm.fr:gutierre/fca4j-project.git</developerConnection>
-		<tag>fca4j-0.4.6</tag>
+		<tag>fca4j-0.4.7</tag>
 	</scm>
 	<developers>
 		<developer>

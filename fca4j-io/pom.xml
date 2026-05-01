@@ -3,7 +3,7 @@
   <parent>
     <groupId>fr.lirmm.fca4j</groupId>
     <artifactId>fca4j-parent</artifactId>
-    <version>0.4.6</version>
+    <version>0.4.7</version>
   </parent>
   <artifactId>fca4j-io</artifactId>
   <name>fca4j-io</name>

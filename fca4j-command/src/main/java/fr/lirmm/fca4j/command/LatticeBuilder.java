@@ -1,33 +1,7 @@
 /*
-BSD 3-Clause License
-
-Copyright (c) 2022 LIRMM
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-   * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-   * Neither the name of Google Inc. nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2022 LIRMM — BSD 3-Clause License
+ * See LICENSE file in the project root for full license text.
+ */
 package fr.lirmm.fca4j.command;
 
 import java.io.BufferedWriter;
@@ -43,7 +17,7 @@ import org.json.simple.JSONObject;
 
 import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
-import fr.lirmm.fca4j.algo.Lattice_AddExtent_Indexed;
+import fr.lirmm.fca4j.algo.Lattice_AddExtent_Parallel;
 import fr.lirmm.fca4j.algo.Lattice_AddIntent;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
@@ -88,6 +62,8 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		ADD_EXTENT, 
 		/** The LYAB algo */
 		ADD_INTENT,
+		/** GPU version */
+		ADD_EXTENT_GPU,
 		 /** The iceberg algo. */
 		 ICEBERG
 	};
@@ -242,9 +218,6 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		}
 		switch (algo) {
 		case ADD_EXTENT:
-//			lat_algo = new LCMConceptOrderBuilder(ctx,chrono);
-//			lat_algo = new LatticeBuilderFromLCM(ctx);
-//			lat_algo = new Lattice_AddExtent_Indexed(ctx, chrono);
 			lat_algo = new Lattice_AddExtent(ctx, chrono);
 			break;
 		case ADD_INTENT:			
@@ -253,6 +226,9 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		case ICEBERG:
 			lat_algo = new Lattice_Iceberg(ctx, percent, chrono);
 			break;
+		case ADD_EXTENT_GPU:
+		    lat_algo = new Lattice_AddExtent_Parallel(ctx, chrono);
+		    break;			
 		default:
 			throw new Exception("unknown algorithm");
 		}
