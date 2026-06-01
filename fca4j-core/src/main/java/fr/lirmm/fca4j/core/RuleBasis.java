@@ -136,7 +136,10 @@ public class RuleBasis {
             // Extraire les ensembles source et cible
             ISet source = ruleGraph.getEdgeSource(edge);
             ISet target = ruleGraph.getEdgeTarget(edge);
-            implications.add(new Implication(source,target,edge.getSupport())); // TODO manage support
+            if(edge.getSupport()==null)// TODO manage support
+            	implications.add(new Implication(source,target,-1)); 
+            else
+                implications.add(new Implication(source,target,edge.getSupport())); 
         }
     	return implications;
     }

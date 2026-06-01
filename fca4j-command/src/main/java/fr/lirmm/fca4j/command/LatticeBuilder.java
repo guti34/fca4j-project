@@ -63,7 +63,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		/** The LYAB algo */
 		ADD_INTENT,
 		/** GPU version */
-		ADD_EXTENT_GPU,
+//		ADD_EXTENT_GPU,
 		 /** The iceberg algo. */
 		 ICEBERG
 	};
@@ -226,9 +226,10 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		case ICEBERG:
 			lat_algo = new Lattice_Iceberg(ctx, percent, chrono);
 			break;
-		case ADD_EXTENT_GPU:
+/*		case ADD_EXTENT_GPU:
 		    lat_algo = new Lattice_AddExtent_Parallel(ctx, chrono);
-		    break;			
+		    break;	
+*/
 		default:
 			throw new Exception("unknown algorithm");
 		}

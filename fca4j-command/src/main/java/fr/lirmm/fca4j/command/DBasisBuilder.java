@@ -20,7 +20,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 import fr.lirmm.fca4j.algo.DBaseV18;
 import fr.lirmm.fca4j.algo.DBaseV19;
 import fr.lirmm.fca4j.algo.DBaseV20;
-import fr.lirmm.fca4j.algo.DBaseV23;
+import fr.lirmm.fca4j.algo.DBaseV24;
 import fr.lirmm.fca4j.cli.io.RuleExporter;
 import fr.lirmm.fca4j.cli.io.RuleExporters;
 import fr.lirmm.fca4j.core.IBinaryContext;
@@ -53,7 +53,7 @@ public class DBasisBuilder extends Command {
 	protected IBinaryContext ctx;
 
 	/** The algorithm. */
-	protected DBaseV23 algo;
+	protected DBaseV24 algo;
 
 	/** The input format. */
 	protected ContextFormat inputFormat;
@@ -293,7 +293,7 @@ public class DBasisBuilder extends Command {
 		ctx = readContext(inputFormat, inputFile);
 		if (poolMode == PoolMode.MONO)
 			maxThreads = 1;
-		algo = new DBaseV23(ctx, minSupport, maxThreads);
+		algo = new DBaseV24(ctx, minSupport, maxThreads);
 		System.out.println("running " + algo + " (" + impl + "/" + poolMode + ") data: " + inputFile.getName() + " ( "
 				+ ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
 		Chrono chrono = new Chrono("dbasis");
