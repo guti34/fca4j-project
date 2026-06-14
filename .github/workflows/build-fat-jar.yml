@@ -1,0 +1,53 @@
+name: Build fca4j-app-light fat JAR
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:   # déclenchement manuel possible
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            artifact-name: linux-x86_64
+          - os: macos-14          # Apple Silicon (ARM)
+            artifact-name: darwin-aarch64
+          - os: macos-13          # Intel (si tu veux couvrir les deux)
+            artifact-name: darwin-x86_64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Install CMake + GCC (Linux uniquement)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y cmake gcc
+
+      - name: Install CMake (macOS uniquement)
+        if: runner.os == 'macOS'
+        run: brew install cmake
+        # Xcode CLT (clang) est pré-installé sur les runners macOS
+
+      - name: Build fat JAR avec lib native
+        env:
+          FCA4J_BUILD_NATIVE: "true"
+        run: mvn package -pl fca4j-app-light -am -DskipTests
+
+      - name: Upload fat JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: fca4j-app-light-${{ matrix.artifact-name }}
+          path: fca4j-app-light/target/*-jar-with-dependencies.jar
+          if-no-files-found: error
