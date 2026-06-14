@@ -1,53 +1,132 @@
-name: Build fca4j-app-light fat JAR
+name: Build fca4j-app-light fat JAR (multi-platform)
 
 on:
   push:
     branches: [main, master]
-  workflow_dispatch:   # déclenchement manuel possible
+  workflow_dispatch:
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-24.04
-            artifact-name: linux-x86_64
-          - os: macos-14          # Apple Silicon (ARM)
-            artifact-name: darwin-aarch64
-          - os: macos-13          # Intel (si tu veux couvrir les deux)
-            artifact-name: darwin-x86_64
 
-    runs-on: ${{ matrix.os }}
-
+  # ── Job 1 : lib native Linux x86_64 ──────────────────────────────────────
+  native-linux-x86_64:
+    runs-on: ubuntu-24.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Install CMake + GCC
+        run: sudo apt-get install -y cmake gcc
+
+      - name: Compile
+        working-directory: fca4j-core-natif/src/main/native
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DJAVA_HOME=$JAVA_HOME
+          cmake --build build --config Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-linux-x86_64
+          path: fca4j-core-natif/src/main/native/build/libfca4j_dbasis.so
+          if-no-files-found: error
+
+  # ── Job 2 : lib native macOS ARM (M1/M2) ─────────────────────────────────
+  native-macos-aarch64:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Install CMake
+        run: brew install cmake
+        # clang/Xcode CLT pré-installé sur les runners macOS
+
+      - name: Compile
+        working-directory: fca4j-core-natif/src/main/native
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DJAVA_HOME=$JAVA_HOME
+          cmake --build build --config Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-macos-aarch64
+          path: fca4j-core-natif/src/main/native/build/libfca4j_dbasis.dylib
+          if-no-files-found: error
+
+  # ── Job 3 : lib native macOS Intel (x86_64) ──────────────────────────────
+  native-macos-x86_64:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Install CMake
+        run: brew install cmake
+
+      - name: Compile
+        working-directory: fca4j-core-natif/src/main/native
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DJAVA_HOME=$JAVA_HOME
+          cmake --build build --config Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-macos-x86_64
+          path: fca4j-core-natif/src/main/native/build/libfca4j_dbasis.dylib
+          if-no-files-found: error
+
+  # ── Job 4 : fat JAR universel ─────────────────────────────────────────────
+  # La DLL Windows est déjà dans src/main/resources/native/windows-x86_64/
+  # On injecte ici les libs Linux et macOS dans le même répertoire,
+  # puis on lance mvn package sans FCA4J_BUILD_NATIVE.
+  assemble-fat-jar:
+    runs-on: ubuntu-24.04
+    needs: [native-linux-x86_64, native-macos-aarch64, native-macos-x86_64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
 
-      - name: Install CMake + GCC (Linux uniquement)
-        if: runner.os == 'Linux'
-        run: sudo apt-get install -y cmake gcc
+      - name: Inject lib Linux
+        uses: actions/download-artifact@v4
+        with:
+          name: native-linux-x86_64
+          path: fca4j-core-natif/src/main/resources/native/linux-x86_64/
 
-      - name: Install CMake (macOS uniquement)
-        if: runner.os == 'macOS'
-        run: brew install cmake
-        # Xcode CLT (clang) est pré-installé sur les runners macOS
+      - name: Inject lib macOS ARM
+        uses: actions/download-artifact@v4
+        with:
+          name: native-macos-aarch64
+          path: fca4j-core-natif/src/main/resources/native/macos-aarch64/
 
-      - name: Build fat JAR avec lib native
-        env:
-          FCA4J_BUILD_NATIVE: "true"
+      - name: Inject lib macOS Intel
+        uses: actions/download-artifact@v4
+        with:
+          name: native-macos-x86_64
+          path: fca4j-core-natif/src/main/resources/native/macos-x86_64/
+
+      - name: Build fat JAR
+        # Pas de FCA4J_BUILD_NATIVE : les libs sont déjà dans les ressources
         run: mvn package -pl fca4j-app-light -am -DskipTests
 
       - name: Upload fat JAR
         uses: actions/upload-artifact@v4
         with:
-          name: fca4j-app-light-${{ matrix.artifact-name }}
+          name: fca4j-app-light-fat-jar
           path: fca4j-app-light/target/*-jar-with-dependencies.jar
           if-no-files-found: error

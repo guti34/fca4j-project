@@ -74,4 +74,7 @@ if(WIN32 AND MINGW)
     target_link_libraries(fca4j_dbasis pthread)
 endif()
 
-set_target_properties(fca4j_dbasis PROPERTIES OUTPUT_NAME "fca4j_dbasis" PREFIX "")
+set_target_properties(fca4j_dbasis PROPERTIES OUTPUT_NAME "fca4j_dbasis")
+if(WIN32)
+    set_target_properties(fca4j_dbasis PROPERTIES PREFIX "")
+endif()
