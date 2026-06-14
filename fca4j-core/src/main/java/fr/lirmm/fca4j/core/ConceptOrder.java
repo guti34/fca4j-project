@@ -96,7 +96,7 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      * @param bitsets the bitsets
      * @param buildExtentIntent the build extent intent
      */
-    public void populate(int[] concepts, int[] edges, BitSet[] bitsets, boolean buildExtentIntent) {
+    public void populate(int[] concepts, int[] edges, BitSet[] bitsets) {
         // add vertices to graph, rintent and rextent
         int ex = 0, in = 1;
         for (int i = 0; i < concepts.length; i++, ex += 2, in += 2) {
@@ -105,8 +105,8 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
                 counter = numConcept + 1;
             }
             hierarchy.addVertex(numConcept);
-            rextents.put(numConcept, factory.createSet(bitsets[ex],context.getObjectCount()));
-            rintents.put(numConcept, factory.createSet(bitsets[in],context.getAttributeCount()));
+            rextents.put(numConcept, factory.createSet(bitsets[ex], context.getObjectCount()));
+            rintents.put(numConcept, factory.createSet(bitsets[in], context.getAttributeCount()));
             extents.put(numConcept, factory.createSet(context.getObjectCount()));
             intents.put(numConcept, factory.createSet(context.getAttributeCount()));
         }
@@ -114,47 +114,53 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
         for (int edgeCounter = 0; edgeCounter < edges.length; edgeCounter += 2) {
             hierarchy.addEdge(edges[edgeCounter], edges[edgeCounter + 1]);
         }
-        // populate extents and intents
-        for (Iterator<Integer> it = getTopDownIterator(); it.hasNext();) {
-            int concept = it.next();
-            // retrieve maximals and minimals
+        // maximals / minimals (toujours nécessaires, indépendants des sets complets)
+        for (int i = 0; i < concepts.length; i++) {
+            int concept = concepts[i];
             if (hierarchy.outDegreeOf(concept) == 0) {
                 maximals.add(concept);
             }
             if (hierarchy.inDegreeOf(concept) == 0) {
                 minimals.add(concept);
             }
-            // build intent
-            getConceptIntent(concept).addAll(getConceptReducedIntent(concept));
-            for (Iterator<Integer> itChild = getLowerCoverIterator(concept); itChild.hasNext();) {
-                int sub = itChild.next();
-                getConceptIntent(sub).addAll(getConceptIntent(concept));
-            }
         }
-        for (Iterator<Integer> it = getBottomUpIterator(); it.hasNext();) {
-            int concept = it.next();
-            // build extent
-            getConceptExtent(concept).addAll(getConceptReducedExtent(concept));
-            for (Iterator<Integer> itParent = getUpperCoverIterator(concept); itParent.hasNext();) {
-                int parent = itParent.next();
-                getConceptExtent(parent).addAll(getConceptExtent(concept));
-            }
-        }
-        // populate context
-        for (Iterator<Integer> it = getBasicIterator(); it.hasNext();) {
-            int concept = it.next();
-            for (Iterator<Integer> itAttr = getConceptReducedIntent(concept).iterator(); itAttr.hasNext();) {
-                int numAttr = itAttr.next();
-                context.setExtent(numAttr, getConceptExtent(concept));
-            }
-            for (Iterator<Integer> itObj = getConceptReducedExtent(concept).iterator(); itObj.hasNext();) {
-                int numObj = itObj.next();
-                context.setIntent(numObj, getConceptIntent(concept));
-            }
-        }
-
     }
-
+        // intents/extents complets : nécessaires uniquement pour les consommateurs
+        // qui les lisent (extraction de règles…). La sortie JSON n'utilise que les
+        // sets réduits
+    public void buildExtentIntent() {
+            // build full intents (top-down)
+            for (Iterator<Integer> it = getTopDownIterator(); it.hasNext();) {
+                int concept = it.next();
+                getConceptIntent(concept).addAll(getConceptReducedIntent(concept));
+                for (Iterator<Integer> itChild = getLowerCoverIterator(concept); itChild.hasNext();) {
+                    int sub = itChild.next();
+                    getConceptIntent(sub).addAll(getConceptIntent(concept));
+                }
+            }
+            // build full extents (bottom-up)
+            for (Iterator<Integer> it = getBottomUpIterator(); it.hasNext();) {
+                int concept = it.next();
+                getConceptExtent(concept).addAll(getConceptReducedExtent(concept));
+                for (Iterator<Integer> itParent = getUpperCoverIterator(concept); itParent.hasNext();) {
+                    int parent = itParent.next();
+                    getConceptExtent(parent).addAll(getConceptExtent(concept));
+                }
+            }
+            // populate context
+            for (Iterator<Integer> it = getBasicIterator(); it.hasNext();) {
+                int concept = it.next();
+                for (Iterator<Integer> itAttr = getConceptReducedIntent(concept).iterator(); itAttr.hasNext();) {
+                    int numAttr = itAttr.next();
+                    context.setExtent(numAttr, getConceptExtent(concept));
+                }
+                for (Iterator<Integer> itObj = getConceptReducedExtent(concept).iterator(); itObj.hasNext();) {
+                    int numObj = itObj.next();
+                    context.setIntent(numObj, getConceptIntent(concept));
+                }
+            }
+    	
+    }
     /**
      * Gets the id.
      *
@@ -968,10 +974,89 @@ public void exportJSON(Writer writer){
     	}
     	rintents=newRIntents;
 }
+    /**
+     * Bulk insertion of cover edges (lower -> greater). Unlike
+     * addPrecedenceConnection, skips per-edge property-change events and per-edge
+     * extrema updates: maximal/minimal nodes are recomputed once at the end, and
+     * boxed vertex keys are reused to avoid re-boxing 2*|E| times.
+     */
+    public void addPrecedenceConnections(int[] lowers, int[] greaters) {
+        Integer[] box = new Integer[counter];
+        for (int i = 0; i < lowers.length; i++) {
+            int lo = lowers[i];
+            int gr = greaters[i];
+            Integer bl = box[lo];
+            if (bl == null) { bl = Integer.valueOf(lo); box[lo] = bl; }
+            Integer bg = box[gr];
+            if (bg == null) { bg = Integer.valueOf(gr); box[gr] = bg; }
+            hierarchy.addEdge(bl, bg);
+        }
+        maximals.clear(maximals.capacity());
+        minimals.clear(minimals.capacity());
+        for (int v : hierarchy.vertexSet()) {
+            if (hierarchy.outDegreeOf(v) == 0) maximals.add(v);
+            if (hierarchy.inDegreeOf(v) == 0) minimals.add(v);
+        }
+    }
+
+    /**
+     * Like substitution(...) but remaps only the reduced extents/intents (and the
+     * context). The full extents/intents are left as-is (clarified space): use it
+     * when only the reduced sets and the Hasse diagram are consumed downstream
+     * (e.g. the JSON lattice output), to avoid remapping hundreds of thousands of
+     * full extents needlessly.
+     */
+    public void substitutionReduced(IBinaryContext notClarifiedContext, List<ISet> attrClasses,
+            List<ISet> objClasses) {
+        this.context = notClarifiedContext;
+        HashMap<Integer, ISet> newRExtents = new HashMap<>();
+        for (int concept : rextents.keySet()) {
+            newRExtents.put(concept, substitution(rextents.get(concept), objClasses));
+        }
+        rextents = newRExtents;
+        HashMap<Integer, ISet> newRIntents = new HashMap<>();
+        for (int concept : rintents.keySet()) {
+            newRIntents.put(concept, substitution(rintents.get(concept), attrClasses));
+        }
+        rintents = newRIntents;
+    }
     public List<Integer> getShortestPath(int vertex1,int vertex2){
         DijkstraShortestPath<Integer, DefaultEdge> dijkstraAlg = new DijkstraShortestPath<>(hierarchy);
         GraphPath path=dijkstraAlg.getPath(vertex1, vertex2);
         return path==null ? null : path.getVertexList();
 
     }
-}
+
+    /**
+     * Turns this order (the lattice of the transposed context) into the lattice of
+     * the original context: swaps extents/intents and their reduced counterparts,
+     * reverses the Hasse diagram, swaps minimal/maximal nodes, and resets the
+     * context. Used by the auto-orientation in the parallel CbO lattice builder.
+     *
+     * @param originalContext the (untransposed) context the order should describe
+     */
+    public void dual(IBinaryContext originalContext) {
+        HashMap<Integer, ISet> swap = extents;
+        extents = intents;
+        intents = swap;
+        swap = rextents;
+        rextents = rintents;
+        rintents = swap;
+
+        // reverse every Hasse edge (the transposed lattice is the order-dual)
+        SimpleDirectedGraph<Integer, DefaultEdge> reversed = new SimpleDirectedGraph<>(DefaultEdge.class);
+        for (Integer v : hierarchy.vertexSet()) {
+            reversed.addVertex(v);
+        }
+        for (DefaultEdge e : hierarchy.edgeSet()) {
+            reversed.addEdge(hierarchy.getEdgeTarget(e), hierarchy.getEdgeSource(e));
+        }
+        hierarchy = reversed;
+
+        ISet swapSet = maximals;
+        maximals = minimals;
+        minimals = swapSet;
+
+        this.context = originalContext;
+    }
+    }

@@ -114,6 +114,7 @@ public interface IConceptOrder {
      */
     public void addPrecedenceConnection(int lower, int greater);
 
+    public void addPrecedenceConnections(int[] lowers, int[] greaters);
     /**
      * Removes the precedence connection.
      *

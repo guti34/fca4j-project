@@ -345,7 +345,8 @@ public abstract class ExploRCA {
 		}
 		try {
 			ConceptOrder newConceptOrder = new ConceptOrder(order.getId(), order.getContext(), order.getAlgoName());
-			newConceptOrder.populate(concepts, edges, bitsets, true);
+			newConceptOrder.populate(concepts, edges, bitsets);
+			newConceptOrder.buildExtentIntent();
 			return newConceptOrder;
 		} catch (Exception e) {
 			boolean b1 = controlCO(order);

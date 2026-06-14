@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>fr.lirmm.fca4j</groupId>
+        <artifactId>fca4j-parent</artifactId>
+        <version>0.4.7</version>
+    </parent>
+
+    <artifactId>fca4j-core-natif</artifactId>
+    <packaging>jar</packaging>
+    <name>FCA4J Core Natif</name>
+    <description>
+        Optimisations natives pour fca4j-core : binding JNI/CRoaring pour DBasis,
+        avec fallback Java pur transparent selon la plateforme.
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>fr.lirmm.fca4j</groupId>
+            <artifactId>fca4j-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.lirmm.fca4j</groupId>
+            <artifactId>fca4j-iset</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                Profil de build natif : activé uniquement si la variable
+                d'environnement FCA4J_BUILD_NATIVE=true est positionnée.
+                En son absence, le JAR est produit sans lib native (fallback Java).
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>build-native</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target if="env.FCA4J_BUILD_NATIVE">
+                                <echo message="Building native library via CMake..."/>
+                                <mkdir dir="${project.build.directory}/native-build"/>
+                                <exec executable="cmake" dir="${project.build.directory}/native-build"
+                                      failonerror="true">
+                                    <arg value="${project.basedir}/src/main/native"/>
+                                    <arg value="-DJAVA_HOME=${java.home}"/>
+                                    <arg value="-DCMAKE_BUILD_TYPE=Release"/>
+                                </exec>
+                                <exec executable="cmake" dir="${project.build.directory}/native-build"
+                                      failonerror="true">
+                                    <arg value="--build"/>
+                                    <arg value="."/>
+                                    <arg value="--config"/>
+                                    <arg value="Release"/>
+                                </exec>
+                                <!-- Copie la lib dans resources/native/<platform>/ -->
+                                <copy todir="${project.build.outputDirectory}/native" flatten="false">
+                                    <fileset dir="${project.build.directory}/native-build">
+                                        <include name="*.so"/>
+                                        <include name="*.dll"/>
+                                        <include name="*.dylib"/>
+                                    </fileset>
+                                </copy>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

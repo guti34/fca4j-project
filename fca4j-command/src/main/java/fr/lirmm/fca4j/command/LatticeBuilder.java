@@ -19,7 +19,11 @@ import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent_Parallel;
 import fr.lirmm.fca4j.algo.Lattice_AddIntent;
+import fr.lirmm.fca4j.algo.Lattice_ParallelCbO;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
+import fr.lirmm.fca4j.core.natif.FastLatticeAddExtent;
+import fr.lirmm.fca4j.core.natif.FastLatticeCbO;
+import fr.lirmm.fca4j.core.natif.impl.NativeLatticeAddExtent;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.ConceptOrderXMLWriter;
 import fr.lirmm.fca4j.core.ConceptOrder;
@@ -51,19 +55,20 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 	/** The percent. */
 	protected int percent = -1;
 
+	/** use native code when available (ADD_EXTENT only), true by default */
+	protected boolean useNativeCode = true;
+
 	/**
 	 * The Enum AlgoLattice.
 	 */
 	enum AlgoLattice {
 		
-		/** choose algo dynamically algo. */
-		AUTO, 
+		/**The lattice parallel Cbo algo */
+		PARALLEL_CBO,
 		/** The add extent algo. */
 		ADD_EXTENT, 
 		/** The LYAB algo */
 		ADD_INTENT,
-		/** GPU version */
-//		ADD_EXTENT_GPU,
 		 /** The iceberg algo. */
 		 ICEBERG
 	};
@@ -75,7 +80,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 	 */
 	public LatticeBuilder(ISetContext setContext) {
 		super("lattice",
-				"builds a concept lattice. ADD_EXTENT and ADD_INTENT algorithms build the complete concept lattice. ICEBERG builds a lattice with only the top-most concepts of the concept lattice. A bottom concept is added that groups remaining attributes (not introduced by a frequent concept extent) and transforms the semi-lattice into a lattice. Euclidian division is used in FCA4J: e.g. In Iceberg50,  the concepts have an extent whose cardinality is >= total object count * 50 /100, where / is Euclidian division",setContext);
+				"builds a concept lattice. PARALLEL_CBO, ADD_EXTENT and ADD_INTENT algorithms build the complete concept lattice. ICEBERG builds a lattice with only the top-most concepts of the concept lattice. A bottom concept is added that groups remaining attributes (not introduced by a frequent concept extent) and transforms the semi-lattice into a lattice. Euclidian division is used in FCA4J: e.g. In Iceberg50,  the concepts have an extent whose cardinality is >= total object count * 50 /100, where / is Euclidian division",setContext);
 	}
 
 	/**
@@ -94,7 +99,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		}
 		// algo
 		options.addOption(
-				Option.builder("a").desc("choose AUTO to select dynamically the best algorithm. Supported algorithms are:" + sb_algo_lat).hasArg().argName("ALGO").build());
+				Option.builder("a").desc("Supported algorithms are:" + sb_algo_lat).hasArg().argName("ALGO").build());
 		// percent
 		options.addOption(Option.builder("p").desc("for ICEBERG: percentage (of extent) to keep the top-most concepts")
 				.hasArg().argName("PERCENT").build());
@@ -108,6 +113,10 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 //		declareImplicationsOptions();
 		// implementation
 		declareImplementation(false);
+		// native code (ADD_EXTENT only)
+		options.addOption(Option.builder("dnc")
+				.desc("disable native code (CRoaring/JNI), use Java implementation instead")
+				.build());
 		// concept descriptors
 		declareConceptDescriptorOptions();
 		// common options
@@ -161,7 +170,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 			if (algo == null)
 				throw new Exception("unknown algorithm: " + line.getOptionValue("a"));
 		} else
-			algo = AlgoLattice.ADD_EXTENT;
+			algo = AlgoLattice.PARALLEL_CBO;
 		// percent
 		if (algo == AlgoLattice.ICEBERG) {
 			if (!line.hasOption("p"))
@@ -180,6 +189,8 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		}
 		// concept descriptor options
 		checkConceptDescriptorOptions(line);
+		// native code
+		useNativeCode = !line.hasOption("dnc");
 		// separator
 		checkSeparator(line);
 		// verbose
@@ -198,30 +209,23 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		Chrono chrono = new Chrono("lattice");
 		AbstractAlgo<ConceptOrder> lat_algo;
 		// choose algo dynamically
-		if(algo==AlgoLattice.AUTO) {
-	          double sumIntentSize = 0.0;
-	            for (int obj = 0; obj < ctx.getObjectCount(); obj++)
-	                sumIntentSize += ctx.getIntent(obj).cardinality();
-
-	            double sumExtentSize = 0.0;
-	            for (int attr = 0; attr < ctx.getAttributeCount(); attr++)
-	                sumExtentSize += ctx.getExtent(attr).cardinality();
-
-	            double avgIntent = sumIntentSize / ctx.getObjectCount();
-	            double avgExtent = sumExtentSize / ctx.getAttributeCount();
-	            boolean useAddIntent = avgIntent < avgExtent;
-	        if(useAddIntent)
-	        	algo=AlgoLattice.ADD_INTENT;
-	        else 
-	        	algo=AlgoLattice.ADD_EXTENT;
-			
-		}
 		switch (algo) {
 		case ADD_EXTENT:
-			lat_algo = new Lattice_AddExtent(ctx, chrono);
+			if (useNativeCode) {
+				lat_algo = FastLatticeAddExtent.create(ctx);
+			} else {
+				lat_algo = new Lattice_AddExtent(ctx, chrono);
+			}
 			break;
-		case ADD_INTENT:			
+		case ADD_INTENT:
 			lat_algo = new Lattice_AddIntent(ctx,chrono);
+			break;
+		case PARALLEL_CBO:
+			if (useNativeCode) {
+			lat_algo = FastLatticeCbO.create(ctx);
+			} else {
+				lat_algo = new Lattice_ParallelCbO(ctx,chrono);
+			}
 			break;
 		case ICEBERG:
 			lat_algo = new Lattice_Iceberg(ctx, percent, chrono);
@@ -233,11 +237,19 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		default:
 			throw new Exception("unknown algorithm");
 		}
-		System.out.println("running " + algo + " (" + impl + ") data: " + inputFile.getName() + " ( " + ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
+		String engine = useNativeCode ? "native C" : "java";
+		System.out.println("running " + algo + " (" + impl + ", " + engine + ") data: "
+				+ inputFile.getName() + " ( " + ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
 		chrono.start(lat_algo.getDescription());
 		lat_algo.run();
 		chrono.stop(lat_algo.getDescription());
 		ConceptOrder result = lat_algo.getResult();
+		// complete full extent and intent for native ADD_EXTENT and PARRALEL_CBO
+		if(options.hasOption("g")||options.hasOption("itp")||options.hasOption("idf")||options.hasOption("ibf"))
+		{
+		if(useNativeCode && (algo==AlgoLattice.ADD_EXTENT ||algo==AlgoLattice.PARALLEL_CBO))
+			result.buildExtentIntent();	
+		}
 
 		// output result
 		BufferedWriter writer;

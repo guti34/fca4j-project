@@ -1,0 +1,28 @@
+CMakeFiles/fca4j_dbasis.dir/core/strbuf.c.obj: \
+ C:\platform\fca4j-project\fca4j-core-natif\src\main\native\core\strbuf.c \
+ C:\platform\fca4j-project\fca4j-core-natif\src\main\native\core\strbuf.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/stdio.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/corecrt_stdio_config.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/corecrt.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/_mingw.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/_mingw_mac.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/_mingw_secapi.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/vadefs.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/_mingw_off_t.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/swprintf.inl \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/sec_api/stdio_s.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/stdlib.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/corecrt_wstdlib.h \
+ C:/dev_tools/mingw64/lib/gcc/x86_64-w64-mingw32/16.1.0/include/limits.h \
+ C:/dev_tools/mingw64/lib/gcc/x86_64-w64-mingw32/16.1.0/include/syslimits.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/limits.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/crtdefs.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/sec_api/stdlib_s.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/malloc.h \
+ C:/dev_tools/mingw64/lib/gcc/x86_64-w64-mingw32/16.1.0/include/mm_malloc.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/errno.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/string.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/sec_api/string_s.h \
+ C:/dev_tools/mingw64/lib/gcc/x86_64-w64-mingw32/16.1.0/include/stdarg.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/stdarg.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/_mingw_stdarg.h

@@ -50,6 +50,7 @@
 	</properties>
 	<modules>
 		<module>fca4j-core</module>
+		<module>fca4j-core-natif</module>
 		<module>fca4j-iset</module>
 		<module>fca4j-app</module>
 		<module>fca4j-io</module>

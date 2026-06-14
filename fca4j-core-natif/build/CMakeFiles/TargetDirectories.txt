@@ -1,0 +1,3 @@
+C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/fca4j_dbasis.dir
+C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/edit_cache.dir
+C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/platform/fca4j-project/fca4j-core-natif/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -21,13 +21,13 @@ import fr.lirmm.fca4j.algo.DBaseV18;
 import fr.lirmm.fca4j.algo.DBaseV19;
 import fr.lirmm.fca4j.algo.DBaseV20;
 import fr.lirmm.fca4j.algo.DBaseV24;
+import fr.lirmm.fca4j.core.natif.FastDBaseV24;
 import fr.lirmm.fca4j.cli.io.RuleExporter;
 import fr.lirmm.fca4j.cli.io.RuleExporters;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
-import fr.lirmm.fca4j.util.RuleUtilities;
 
 /**
  * The Class RuleBasisBuilder.
@@ -66,6 +66,9 @@ public class DBasisBuilder extends Command {
 
 	/** threading */
 	protected PoolMode poolMode = PoolMode.MULTITHREAD;
+
+	/** use native code (CRoaring/JNI) when available, true by default */
+	protected boolean useNativeCode = true;
 	
 	/** basis rule export format */
 	protected RuleBasisFormat ruleBasisFormat;
@@ -111,6 +114,10 @@ public class DBasisBuilder extends Command {
 
 		// implementation
 		declareImplementation(true);
+		// native code
+		options.addOption(Option.builder("dnc")
+				.desc("disable native code (CRoaring/JNI), use Java implementation instead")
+				.build());
 		// common options
 		declareCommon();
 	}
@@ -183,6 +190,8 @@ public class DBasisBuilder extends Command {
 		}
 		// output format
 		ruleBasisFormat=checkRuleBasisFormat(line, outputFileName,"o");
+		// native code
+		useNativeCode = !line.hasOption("dnc");
 		// separator
 		checkSeparator(line);
 		// verbose
@@ -264,6 +273,8 @@ public class DBasisBuilder extends Command {
 		values.add(algo.toString());
 		keys.add("pool_mode");
 		values.add("" + poolMode);
+		keys.add("native_backend");
+		values.add(FastDBaseV24.activeBackend());
 		keys.add("set_impl");
 		values.add(impl.toString());
 		keys.add("time_exec");
@@ -293,8 +304,13 @@ public class DBasisBuilder extends Command {
 		ctx = readContext(inputFormat, inputFile);
 		if (poolMode == PoolMode.MONO)
 			maxThreads = 1;
-		algo = new DBaseV24(ctx, minSupport, maxThreads);
-		System.out.println("running " + algo + " (" + impl + "/" + poolMode + ") data: " + inputFile.getName() + " ( "
+		if (useNativeCode) {
+			algo = FastDBaseV24.create(ctx, minSupport, maxThreads);
+		} else {
+			algo = new DBaseV24(ctx, minSupport, maxThreads);
+		}
+		System.out.println("running " + algo + " (" + impl + "/" + poolMode
+				 + ") data: " + inputFile.getName() + " ( "
 				+ ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
 		Chrono chrono = new Chrono("dbasis");
 		chrono.start(algo.getDescription());

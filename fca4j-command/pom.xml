@@ -26,6 +26,11 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.lirmm.fca4j</groupId>
+			<artifactId>fca4j-core-natif</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.lirmm.fca4j</groupId>
 			<artifactId>fca4j-io</artifactId>
 			<version>${project.version}</version>
 		</dependency>

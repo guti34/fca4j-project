@@ -21,6 +21,8 @@ import fr.lirmm.fca4j.algo.AOC_poset_Ceres;
 import fr.lirmm.fca4j.algo.AOC_poset_Hermes;
 import fr.lirmm.fca4j.algo.AOC_poset_Pluton;
 import fr.lirmm.fca4j.algo.AbstractAlgo;
+import fr.lirmm.fca4j.core.natif.FastAOCPosetHermes;
+import fr.lirmm.fca4j.core.natif.impl.NativeAOCPosetHermes;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.ConceptOrderXMLWriter;
 import fr.lirmm.fca4j.cli.io.SLFReader;
@@ -50,6 +52,9 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 	
 	/** The algo. */
 	protected AlgoAOCPoset algo;
+
+	/** use native code when available (HERMES only), true by default */
+	protected boolean useNativeCode = true;
 
 	/**
 	 * The Enum AlgoAOCPoset.
@@ -102,6 +107,10 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 //		declareImplicationsOptions();
 		// implementation
 		declareImplementation(false);
+		// native code (HERMES only)
+		options.addOption(Option.builder("dnc")
+				.desc("disable native code (JNI) for HERMES, use Java implementation instead")
+				.build());
 		// concept descriptors
 		declareConceptDescriptorOptions();
 		// common options
@@ -158,6 +167,8 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 			algo = AlgoAOCPoset.HERMES;
 		// concept descriptor options
 		checkConceptDescriptorOptions(line);
+		// native code
+		useNativeCode = !line.hasOption("dnc");
 		// separator
 		checkSeparator(line);
 		// verbose
@@ -180,7 +191,11 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 //			aoc_algo = new AOC_poset_Athena(ctx, chrono);
 //			break;
 		case HERMES:
-			aoc_algo = new AOC_poset_Hermes(ctx, chrono);
+			if (useNativeCode) {
+				aoc_algo = FastAOCPosetHermes.create(ctx);
+			} else {
+				aoc_algo = new AOC_poset_Hermes(ctx, chrono);
+			}
 			break;
 		case PLUTON:
 			aoc_algo = new AOC_poset_Pluton(ctx, chrono);
@@ -194,7 +209,8 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		default:
 			throw new Exception("unknown algorithm");
 		}
-		System.out.println("running " + algo + " (" + impl + ") data: " + inputFile.getName() + " ( " + ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
+		String engine = (aoc_algo instanceof NativeAOCPosetHermes) ? "native C" : "java";
+		System.out.println("running " + algo + " (" + impl + ", " + engine + ") data: " + inputFile.getName() + " ( " + ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
 		chrono.start(aoc_algo.getDescription());
 		aoc_algo.run();
 		chrono.stop(aoc_algo.getDescription());

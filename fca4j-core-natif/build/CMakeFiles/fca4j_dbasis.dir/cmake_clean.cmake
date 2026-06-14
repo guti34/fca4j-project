@@ -1,0 +1,41 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/fca4j_dbasis.dir/algo/addextent.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/algo/addextent.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/algo/dbasis.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/algo/dbasis.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/algo/hermes.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/algo/hermes.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/core/clarification.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/core/clarification.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/core/closure.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/core/closure.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/core/conceptorder.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/core/conceptorder.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/core/context.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/core/context.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/core/graph.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/core/graph.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/core/implication.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/core/implication.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/core/strbuf.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/core/strbuf.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/core/tarjan.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/core/tarjan.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/croaring/roaring.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/croaring/roaring.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj.d"
+  "fca4j_dbasis.dll"
+  "fca4j_dbasis.dll.manifest"
+  "fca4j_dbasis.pdb"
+  "libfca4j_dbasis.dll.a"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang C)
+  include(CMakeFiles/fca4j_dbasis.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

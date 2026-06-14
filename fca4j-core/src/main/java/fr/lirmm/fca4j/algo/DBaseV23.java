@@ -379,7 +379,7 @@ public class DBaseV23 implements AbstractAlgo<List<Implication>> {
      * @param b target attribute
      * @return the set of minimal generators of b
      */
-    protected Set<ISet> computeMinimalGenerators(int b) {
+    public Set<ISet> computeMinimalGenerators(int b) {
 
 		// 1. Construction du hypergraphe
 		List<ISet> hypergraph = new ArrayList<>();
