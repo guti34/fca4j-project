@@ -46,7 +46,6 @@ jobs:
 
       - name: Install CMake
         run: brew install cmake
-        # clang/Xcode CLT pré-installé sur les runners macOS
 
       - name: Compile
         working-directory: fca4j-core-natif/src/main/native
@@ -60,7 +59,7 @@ jobs:
           path: fca4j-core-natif/src/main/native/build/libfca4j_dbasis.dylib
           if-no-files-found: error
 
-  # ── Job 3 : lib native macOS Intel (x86_64) ──────────────────────────────
+  # ── Job 3 : lib native macOS Intel ───────────────────────────────────────
   native-macos-x86_64:
     runs-on: macos-13
     steps:
@@ -86,13 +85,13 @@ jobs:
           path: fca4j-core-natif/src/main/native/build/libfca4j_dbasis.dylib
           if-no-files-found: error
 
-  # ── Job 4 : fat JAR universel ─────────────────────────────────────────────
-  # La DLL Windows est déjà dans src/main/resources/native/windows-x86_64/
-  # On injecte ici les libs Linux et macOS dans le même répertoire,
-  # puis on lance mvn package sans FCA4J_BUILD_NATIVE.
-  assemble-fat-jar:
+  # ── Job 4 : fat JAR universel + publication + déclenchement fca4j-ui ─────
+  assemble-and-publish:
     runs-on: ubuntu-24.04
     needs: [native-linux-x86_64, native-macos-aarch64, native-macos-x86_64]
+    permissions:
+      contents: write   # nécessaire pour créer/mettre à jour la release
+
     steps:
       - uses: actions/checkout@v4
 
@@ -121,12 +120,29 @@ jobs:
           path: fca4j-core-natif/src/main/resources/native/macos-x86_64/
 
       - name: Build fat JAR
-        # Pas de FCA4J_BUILD_NATIVE : les libs sont déjà dans les ressources
         run: mvn package -pl fca4j-app-light -am -DskipTests
 
-      - name: Upload fat JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: fca4j-app-light-fat-jar
-          path: fca4j-app-light/target/*-jar-with-dependencies.jar
-          if-no-files-found: error
+      - name: Renommer pour URL stable
+        run: |
+          cp fca4j-app-light/target/*-jar-with-dependencies.jar \
+             fca4j-app-light/target/fca4j.jar
+
+      - name: Publier sur la release "continuous"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag -f continuous
+          git push -f origin continuous
+          gh release delete continuous --yes 2>/dev/null || true
+          gh release create continuous \
+            --title "Latest Build" \
+            --notes "Fat JAR multiplateforme (Windows x86_64, Linux x86_64, macOS ARM/Intel)." \
+            --prerelease \
+            fca4j-app-light/target/fca4j.jar
+
+      - name: Déclencher le build fca4j-ui
+        env:
+          GITHUB_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
+        run: |
+          gh api repos/guti34/fca4j-ui/dispatches \
+            -f event_type=fat-jar-updated
