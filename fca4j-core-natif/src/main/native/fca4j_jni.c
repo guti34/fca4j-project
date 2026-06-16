@@ -223,6 +223,14 @@ Java_fr_lirmm_fca4j_core_natif_NativeBridge_runLatticeCbOFlat(
     free(flat);
     return result;
 }
+/* ── Types et comparateur pour computeMinimalGenerators ─────────────────
+ * Définis au niveau fichier pour compatibilité Clang/MSVC
+ * (les fonctions imbriquées sont une extension GCC non portable).        */
+typedef struct { int *attrs; int size; } Edge;
+static int cmp_e(const void *a, const void *b) {
+    return ((Edge*)a)->size - ((Edge*)b)->size;
+}
+
 /* ── computeMinimalGenerators (utilisé en mode MULTITHREAD) ──────────── */
 
 JNIEXPORT jobjectArray JNICALL
@@ -249,7 +257,6 @@ Java_fr_lirmm_fca4j_core_natif_NativeBridge_computeMinimalGenerators(
     }
 
     /* Construction hypergraphe directement */
-    typedef struct { int *attrs; int size; } Edge;
     Edge *edges  = (Edge*)malloc(nb_obj * sizeof(Edge));
     int   nedges = 0;
     bool  trivial = false;
@@ -275,7 +282,6 @@ Java_fr_lirmm_fca4j_core_natif_NativeBridge_computeMinimalGenerators(
     }
 
     /* Tri par cardinalité */
-    int cmp_e(const void *a, const void *b) { return ((Edge*)a)->size - ((Edge*)b)->size; }
     qsort(edges, nedges, sizeof(Edge), cmp_e);
 
     /* Index inversé CSR */
