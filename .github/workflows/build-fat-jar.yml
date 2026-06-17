@@ -109,8 +109,10 @@ jobs:
             fca4j-app-light/target/fca4j.jar
 
       - name: Déclencher le build fca4j-ui
-        env:
-          GITHUB_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
         run: |
-          gh api repos/guti34/fca4j-ui/dispatches \
-            -f event_type=fat-jar-updated
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.DISPATCH_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/guti34/fca4j-ui/dispatches \
+            -d '{"event_type":"fat-jar-updated"}' \
+            --fail-with-body
