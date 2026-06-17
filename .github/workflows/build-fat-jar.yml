@@ -59,36 +59,10 @@ jobs:
           path: fca4j-core-natif/src/main/native/build/libfca4j_dbasis.dylib
           if-no-files-found: error
 
-  # ── Job 3 : lib native macOS Intel ───────────────────────────────────────
-  native-macos-x86_64:
-    runs-on: macos-13
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Install CMake
-        run: brew install cmake
-
-      - name: Compile
-        working-directory: fca4j-core-natif/src/main/native
-        run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DJAVA_HOME=$JAVA_HOME
-          cmake --build build --config Release
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: native-macos-x86_64
-          path: fca4j-core-natif/src/main/native/build/libfca4j_dbasis.dylib
-          if-no-files-found: error
-
-  # ── Job 4 : fat JAR universel + publication + déclenchement fca4j-ui ─────
+   # ── Job 3 : fat JAR universel + publication + déclenchement fca4j-ui ─────
   assemble-and-publish:
     runs-on: ubuntu-24.04
-    needs: [native-linux-x86_64, native-macos-aarch64, native-macos-x86_64]
+    needs: [native-linux-x86_64, native-macos-aarch64]
     permissions:
       contents: write   # nécessaire pour créer/mettre à jour la release
 
@@ -112,12 +86,6 @@ jobs:
         with:
           name: native-macos-aarch64
           path: fca4j-core-natif/src/main/resources/native/macos-aarch64/
-
-      - name: Inject lib macOS Intel
-        uses: actions/download-artifact@v4
-        with:
-          name: native-macos-x86_64
-          path: fca4j-core-natif/src/main/resources/native/macos-x86_64/
 
       - name: Build fat JAR
         run: mvn package -pl fca4j-app-light -am -DskipTests
