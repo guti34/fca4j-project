@@ -43,7 +43,7 @@ git push origin main             # déclenche le miroir GitLab → GitHub
 
 Le pipeline GitHub Actions se lance automatiquement :
 
-- compile `libfca4j_dbasis.so` (Linux) et `libfca4j_dbasis.dylib` (macOS ARM)
+- compile `libfca4j_dbasis.so` (Linux) et `libfca4j_dbasis.dylib` (macOS ARM), la version windows DLL est déjà compilée localement
 - assemble le fat JAR multiplateforme
 - publie sur la release **`continuous`** de `fca4j-project`
 - déclenche le build `fca4j-ui`
