@@ -17,15 +17,12 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 
 import au.com.bytecode.opencsv.CSVWriter;
-import fr.lirmm.fca4j.algo.DBaseV18;
-import fr.lirmm.fca4j.algo.DBaseV19;
-import fr.lirmm.fca4j.algo.DBaseV20;
 import fr.lirmm.fca4j.algo.DBaseV24;
-import fr.lirmm.fca4j.core.natif.FastDBaseV24;
 import fr.lirmm.fca4j.cli.io.RuleExporter;
 import fr.lirmm.fca4j.cli.io.RuleExporters;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
+import fr.lirmm.fca4j.core.natif.FastDBaseV24;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
 
@@ -115,8 +112,8 @@ public class DBasisBuilder extends Command {
 		// implementation
 		declareImplementation(true);
 		// native code
-		options.addOption(Option.builder("dnc")
-				.desc("disable native code (CRoaring/JNI), use Java implementation instead")
+		options.addOption(Option.builder("native")
+				.desc("enable native code (CRoaring/JNI), use C implementation instead")
 				.build());
 		// common options
 		declareCommon();
@@ -191,7 +188,7 @@ public class DBasisBuilder extends Command {
 		// output format
 		ruleBasisFormat=checkRuleBasisFormat(line, outputFileName,"o");
 		// native code
-		useNativeCode = !line.hasOption("dnc");
+		useNativeCode = line.hasOption("native");
 		// separator
 		checkSeparator(line);
 		// verbose
@@ -309,7 +306,8 @@ public class DBasisBuilder extends Command {
 		} else {
 			algo = new DBaseV24(ctx, minSupport, maxThreads);
 		}
-		System.out.println("running " + algo + " (" + impl + "/" + poolMode
+		String engine = useNativeCode ? "native C" : "java";
+		System.out.println("running " + algo + " (" + impl +"/"+poolMode+ ", " + engine
 				 + ") data: " + inputFile.getName() + " ( "
 				+ ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
 		Chrono chrono = new Chrono("dbasis");

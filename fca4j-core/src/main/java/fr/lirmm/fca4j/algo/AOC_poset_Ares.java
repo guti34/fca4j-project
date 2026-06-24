@@ -9,8 +9,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import fr.lirmm.fca4j.core.ConceptOrder;
+import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
@@ -19,10 +20,10 @@ import fr.lirmm.fca4j.util.Chrono;
 /**
  * The Class AOC_poset_Ares.
  */
-public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
+public class AOC_poset_Ares implements AbstractAlgo<IConceptOrder> {
 
     private IBinaryContext matrix; //ressource d'entree
-    private ConceptOrder gsh; //ressource de sortie
+    private IConceptOrder gsh; //ressource de sortie
     private Chrono chrono = null; // eventually a chrono to store execution time 
     private boolean acposet;
     private boolean ocposet;
@@ -47,7 +48,7 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
      * @param ocposet build ocposet
      * @param acposet build acposet
      */
-    public AOC_poset_Ares(IBinaryContext matrix, Chrono chrono, ConceptOrder gsh, boolean ocposet, boolean acposet) {
+    public AOC_poset_Ares(IBinaryContext matrix, Chrono chrono, IConceptOrder gsh, boolean ocposet, boolean acposet) {
         super();
         this.gsh = gsh;
         this.matrix = matrix;
@@ -82,7 +83,7 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
      * @return the concept order
      * @throws CloneNotSupportedException the clone not supported exception
      */
-    public ConceptOrder compute(ISet newAttributes) throws CloneNotSupportedException {
+    public IConceptOrder compute(ISet newAttributes) throws CloneNotSupportedException {
         //for each attribute add it
         for (Iterator<Integer> attrIterator = newAttributes.iterator(); attrIterator.hasNext();) {
             AAresStep aaresStep = new AAresStep(attrIterator.next());
@@ -138,7 +139,7 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
      * @return the result
      */
     @Override
-    public ConceptOrder getResult() {
+    public IConceptOrder getResult() {
         return gsh;
     }
 
@@ -149,7 +150,7 @@ public class AOC_poset_Ares implements AbstractAlgo<ConceptOrder> {
     public void run() {
         try {
             if (gsh == null) {
-                gsh = new ConceptOrder("AOCposetWithAres", matrix, getDescription());
+                gsh = new CsrConceptOrder("AOCposetWithAres", matrix, getDescription());
                 ISet extent = factory.createSet(matrix.getObjectCount());
                 extent.fill(matrix.getObjectCount());
                 ISet rextent = factory.createSet(matrix.getObjectCount());

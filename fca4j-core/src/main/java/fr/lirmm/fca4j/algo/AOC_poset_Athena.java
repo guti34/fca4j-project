@@ -12,7 +12,8 @@ import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fr.lirmm.fca4j.core.ConceptOrder;
+import fr.lirmm.fca4j.core.IConceptOrder;
+import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
@@ -20,11 +21,11 @@ import fr.lirmm.fca4j.util.Chrono;
 
 // experimental: DO NOT USE
 
-public class AOC_poset_Athena implements AbstractAlgo<ConceptOrder> {
+public class AOC_poset_Athena implements AbstractAlgo<IConceptOrder> {
 
 	private final static int[] MARK=new int[] {-1,-1};
 	protected IBinaryContext matrix; //ressource de depart
-    protected ConceptOrder gsh = null; //ressource d'arrivee
+    protected IConceptOrder gsh = null; //ressource d'arrivee
     protected Chrono chrono = null; // eventually a chrono to store execution time 
     protected ISetFactory factory;
 
@@ -39,7 +40,7 @@ public class AOC_poset_Athena implements AbstractAlgo<ConceptOrder> {
 		this(bc,null);
 	}
 
-	public ConceptOrder computeGSH() throws Exception {
+	public IConceptOrder computeGSH() throws Exception {
 		if (chrono != null) {
 			chrono.start("clarify");
 		}
@@ -53,7 +54,7 @@ public class AOC_poset_Athena implements AbstractAlgo<ConceptOrder> {
 			chrono.stop("clarify");
 			chrono.start("concept");
 		}
-		gsh = new ConceptOrder("AOCposetWithAthena", clarified_matrix, getDescription());
+		gsh = new CsrConceptOrder("AOCposetWithAthena", clarified_matrix, getDescription());
 
 		// create concept of attributes
 		HashMap<Integer,Integer> conceptsA=new HashMap<>();
@@ -278,7 +279,7 @@ public class AOC_poset_Athena implements AbstractAlgo<ConceptOrder> {
 	}
 
 	@Override
-	public ConceptOrder getResult() {
+	public IConceptOrder getResult() {
 		return gsh;
 	}
 }

@@ -361,7 +361,7 @@ public class RCAFamily {
      */
     public class FormalContext extends FRContext {
 
-        ConceptOrder myGsh;
+        IConceptOrder myGsh;
         HashMap<Integer, RelationalAttribute> relationalAttributes = new HashMap<>();
         int nativeAttributesCount;
 
@@ -371,7 +371,7 @@ public class RCAFamily {
          * @param myGsh the my gsh
          * @param context the context
          */
-        FormalContext(ConceptOrder myGsh, IBinaryContext context) {
+        FormalContext(IConceptOrder myGsh, IBinaryContext context) {
 //            this.myGsh = myGsh;
             this.context = context;
             nativeAttributesCount = context.getAttributeCount();
@@ -391,7 +391,7 @@ public class RCAFamily {
          *
          * @return the order
          */
-        public ConceptOrder getOrder() {
+        public IConceptOrder getOrder() {
             return myGsh;
         }
         
@@ -400,7 +400,7 @@ public class RCAFamily {
          *
          * @param order the new order
          */
-        public void setOrder(ConceptOrder order) {
+        public void setOrder(IConceptOrder order) {
             myGsh = order;
         }
 

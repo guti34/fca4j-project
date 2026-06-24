@@ -31,7 +31,7 @@ public class RCAManager {
 	}
 	public void add(FormalContext fc,int step) {
 		ConceptGraph graph=graphs.get(fc.getName());
-		ConceptOrder order=fc.getOrder();
+		IConceptOrder order=fc.getOrder();
 		for(int concept:order.getConcepts())
 		{
 			graph.addIntentEdge(concept, order.getConceptIntent(concept),step);

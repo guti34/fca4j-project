@@ -9,6 +9,7 @@ import java.util.Iterator;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
@@ -17,11 +18,11 @@ import fr.lirmm.fca4j.util.Chrono;
 /**
  * The Class Lattice_Iceberg.
  */
-public class Lattice_Iceberg implements AbstractAlgo<ConceptOrder> {
+public class Lattice_Iceberg implements AbstractAlgo<IConceptOrder> {
 
     private IBinaryContext matrix;    
     protected ISetFactory factory;
-    private ConceptOrder order;    
+    private IConceptOrder order;    
     private Chrono chrono = null; // eventually a chrono to store execution time 
     private int icebergThreshold;
     private int percentage;
@@ -159,7 +160,7 @@ public class Lattice_Iceberg implements AbstractAlgo<ConceptOrder> {
      * @return the result
      */
     @Override
-    public ConceptOrder getResult() {
+    public IConceptOrder getResult() {
         return order;
     }
 

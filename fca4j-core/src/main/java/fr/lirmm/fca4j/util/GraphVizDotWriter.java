@@ -15,6 +15,7 @@ import java.util.Map;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.ConceptOrderFamily;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.util.AttributeRenamer.MODE;
@@ -101,7 +102,7 @@ public class GraphVizDotWriter {
 	 * @param concept the concept
 	 * @throws IOException
 	 */
-	protected void writeConcept(StringBuffer sb, ConceptOrder lattice, HashMap<Integer, Integer> attrToConcept,
+	protected void writeConcept(StringBuffer sb, IConceptOrder lattice, HashMap<Integer, Integer> attrToConcept,
 			Map<Integer, Double> stability, int concept, RCAFamily family, MODE mode) throws IOException {
 		sb.append("" + concept + " ");
 		sb.append("[shape=record,style=filled");
@@ -209,7 +210,7 @@ public class GraphVizDotWriter {
 	 * @param sb the sb
 	 * @throws IOException
 	 */
-	protected void buildOrder(StringBuffer sb, ConceptOrder lattice) throws IOException {
+	protected void buildOrder(StringBuffer sb, IConceptOrder lattice) throws IOException {
 		// build a map from attributes to original concept
 		HashMap<Integer, Integer> attrToConcept = new HashMap<>();
 		for (int numconcept : lattice.getConcepts()) {
@@ -238,7 +239,7 @@ public class GraphVizDotWriter {
 
 	}
 
-	private void buildOrder(StringBuffer buffer, RCAFamily family, ConceptOrder conceptOrder,
+	private void buildOrder(StringBuffer buffer, RCAFamily family, IConceptOrder conceptOrder,
 			boolean displayConceptNumber, MODE mode) throws IOException {
 		// build a map from attributes to original concept
 		HashMap<Integer, Integer> attrToConcept = new HashMap<>();
@@ -277,7 +278,7 @@ public class GraphVizDotWriter {
 	/**
 	 * Write.
 	 */
-	public void write(Writer buff, ConceptOrder order) {
+	public void write(Writer buff, IConceptOrder order) {
 		try {
 			StringBuffer sb = new StringBuffer();
 			sb.append("digraph G { \n");
@@ -303,7 +304,7 @@ public class GraphVizDotWriter {
 			StringBuffer sb = new StringBuffer();
 			sb.append("digraph G { \n");
 			sb.append("\trankdir=" + orientation + ";\n");
-			for (ConceptOrder conceptOrder : conceptOrderFamily.getConceptOrders())
+			for (IConceptOrder conceptOrder : conceptOrderFamily.getConceptOrders())
 				buildOrder(sb, family, conceptOrder, displayConceptNumber, renameMode);
 
 			sb.append("}");

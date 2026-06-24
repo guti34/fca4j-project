@@ -18,6 +18,7 @@ import fr.lirmm.fca4j.iset.std.BitSetFactory;
 import fr.lirmm.fca4j.iset.std.BoolArrayFactory;
 import fr.lirmm.fca4j.iset.std.IntArrayFactory;
 import fr.lirmm.fca4j.iset.std.JavaCollectionSetFactory;
+import fr.lirmm.fca4j.iset.std.LongArraySetFactory;
 import fr.lirmm.fca4j.iset.std.SparseBitSetFactory;
 import fr.lirmm.fca4j.iset.trove.TIntHashSetFactory;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
@@ -34,6 +35,7 @@ public class SetContextComplete extends AbstractSetContext{
 	public SetContextComplete() {
 		registerFactory(new BitSetFactory());
 		registerFactory(new RoaringBitMapFactory());
+		registerFactory(new LongArraySetFactory());
 		registerFactory(new SparseBitSetFactory());
 		registerFactory(new JavaCollectionSetFactory<>(() -> new HashSet<>(),false));
 		registerFactory(new TIntHashSetFactory());

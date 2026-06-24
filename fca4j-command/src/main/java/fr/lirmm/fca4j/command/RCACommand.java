@@ -40,6 +40,7 @@ import fr.lirmm.fca4j.cli.io.RCFTReader;
 import fr.lirmm.fca4j.cli.io.RCFTWriter;
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
 import fr.lirmm.fca4j.core.RCAFamily.RelationalContext;
@@ -58,7 +59,7 @@ import fr.lirmm.fca4j.util.JSONFormatter;
  */
 public class RCACommand extends Command {
 	// for expé class
-	List<ConceptOrder> listCo = new ArrayList<>();
+	List<IConceptOrder> listCo = new ArrayList<>();
 	List<Map<ISet, Double>> listSta = new ArrayList<>();
 
 	protected boolean clean = false;
@@ -407,7 +408,7 @@ public class RCACommand extends Command {
 		ExploRCA exploMFca = new ExploRCA(family, clean) {
 
 			@Override
-			protected AbstractAlgo<ConceptOrder> createAlgo(IBinaryContext context, int numstep) {
+			protected AbstractAlgo<IConceptOrder> createAlgo(IBinaryContext context, int numstep) {
 				switch (algo) {
 				case ADD_EXTENT:
 					return new Lattice_AddExtent(context, chrono);
@@ -480,14 +481,14 @@ public class RCACommand extends Command {
 				GraphVizDotWriter dotWriter = new GraphVizDotWriter(displayMode, true, false, senseLayout,
 						computeStability, exploMFca.createConceptFinder());
 				dotWriter.write(fw0, family, exploMFca.getConceptOrderFamily(), true, mode);
-				for (ConceptOrder co : exploMFca.getConceptOrderFamily().getConceptOrders()) {
+				for (IConceptOrder co : exploMFca.getConceptOrderFamily().getConceptOrders()) {
 					if (co.getContext().getName().equals("class"))
 						listCo.add(co);
 				}
 			}
 			int i = 0;
-			ArrayList<ConceptOrder> list_concept_orders = exploMFca.getConceptOrderFamily().getConceptOrders();
-			for (ConceptOrder cPoset : list_concept_orders) {
+			ArrayList<IConceptOrder> list_concept_orders = exploMFca.getConceptOrderFamily().getConceptOrders();
+			for (IConceptOrder cPoset : list_concept_orders) {
 				String key = cPoset.getContext().getName();
 				if (initAttrs.get(key) == null) {
 					initAttrs.put(key, cPoset.getContext().getAttributeCount());
@@ -599,7 +600,7 @@ public class RCACommand extends Command {
 		json_result.close();
 	}
 
-	protected void produceConceptDescriptorsInFolder(ConceptOrder order, String[] attrNames) throws IOException {
+	protected void produceConceptDescriptorsInFolder(IConceptOrder order, String[] attrNames) throws IOException {
 		IBinaryContext ctx = order.getContext();
 		Map<Integer, String> descriptors = ConceptUtilities.buildDatalogDescriptor(order, attrNames, siblingDeepSearch);
 		for (int concept : descriptors.keySet()) {
@@ -613,7 +614,7 @@ public class RCACommand extends Command {
 		}
 	}
 
-	protected void produceConceptDescriptorsInFile(ConceptOrder order, String[] attrNames) throws IOException {
+	protected void produceConceptDescriptorsInFile(IConceptOrder order, String[] attrNames) throws IOException {
 		IBinaryContext ctx = order.getContext();
 		Map<Integer, String> descriptors = ConceptUtilities.buildDatalogDescriptor(order, attrNames, siblingDeepSearch);
 		FileWriter fileWriter = new FileWriter(cdFile);

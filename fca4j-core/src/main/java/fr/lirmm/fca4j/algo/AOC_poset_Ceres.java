@@ -13,8 +13,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 
-import fr.lirmm.fca4j.core.ConceptOrder;
+import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
@@ -24,10 +25,10 @@ import fr.lirmm.fca4j.util.Chrono;
  *
  * @author roume
  */
-public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
+public class AOC_poset_Ceres implements AbstractAlgo<IConceptOrder> {
 
     private IBinaryContext binCtx = null;
-    ConceptOrder theGSH = null;
+    IConceptOrder theGSH = null;
     private Chrono chrono = null; // eventually a chrono to store execution time 
     protected ISetFactory factory;
 
@@ -197,7 +198,7 @@ public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
      * @return the result
      */
     @Override
-    public ConceptOrder getResult() {
+    public IConceptOrder getResult() {
         return theGSH;
     }
 
@@ -210,7 +211,7 @@ public class AOC_poset_Ceres implements AbstractAlgo<ConceptOrder> {
             return;
         }
 
-        theGSH = new ConceptOrder("AOCposetWithCeres", binCtx, getDescription());
+        theGSH = new CsrConceptOrder("AOCposetWithCeres", binCtx, getDescription());
         if (chrono != null) {
             chrono.start("concept/order");
         }

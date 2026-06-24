@@ -13,21 +13,18 @@ import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
-import org.json.simple.JSONObject;
 
 import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
-import fr.lirmm.fca4j.algo.Lattice_AddExtent_Parallel;
 import fr.lirmm.fca4j.algo.Lattice_AddIntent;
-import fr.lirmm.fca4j.algo.Lattice_ParallelCbO;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
-import fr.lirmm.fca4j.core.natif.FastLatticeAddExtent;
-import fr.lirmm.fca4j.core.natif.FastLatticeCbO;
-import fr.lirmm.fca4j.core.natif.impl.NativeLatticeAddExtent;
+import fr.lirmm.fca4j.algo.Lattice_ParallelCbO;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.ConceptOrderXMLWriter;
-import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
+import fr.lirmm.fca4j.core.natif.FastLatticeAddExtent;
+import fr.lirmm.fca4j.core.natif.FastLatticeCbO;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.GraphVizDotWriter;
@@ -114,8 +111,8 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		// implementation
 		declareImplementation(false);
 		// native code (ADD_EXTENT only)
-		options.addOption(Option.builder("dnc")
-				.desc("disable native code (CRoaring/JNI), use Java implementation instead")
+		options.addOption(Option.builder("native")
+				.desc("disable native code (CRoaring/JNI), use C implementation instead")
 				.build());
 		// concept descriptors
 		declareConceptDescriptorOptions();
@@ -190,7 +187,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		// concept descriptor options
 		checkConceptDescriptorOptions(line);
 		// native code
-		useNativeCode = !line.hasOption("dnc");
+		useNativeCode = line.hasOption("native");
 		// separator
 		checkSeparator(line);
 		// verbose
@@ -207,7 +204,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 	public Object exec() throws Exception {
 		ctx = readContext(inputFormat, inputFile);
 		Chrono chrono = new Chrono("lattice");
-		AbstractAlgo<ConceptOrder> lat_algo;
+		AbstractAlgo<IConceptOrder> lat_algo;
 		// choose algo dynamically
 		switch (algo) {
 		case ADD_EXTENT:
@@ -243,14 +240,14 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		chrono.start(lat_algo.getDescription());
 		lat_algo.run();
 		chrono.stop(lat_algo.getDescription());
-		ConceptOrder result = lat_algo.getResult();
+		IConceptOrder result = lat_algo.getResult();
 		// complete full extent and intent for native ADD_EXTENT and PARRALEL_CBO
 		if(options.hasOption("g")||options.hasOption("itp")||options.hasOption("idf")||options.hasOption("ibf"))
 		{
 		if(useNativeCode && (algo==AlgoLattice.ADD_EXTENT ||algo==AlgoLattice.PARALLEL_CBO))
 			result.buildExtentIntent();	
 		}
-
+		chrono.start("write output");
 		// output result
 		BufferedWriter writer;
 		String outputName;
@@ -267,16 +264,13 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 				ConceptOrderXMLWriter.write(writer, result, ctx, true);
 				break;
 			case JSON:
-				JSONObject mainJson = new JSONObject();
-				mainJson.put("source", ctx.getName());
-				mainJson.put("algo", lat_algo.getDescription());
-//				ConceptOrderJSONWriter.build(mainJson, result, ctx);
-				mainJson.put("concepts",ConceptOrderJSONWriter.build(result,false,false));
-				mainJson.writeJSONString(writer);
-				writer.flush();
-				writer.close();
-				break;
+			    ConceptOrderJSONWriter.writeStreamingFast(writer, result, ctx.getName(), lat_algo.getDescription());
+			    writer.close();
+			    break;
 			}
+		chrono.stop("write output");
+		
+		System.out.println("write output="+chrono.getResult("write output"));
 		// graphviz
 		if (dotFile != null) {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(dotFile));

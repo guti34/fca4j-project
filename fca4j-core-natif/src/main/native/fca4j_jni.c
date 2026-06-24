@@ -69,7 +69,34 @@ Java_fr_lirmm_fca4j_core_natif_NativeBridge_runDbasis(
     free(json);
     return result;
 }
+/*
+ * runDbasisFlat — variante rapide renvoyant un int[] plat (indices, aucun nom).
+ */
+JNIEXPORT jintArray JNICALL
+Java_fr_lirmm_fca4j_core_natif_NativeBridge_runDbasisFlat(
+        JNIEnv *env, jclass clazz,
+        jint nObjects, jint nAttributes,
+        jbyteArray jmatrix,
+        jint minSupport,
+        jint maxThreads) {
 
+    BinaryContext *ctx = ctx_from_jni(env, nObjects, nAttributes, jmatrix, NULL);
+
+    int len = 0;
+    int *flat = run_dbasis_flat(ctx, (int)minSupport, (int)maxThreads, &len);
+    ctx_free(ctx);
+
+    if (flat == NULL || len == 0) {
+        if (flat) free(flat);
+        return (*env)->NewIntArray(env, 0);
+    }
+
+    jintArray result = (*env)->NewIntArray(env, len);
+    if (result != NULL)
+        (*env)->SetIntArrayRegion(env, result, 0, len, (jint*)flat);
+    free(flat);
+    return result;
+}
 /* ── Hermes ──────────────────────────────────────────────────────────── */
 
 JNIEXPORT jstring JNICALL
@@ -388,3 +415,25 @@ Java_fr_lirmm_fca4j_core_natif_NativeBridge_computeMinimalGenerators(
     free(edges);
     return jresult;
 }
+JNIEXPORT jintArray JNICALL
+Java_fr_lirmm_fca4j_core_natif_NativeBridge_runLatticeCbOCsrFlat(
+        JNIEnv *env, jclass clazz,
+        jint nObjects, jint nAttributes,
+        jbyteArray jmatrix) {
+
+    BinaryContext *ctx = ctx_from_jni(env, nObjects, nAttributes, jmatrix, NULL);
+    int len = 0;
+    int *flat = run_latticecbo_csr_flat(ctx, &len);
+    ctx_free(ctx);
+
+    if (flat == NULL || len == 0) {
+        if (flat) free(flat);
+        return (*env)->NewIntArray(env, 0);
+    }
+    jintArray result = (*env)->NewIntArray(env, len);
+    if (result != NULL)
+        (*env)->SetIntArrayRegion(env, result, 0, len, (jint*)flat);
+    free(flat);
+    return result;
+}
+

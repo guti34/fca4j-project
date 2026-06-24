@@ -46,20 +46,47 @@ public class NativeDBaseV24 extends DBaseV24 {
      * {@inheritDoc}
      */
     @Override
-    protected List computeDBasis() {
+    protected List<Implication> computeDBasis() {
         int nObj  = context.getObjectCount();
         int nAttr = context.getAttributeCount();
 
-        byte[]   matrix    = buildMatrix(context);
-        String[] attrNames = buildAttrNames(context);
+        byte[] matrix = buildMatrix(context);
 
-        String json = NativeBridge.runDbasis(
-                nObj, nAttr, matrix, attrNames,
-                minSupport, nativeMaxThreads);
+        int[] flat = NativeBridge.runDbasisFlat(
+                nObj, nAttr, matrix, minSupport, nativeMaxThreads);
 
-        return parseDbasisJson(json);
+        return parseDbasisFlat(flat);
     }
 
+    /**
+     * Désérialise le tableau plat produit par {@code run_dbasis_flat} en
+     * construisant directement les {@link Implication} à partir des indices :
+     * aucun JSON, aucune résolution de noms, aucune allocation de String.
+     */
+    private List<Implication> parseDbasisFlat(int[] flat) {
+        List<Implication> result = new ArrayList<>();
+        if (flat == null || flat.length < 1) return result;
+
+        int p = 0;
+        int m = flat[p++];
+        for (int i = 0; i < m; i++) {
+            ISet premise = createEmptySet();
+            int cardP = flat[p++];
+            for (int k = 0; k < cardP; k++) premise.add(flat[p++]);
+
+            ISet conclusion = createEmptySet();
+            int cardC = flat[p++];
+            for (int k = 0; k < cardC; k++) conclusion.add(flat[p++]);
+
+            int support = flat[p++];
+
+            // Mêmes conventions que l'ancien parseImplication :
+            // le constructeur Implication(premise, conclusion, support) fait conclusion \ premise.
+            conclusion.addAll(premise);
+            result.add(new Implication(premise, conclusion, support));
+        }
+        return result;
+    }
     // ══════════════════════════════════════════════════════════════════════
     //  Utilitaires de construction
     // ══════════════════════════════════════════════════════════════════════
@@ -76,108 +103,5 @@ public class NativeDBaseV24 extends DBaseV24 {
             }
         }
         return m;
-    }
-
-    private static String[] buildAttrNames(IBinaryContext ctx) {
-        int nAttr = ctx.getAttributeCount();
-        String[] names = new String[nAttr];
-        for (int a = 0; a < nAttr; a++) {
-            names[a] = ctx.getAttributeName(a);
-        }
-        return names;
-    }
-
-    // ══════════════════════════════════════════════════════════════════════
-    //  Désérialisation JSON → List<Implication>
-    // ══════════════════════════════════════════════════════════════════════
-
-    /**
-     * Désérialise le JSON produit par {@code run_dbasis_impl}.
-     *
-     * <p>Format :
-     * <pre>
-     * {"algorithm":"DBase","basis":[
-     *   {"premise":["a","b"],"conclusion":["c"],"support":42},
-     *   ...
-     * ]}
-     * </pre>
-     */
-    private List parseDbasisJson(String json) {
-        List result = new ArrayList();
-        if (json == null || json.isEmpty()) return result;
-
-        int basisStart = json.indexOf("\"basis\":[");
-        if (basisStart < 0) return result;
-        basisStart += "\"basis\":[".length();
-        int basisEnd = json.lastIndexOf("]}");
-        if (basisEnd < 0) return result;
-        String basisStr = json.substring(basisStart, basisEnd);
-
-        int depth = 0, start = -1;
-        for (int i = 0; i < basisStr.length(); i++) {
-            char c = basisStr.charAt(i);
-            if (c == '{') {
-                if (depth == 0) start = i;
-                depth++;
-            } else if (c == '}') {
-                depth--;
-                if (depth == 0 && start >= 0) {
-                    Implication imp = parseImplication(basisStr.substring(start, i + 1));
-                    if (imp != null) result.add(imp);
-                    start = -1;
-                }
-            }
-        }
-        return result;
-    }
-
-    private Implication parseImplication(String impl) {
-        try {
-            ISet premise    = parseAttrArray(impl, "premise");
-            ISet conclusion = parseAttrArray(impl, "conclusion");
-            int  support    = parseIntField(impl,  "support");
-            // Implication(premise, conclusion, supportSize) fait conclusion \ premise
-            conclusion.addAll(premise);
-            return new Implication(premise, conclusion, support);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private ISet parseAttrArray(String impl, String fieldName) {
-        ISet set = createEmptySet();
-        String marker = "\"" + fieldName + "\":[";
-        int idx = impl.indexOf(marker);
-        if (idx < 0) return set;
-        idx += marker.length();
-        int end = impl.indexOf(']', idx);
-        if (end < 0) return set;
-        String arr = impl.substring(idx, end).trim();
-        if (arr.isEmpty()) return set;
-        int pos = 0;
-        while (pos < arr.length()) {
-            int q1 = arr.indexOf('"', pos);
-            if (q1 < 0) break;
-            int q2 = arr.indexOf('"', q1 + 1);
-            if (q2 < 0) break;
-            String name = arr.substring(q1 + 1, q2);
-            int attrIdx = context.getAttributeIndex(name);
-            if (attrIdx >= 0) set.add(attrIdx);
-            pos = q2 + 1;
-        }
-        return set;
-    }
-
-    private static int parseIntField(String impl, String fieldName) {
-        String marker = "\"" + fieldName + "\":";
-        int idx = impl.indexOf(marker);
-        if (idx < 0) return 0;
-        idx += marker.length();
-        int end = idx;
-        while (end < impl.length() &&
-               (Character.isDigit(impl.charAt(end)) || impl.charAt(end) == '-'))
-            end++;
-        try { return Integer.parseInt(impl.substring(idx, end)); }
-        catch (NumberFormatException e) { return 0; }
     }
 }

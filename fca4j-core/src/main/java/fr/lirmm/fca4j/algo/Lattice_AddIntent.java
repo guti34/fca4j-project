@@ -9,15 +9,16 @@ import java.util.Iterator;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
 
-public class Lattice_AddIntent implements AbstractAlgo<ConceptOrder>
+public class Lattice_AddIntent implements AbstractAlgo<IConceptOrder>
 {
 
     private IBinaryContext context;
-    private ConceptOrder order;
+    private IConceptOrder order;
     private ISetFactory factory;
     private Chrono chrono;
 
@@ -230,7 +231,7 @@ public class Lattice_AddIntent implements AbstractAlgo<ConceptOrder>
     // =====================================================
 
     @Override
-    public ConceptOrder getResult()
+    public IConceptOrder getResult()
     {
         return order;
     }

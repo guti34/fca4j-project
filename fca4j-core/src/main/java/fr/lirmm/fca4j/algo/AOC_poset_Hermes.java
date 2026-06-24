@@ -12,8 +12,9 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fr.lirmm.fca4j.core.ConceptOrder;
+import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
@@ -21,10 +22,10 @@ import fr.lirmm.fca4j.util.Chrono;
 /**
  * The Class AOC_poset_Hermes.
  */
-public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
+public class AOC_poset_Hermes implements AbstractAlgo<IConceptOrder> {
 
 	protected IBinaryContext matrix; //ressource de depart
-    protected ConceptOrder gsh = null; //ressource d'arrivee
+    protected IConceptOrder gsh = null; //ressource d'arrivee
     protected Chrono chrono = null; // eventually a chrono to store execution time 
     protected HashSet<Integer> visited = new HashSet<>();
     protected ISetFactory factory;
@@ -221,8 +222,8 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
      * @return the concept order
      * @throws Exception the exception
      */
-    public ConceptOrder computeGSH() throws Exception {
-        gsh = new ConceptOrder("AOCposetWithHermes", matrix, getDescription());
+    public IConceptOrder computeGSH() throws Exception {
+        gsh = new CsrConceptOrder("AOCposetWithHermes", matrix, getDescription());
         ArrayList<RefSet> attrSets = new ArrayList<>();
         ArrayList<RefSet> objSets = new ArrayList<>();
         if (chrono != null) {
@@ -300,7 +301,7 @@ public class AOC_poset_Hermes implements AbstractAlgo<ConceptOrder> {
      * @return the result
      */
     @Override
-    public ConceptOrder getResult() {
+    public IConceptOrder getResult() {
         return gsh;
     }
 

@@ -14,6 +14,7 @@ import fr.lirmm.fca4j.iset.std.BitSetFactory;
 import fr.lirmm.fca4j.iset.std.BoolArrayFactory;
 import fr.lirmm.fca4j.iset.std.IntArrayFactory;
 import fr.lirmm.fca4j.iset.std.JavaCollectionSetFactory;
+import fr.lirmm.fca4j.iset.std.LongArraySetFactory;
 import fr.lirmm.fca4j.iset.std.SparseBitSetFactory;
 
 /**
@@ -28,6 +29,7 @@ public class SetContextLight extends AbstractSetContext{
 		registerFactory(new BitSetFactory());
 //		registerFactory(new GPUSetFactory());
 		registerFactory(new RoaringBitMapFactory());
+		registerFactory(new LongArraySetFactory());
 		registerFactory(new SparseBitSetFactory());
 		registerFactory(new JavaCollectionSetFactory<>(() -> new HashSet<>(),false));
 		registerFactory( new JavaCollectionSetFactory<>(() -> new TreeSet<>(),true));

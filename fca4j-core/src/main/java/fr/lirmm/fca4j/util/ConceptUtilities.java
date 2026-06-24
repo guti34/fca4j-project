@@ -159,14 +159,14 @@ public class ConceptUtilities {
 		return result;
 	}
 
-	public static Map<Integer, String> buildDatalogDescriptor(ConceptOrder order, boolean deepSearch) {
+	public static Map<Integer, String> buildDatalogDescriptor(IConceptOrder order, boolean deepSearch) {
 		String[] attrNames=new String[order.getContext().getAttributeCount()];
 		
 		for(int attr=0;attr<order.getContext().getAttributeCount();attr++)
 			attrNames[attr]=order.getContext().getAttributeName(attr);
 		return buildDatalogDescriptor(order,attrNames,deepSearch);
 	}
-		public static Map<Integer, String> buildDatalogDescriptor(ConceptOrder order,  String[] attrNames,boolean deepSearch) {
+		public static Map<Integer, String> buildDatalogDescriptor(IConceptOrder order,  String[] attrNames,boolean deepSearch) {
 		IBinaryContext ctx = order.getContext();
 		Map<Integer, String> descriptors = new TreeMap<>();
 		for (int concept : order.getConcepts()) {
@@ -232,7 +232,7 @@ public class ConceptUtilities {
 		return descriptors;
 	}
 
-	private static void findImmediatePredecessorsIntent(ConceptOrder order, ISet cIntent, int current_concept,
+	private static void findImmediatePredecessorsIntent(IConceptOrder order, ISet cIntent, int current_concept,
 			ISet immediatePredecessorsIntent, ISet visited, boolean deepSearch) {
 		for (Iterator<Integer> it = order.getLowerCoverIterator(current_concept); it.hasNext();) {
 			int pred = it.next();
@@ -249,7 +249,7 @@ public class ConceptUtilities {
 		}
 	}
 
-	private static void findImmediateSuccessorsIntent(ConceptOrder order, ISet cIntent, int current_concept,
+	private static void findImmediateSuccessorsIntent(IConceptOrder order, ISet cIntent, int current_concept,
 			ISet immediateSuccessorsIntent, ISet visited, boolean deepSearch) {
 		for (Iterator<Integer> it = order.getUpperCoverIterator(current_concept); it.hasNext();) {
 			int succ = it.next();

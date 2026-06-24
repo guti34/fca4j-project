@@ -15,6 +15,7 @@ import fr.lirmm.fca4j.algo.ExploRCA.GhostFinder;
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.ConceptOrderFamily;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
 import fr.lirmm.fca4j.iset.ISet;
@@ -172,11 +173,11 @@ public abstract class  RCABuilder implements AbstractAlgo<RCAManager>{
 		return new GhostFinder();
 	}
 	public class GhostFinder implements ConceptOrderFinder {
-	public ConceptOrder findConceptOrder(String formalContext,int numConcept) {
+	public IConceptOrder findConceptOrder(String formalContext,int numConcept) {
 		for(int step=conceptOrderFamilies.size()-1;step>=0;step--)
 		{
 			ConceptOrderFamily orderFamily=conceptOrderFamilies.get(step);
-			for(ConceptOrder order:orderFamily.getConceptOrders())
+			for(IConceptOrder order:orderFamily.getConceptOrders())
 				if(order.getContext().getName().equals(formalContext) && order.getConcepts().contains(numConcept))
 					return order;
 		}

@@ -5,8 +5,9 @@
 package fr.lirmm.fca4j.util;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
+import fr.lirmm.fca4j.core.IConceptOrder;
 
 public interface ConceptOrderFinder {
-	    ConceptOrder findConceptOrder(String formalContext, int numConcept);
+	    IConceptOrder findConceptOrder(String formalContext, int numConcept);
 	}
 

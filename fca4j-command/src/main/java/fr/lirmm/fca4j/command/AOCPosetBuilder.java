@@ -14,24 +14,22 @@ import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
-import org.json.simple.JSONObject;
 
 import fr.lirmm.fca4j.algo.AOC_poset_Ares;
 import fr.lirmm.fca4j.algo.AOC_poset_Ceres;
 import fr.lirmm.fca4j.algo.AOC_poset_Hermes;
 import fr.lirmm.fca4j.algo.AOC_poset_Pluton;
 import fr.lirmm.fca4j.algo.AbstractAlgo;
-import fr.lirmm.fca4j.core.natif.FastAOCPosetHermes;
-import fr.lirmm.fca4j.core.natif.impl.NativeAOCPosetHermes;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.ConceptOrderXMLWriter;
 import fr.lirmm.fca4j.cli.io.SLFReader;
-import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
+import fr.lirmm.fca4j.core.natif.FastAOCPosetHermes;
+import fr.lirmm.fca4j.core.natif.impl.NativeAOCPosetHermes;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.GraphVizDotWriter;
-import fr.lirmm.fca4j.util.GraphVizDotWriter.DisplayFormat;
 
 /**
  * The Class AOCPosetBuilder.
@@ -53,8 +51,8 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 	/** The algo. */
 	protected AlgoAOCPoset algo;
 
-	/** use native code when available (HERMES only), true by default */
-	protected boolean useNativeCode = true;
+	/** use native code when available (HERMES only), false by default */
+	protected boolean useNativeCode = false;
 
 	/**
 	 * The Enum AlgoAOCPoset.
@@ -108,8 +106,8 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		// implementation
 		declareImplementation(false);
 		// native code (HERMES only)
-		options.addOption(Option.builder("dnc")
-				.desc("disable native code (JNI) for HERMES, use Java implementation instead")
+		options.addOption(Option.builder("native")
+				.desc("enable native code (CRoaring/JNI) for HERMES, use C implementation instead")
 				.build());
 		// concept descriptors
 		declareConceptDescriptorOptions();
@@ -168,7 +166,7 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		// concept descriptor options
 		checkConceptDescriptorOptions(line);
 		// native code
-		useNativeCode = !line.hasOption("dnc");
+		useNativeCode = line.hasOption("native");
 		// separator
 		checkSeparator(line);
 		// verbose
@@ -185,7 +183,7 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 	public Object exec() throws Exception {
 		ctx = readContext(inputFormat, inputFile);
 		Chrono chrono = new Chrono("aocposet");
-		AbstractAlgo<ConceptOrder> aoc_algo;
+		AbstractAlgo<IConceptOrder> aoc_algo;
 		switch (algo) {
 //		case ATHENA:
 //			aoc_algo = new AOC_poset_Athena(ctx, chrono);
@@ -214,7 +212,7 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		chrono.start(aoc_algo.getDescription());
 		aoc_algo.run();
 		chrono.stop(aoc_algo.getDescription());
-		ConceptOrder result = aoc_algo.getResult();
+		IConceptOrder result = aoc_algo.getResult();
 
 		// output result
 		BufferedWriter writer;
@@ -232,15 +230,9 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 				ConceptOrderXMLWriter.write(writer, result, ctx, true);
 				break;
 			case JSON:
-				JSONObject mainJson = new JSONObject();
-				mainJson.put("source", ctx.getName());
-				mainJson.put("algo", aoc_algo.getDescription());
-//				mainJson.put("concepts", ConceptOrderJSONWriter.build(result, ctx));
-				mainJson.put("concepts", ConceptOrderJSONWriter.build(result, false,false));
-				mainJson.writeJSONString(writer);
-				writer.flush();
-				writer.close();
-				break;
+			    ConceptOrderJSONWriter.writeStreamingFast(writer, result, ctx.getName(), aoc_algo.getDescription());
+			    writer.close();
+			    break;			    
 			}
 		// graphviz
 		if (dotFile != null) {

@@ -23,4 +23,8 @@ char *run_latticecbo_impl(BinaryContext *ctx);
  * appelé : ConceptOrder.populate() reconstruit les sets complets côté Java. */
 int *run_latticecbo_flat(BinaryContext *ctx, int *out_len);
 
+/* Variante packée/CSR : ordre jamais matérialisé en roaring. Même format de
+ * tableau plat que run_latticecbo_flat. */
+int *run_latticecbo_csr_flat(BinaryContext *ctx, int *out_len);
+
 #endif /* FCA4J_LATTICECBO_H */

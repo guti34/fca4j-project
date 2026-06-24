@@ -10,6 +10,7 @@
 #include "../core/tarjan.h"
 #include "../core/strbuf.h"
 #include <time.h>
+#include <stdarg.h>
 
 /* ── Détection portable du nombre de cœurs ───────────────────────────── */
 #ifdef _WIN32
@@ -38,13 +39,22 @@ typedef struct { int *attrs; int size; } Edge;
 static int cmp_edge_size(const void *a, const void *b) {
     return ((Edge*)a)->size - ((Edge*)b)->size;
 }
-
+typedef struct { int *arr; int size; } GenResult;
+static int cmp_gen_result(const void *a, const void *b) {
+    const GenResult *x = (const GenResult*)a;
+    const GenResult *y = (const GenResult*)b;
+    if (x->size != y->size) return x->size - y->size;
+    for (int i = 0; i < x->size; i++)
+        if (x->arr[i] != y->arr[i]) return x->arr[i] - y->arr[i];
+    return 0;
+}
 typedef struct {
     int nedges, max_attr;
     int  *edge_hit;
     int  *attr_edge_offset, *attr_edge_data;
     int  *edge_attr_offset, *edge_attr_data;
     bool *in_current;
+	int  *current_list;       /* pile des attributs du transversal courant */
     int   current_size;
     int **results; int *result_sizes; int result_count, result_cap;
 } GenState;
@@ -65,8 +75,8 @@ static void gs_add_result(GenState *gs) {
 }
 
 static bool is_already_covered_fast(GenState *gs) {
-    for (int attr = 0; attr < gs->max_attr; attr++) {
-        if (!gs->in_current[attr]) continue;
+    for (int idx = 0; idx < gs->current_size; idx++) {
+        int attr = gs->current_list[idx];
         bool covers_all = true;
         int start = gs->attr_edge_offset[attr], end = gs->attr_edge_offset[attr+1];
         for (int i = start; i < end; i++)
@@ -77,17 +87,18 @@ static bool is_already_covered_fast(GenState *gs) {
 }
 
 static inline void gen_add_attr(GenState *gs, int attr) {
-    gs->in_current[attr] = true; gs->current_size++;
+    gs->in_current[attr] = true;
+    gs->current_list[gs->current_size++] = attr;
     int start = gs->attr_edge_offset[attr], end = gs->attr_edge_offset[attr+1];
     for (int i = start; i < end; i++) gs->edge_hit[gs->attr_edge_data[i]]++;
 }
 
 static inline void gen_remove_attr(GenState *gs, int attr) {
-    gs->in_current[attr] = false; gs->current_size--;
+    gs->in_current[attr] = false;
+    gs->current_size--;       /* LIFO : on dépile attr (sommet) */
     int start = gs->attr_edge_offset[attr], end = gs->attr_edge_offset[attr+1];
     for (int i = start; i < end; i++) gs->edge_hit[gs->attr_edge_data[i]]--;
 }
-
 typedef struct { int index, ai, attr; } GenFrame;
 
 static void generate_covers(GenState *gs) {
@@ -157,7 +168,7 @@ static BitmapVec compute_minimal_generators(BinaryContext *ctx, int target,
         return result;
     }
 
-    qsort(edges, nedges, sizeof(Edge), cmp_edge_size);
+    qsort(edges, nedges, sizeof(Edge), cmp_edge_size); 
     gs.nedges = nedges;
 
     /* Index inversé CSR */
@@ -192,21 +203,36 @@ static BitmapVec compute_minimal_generators(BinaryContext *ctx, int target,
 
     gs.edge_hit   = (int*) calloc(nedges,            sizeof(int));
     gs.in_current = (bool*)calloc(ctx->nb_attributes, sizeof(bool));
+	gs.current_list = (int*) malloc(ctx->nb_attributes * sizeof(int));
     gs.current_size = 0;
 
-    generate_covers(&gs);
+	generate_covers(&gs);
 
-    /* Convertir résultats en BitmapVec */
-    for (int i = 0; i < gs.result_count; i++) {
-        roaring_bitmap_t *bm = roaring_bitmap_create();
-        for (int k = 0; k < gs.result_sizes[i]; k++)
-            roaring_bitmap_add(bm, (uint32_t)gs.results[i][k]);
-        BitmapVec_push(&result, bm);
-        free(gs.results[i]);
-    }
+	    /* Déduplication des transversaux avant la minimisation O(n²)
+	       (équivalent du HashSet<ISet> côté Java). */
+	    GenResult *gr = (GenResult*)malloc(gs.result_count * sizeof(GenResult));
+	    for (int i = 0; i < gs.result_count; i++) {
+	        gr[i].arr  = gs.results[i];
+	        gr[i].size = gs.result_sizes[i];
+	    }
+	    qsort(gr, gs.result_count, sizeof(GenResult), cmp_gen_result);
 
-    free(gs.results); free(gs.result_sizes);
-    free(gs.edge_hit); free(gs.in_current);
+	    int distinct = 0;
+		    for (int i = 0; i < gs.result_count; i++) {
+		        if (i > 0 && cmp_gen_result(&gr[i-1], &gr[i]) == 0)
+		            continue;                       /* doublon : ignoré, NE PAS libérer ici */
+		        roaring_bitmap_t *bm = roaring_bitmap_create();
+		        for (int k = 0; k < gr[i].size; k++)
+		            roaring_bitmap_add(bm, (uint32_t)gr[i].arr[k]);
+		        BitmapVec_push(&result, bm);
+		        distinct++;
+		    }
+		    /* libération différée : chaque arr exactement une fois, après les comparaisons */
+		    for (int i = 0; i < gs.result_count; i++)
+		        free(gr[i].arr);
+		    free(gr);
+		    free(gs.results); free(gs.result_sizes);
+		free(gs.edge_hit); free(gs.in_current); free(gs.current_list);
     free(gs.attr_edge_offset); free(gs.attr_edge_data);
     free(gs.edge_attr_offset); free(gs.edge_attr_data);
     for (int e = 0; e < nedges; e++) free(edges[e].attrs);
@@ -256,8 +282,10 @@ static ImplVec compute_non_binary_basis_for_attr(BinaryContext *ctx, int target,
                                                   roaring_bitmap_t **closures,
                                                   int min_support) {
     ImplVec basis = ImplVec_new();
+
     BitmapVec min_gens   = compute_minimal_generators(ctx, target, binary_premises, min_support);
     BitmapVec min_covers = compute_minimal_covers(&min_gens, closures);
+
     for (int i = 0; i < min_covers.len; i++) {
         roaring_bitmap_t *premise = min_covers.data[i];
         if (roaring_bitmap_get_cardinality(premise) > 1) {
@@ -365,8 +393,25 @@ typedef struct {
     ImplVec *results;
 } DBaseWorkerData;
 
+/* Copies profondes pour isoler chaque thread (zéro bitmap partagé en lecture) */
+static roaring_bitmap_t **copy_bitmap_array(roaring_bitmap_t **src, int n) {
+    roaring_bitmap_t **dst = (roaring_bitmap_t**)malloc(n * sizeof(roaring_bitmap_t*));
+    for (int i = 0; i < n; i++) dst[i] = roaring_bitmap_copy(src[i]);
+    return dst;
+}
+static void free_bitmap_array(roaring_bitmap_t **a, int n) {
+    for (int i = 0; i < n; i++) roaring_bitmap_free(a[i]);
+    free(a);
+}
 static void *dbasis_worker(void *arg) {
     DBaseWorkerData *wd = (DBaseWorkerData*)arg;
+
+    /* Copies privées : ce thread ne lit plus aucun bitmap partagé. */
+    BinaryContext pctx = *wd->ctx;          /* copie superficielle (scalaires + noms) */
+    pctx.rows = copy_bitmap_array(wd->ctx->rows, wd->ctx->nb_objects);
+    pctx.cols = copy_bitmap_array(wd->ctx->cols, wd->ctx->nb_attributes);
+    roaring_bitmap_t **pclosures = copy_bitmap_array(wd->closures, wd->nb_attributes);
+
     ImplVec local = ImplVec_new();
     while (1) {
         int attr = -1;
@@ -375,36 +420,29 @@ static void *dbasis_worker(void *arg) {
         pthread_mutex_unlock(&wd->queue_mutex);
         if (attr < 0) break;
 
-        struct timespec t0, t1;
-        clock_gettime(CLOCK_MONOTONIC, &t0);
-
         ImplVec part = compute_non_binary_basis_for_attr(
-            wd->ctx, attr, wd->binary_premises[attr], wd->closures, wd->min_support);
-
-        clock_gettime(CLOCK_MONOTONIC, &t1);
-        double ms = (t1.tv_sec - t0.tv_sec) * 1000.0
-                  + (t1.tv_nsec - t0.tv_nsec) / 1e6;
-        fprintf(stdout, "%d\n", attr);
-        fflush(stdout);
-        if (ms > 100.0)
-            fprintf(stderr, "  [dbasis] attr %d : %.0fms (%d impls)\n",
-                    attr, ms, part.len);
+            &pctx, attr, wd->binary_premises[attr], pclosures, wd->min_support);
 
         for (int i = 0; i < part.len; i++) ImplVec_push(&local, part.data[i]);
         ImplVec_free(&part);
     }
+
     pthread_mutex_lock(&wd->queue_mutex);
     for (int i = 0; i < local.len; i++) ImplVec_push(&wd->results[0], local.data[i]);
     pthread_mutex_unlock(&wd->queue_mutex);
     ImplVec_free(&local);
+
+    free_bitmap_array(pctx.rows, wd->ctx->nb_objects);
+    free_bitmap_array(pctx.cols, wd->ctx->nb_attributes);
+    free_bitmap_array(pclosures, wd->nb_attributes);
     return NULL;
 }
 #endif
 
 /* ── Pipeline principal ──────────────────────────────────────────────── */
 
-char *run_dbasis_impl(BinaryContext *orig_ctx, int min_support, int max_threads) {
-
+static ImplVec compute_dbasis_impls(BinaryContext *orig_ctx, int min_support, int max_threads) {
+	
     /* 1. Clarification */
     ClarificationResult clar = clarify_context(orig_ctx);
     BinaryContext *ctx = clar.clarified;
@@ -571,40 +609,94 @@ char *run_dbasis_impl(BinaryContext *orig_ctx, int min_support, int max_threads)
     free(binary_premises);
     clarification_free(&clar);
 
-    /* 8. JSON */
-    StrBuf sb = sb_new();
-    sb_printf(&sb, "{\"algorithm\":\"DBase\",\"implications\":%d,\"context\":", dbasis.len);
-    sb_append_json_str(&sb, orig_ctx->name);
-    sb_printf(&sb, ",\"objects\":%d,\"attributes\":%d", orig_ctx->nb_objects, orig_ctx->nb_attributes);
-    sb_append(&sb, ",\"basis\":[");
-    for (int i = 0; i < dbasis.len; i++) {
-        if (i > 0) sb_append(&sb, ",");
-        CImplication *imp = dbasis.data[i];
-        sb_append(&sb, "{\"premise\":[");
-        roaring_uint32_iterator_t it;
-        roaring_iterator_init(imp->premise, &it);
-        int first = 1;
-        while (it.has_value) {
-            if (!first) sb_append(&sb, ",");
-            int a = (int)it.current_value;
-            if (a < orig_ctx->attr_names.len) sb_append_json_str(&sb, orig_ctx->attr_names.data[a]);
-            else sb_printf(&sb, "\"%d\"", a);
-            first = 0; roaring_uint32_iterator_advance(&it);
-        }
-        sb_append(&sb, "],\"conclusion\":[");
-        roaring_iterator_init(imp->conclusion, &it); first = 1;
-        while (it.has_value) {
-            if (!first) sb_append(&sb, ",");
-            int a = (int)it.current_value;
-            if (a < orig_ctx->attr_names.len) sb_append_json_str(&sb, orig_ctx->attr_names.data[a]);
-            else sb_printf(&sb, "\"%d\"", a);
-            first = 0; roaring_uint32_iterator_advance(&it);
-        }
-        sb_printf(&sb, "],\"support\":%d}", imp->support_size);
-    }
-    sb_append(&sb, "]}");
-    for (int i = 0; i < dbasis.len; i++) impl_free(dbasis.data[i]);
-    ImplVec_free(&dbasis);
-    ImplVec_free(&eq_basis);
-    return sb.buf;
-}
+	ImplVec_free(&eq_basis);   /* éléments partagés dans dbasis : on ne libère que le tableau */
+	    return dbasis;
+	}
+	/* ── Sérialisation JSON (canal historique, conservé) ─────────────────── */
+	char *run_dbasis_impl(BinaryContext *orig_ctx, int min_support, int max_threads) {
+	    ImplVec dbasis = compute_dbasis_impls(orig_ctx, min_support, max_threads);
+
+	    StrBuf sb = sb_new();
+	    sb_printf(&sb, "{\"algorithm\":\"DBase\",\"implications\":%d,\"context\":", dbasis.len);
+	    sb_append_json_str(&sb, orig_ctx->name);
+	    sb_printf(&sb, ",\"objects\":%d,\"attributes\":%d", orig_ctx->nb_objects, orig_ctx->nb_attributes);
+	    sb_append(&sb, ",\"basis\":[");
+	    for (int i = 0; i < dbasis.len; i++) {
+	        if (i > 0) sb_append(&sb, ",");
+	        CImplication *imp = dbasis.data[i];
+	        sb_append(&sb, "{\"premise\":[");
+	        roaring_uint32_iterator_t it;
+	        roaring_iterator_init(imp->premise, &it);
+	        int first = 1;
+	        while (it.has_value) {
+	            if (!first) sb_append(&sb, ",");
+	            int a = (int)it.current_value;
+	            if (a < orig_ctx->attr_names.len) sb_append_json_str(&sb, orig_ctx->attr_names.data[a]);
+	            else sb_printf(&sb, "\"%d\"", a);
+	            first = 0; roaring_uint32_iterator_advance(&it);
+	        }
+	        sb_append(&sb, "],\"conclusion\":[");
+	        roaring_iterator_init(imp->conclusion, &it); first = 1;
+	        while (it.has_value) {
+	            if (!first) sb_append(&sb, ",");
+	            int a = (int)it.current_value;
+	            if (a < orig_ctx->attr_names.len) sb_append_json_str(&sb, orig_ctx->attr_names.data[a]);
+	            else sb_printf(&sb, "\"%d\"", a);
+	            first = 0; roaring_uint32_iterator_advance(&it);
+	        }
+	        sb_printf(&sb, "],\"support\":%d}", imp->support_size);
+	    }
+	    sb_append(&sb, "]}");
+
+	    for (int i = 0; i < dbasis.len; i++) impl_free(dbasis.data[i]);
+	    ImplVec_free(&dbasis);
+	    return sb.buf;
+	}
+
+	/* ── Sérialisation plate int[] (canal rapide, indices uniquement) ─────────
+	 * Format auto-descriptif :
+	 *   [0]                      M = nombre d'implications
+	 *   puis pour chaque implication :
+	 *       [cardP] p0 p1 ... p(cardP-1)
+	 *       [cardC] c0 c1 ... c(cardC-1)
+	 *       [support]
+	 * Indices exprimés dans le contexte ORIGINAL (déjà réécrits par le pipeline).
+	 */
+	int *run_dbasis_flat(BinaryContext *orig_ctx, int min_support, int max_threads, int *out_len) {
+	    ImplVec dbasis = compute_dbasis_impls(orig_ctx, min_support, max_threads);
+
+	    /* 1. Taille totale */
+	    long total = 1;  /* [0] = M */
+	    for (int i = 0; i < dbasis.len; i++) {
+	        CImplication *imp = dbasis.data[i];
+	        total += (long)roaring_bitmap_get_cardinality(imp->premise)
+	               + (long)roaring_bitmap_get_cardinality(imp->conclusion)
+	               + 3;  /* cardP + cardC + support */
+	    }
+
+	    int *flat = (int*)malloc((size_t)total * sizeof(int));
+	    int p = 0;
+	    flat[p++] = dbasis.len;
+
+	    for (int i = 0; i < dbasis.len; i++) {
+	        CImplication *imp = dbasis.data[i];
+	        roaring_uint32_iterator_t it;
+
+	        flat[p++] = (int)roaring_bitmap_get_cardinality(imp->premise);
+	        roaring_iterator_init(imp->premise, &it);
+	        while (it.has_value) { flat[p++] = (int)it.current_value; roaring_uint32_iterator_advance(&it); }
+
+	        flat[p++] = (int)roaring_bitmap_get_cardinality(imp->conclusion);
+	        roaring_iterator_init(imp->conclusion, &it);
+	        while (it.has_value) { flat[p++] = (int)it.current_value; roaring_uint32_iterator_advance(&it); }
+
+	        flat[p++] = imp->support_size;
+	    }
+
+	    for (int i = 0; i < dbasis.len; i++) impl_free(dbasis.data[i]);
+	    ImplVec_free(&dbasis);
+
+	    *out_len = p;
+	    return flat;
+	}
+

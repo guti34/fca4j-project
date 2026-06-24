@@ -17,6 +17,7 @@ import org.apache.commons.cli.Option;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
@@ -284,7 +285,7 @@ public abstract class ConceptOrderBuilder extends Command {
 		return sb.toString();
 	}
 
-	protected void produceConceptDescriptorsInFolder(ConceptOrder order) throws IOException {
+	protected void produceConceptDescriptorsInFolder(IConceptOrder order) throws IOException {
 		IBinaryContext ctx = order.getContext();
 		Map<Integer, String> descriptors = ConceptUtilities.buildDatalogDescriptor(order, siblingDeepSearch);
 		for (int concept : descriptors.keySet()) {
@@ -297,7 +298,7 @@ public abstract class ConceptOrderBuilder extends Command {
 			printWriter.close();
 		}
 	}
-	protected void produceConceptDescriptorsInFile(ConceptOrder order) throws IOException {
+	protected void produceConceptDescriptorsInFile(IConceptOrder order) throws IOException {
 		IBinaryContext ctx = order.getContext();
 		Map<Integer, String> descriptors = ConceptUtilities.buildDatalogDescriptor(order, siblingDeepSearch);
 		FileWriter fileWriter = new FileWriter(cdFile);

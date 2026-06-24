@@ -4,8 +4,12 @@
  */
 package fr.lirmm.fca4j.core;
 
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
@@ -13,250 +17,180 @@ import fr.lirmm.fca4j.iset.ISetFactory;
 /**
  * The Interface IConceptOrder.
  *
+ * Implemented by {@link ConceptOrder} (JGraphT-backed) and by
+ * {@link CsrConceptOrder} (memory-lean, dense arrays + CSR adjacency).
+ *
  * @author agutierr
  */
 public interface IConceptOrder {
 
-    /**
-     * Gets the id.
-     *
-     * @return the id
-     */
+    // ===== identity / context ==============================================
+
     public String getId();
 
-    /**
-     * Gets the context.
-     *
-     * @return the context
-     */
+    public void setId(String name);
+
     public IBinaryContext getContext();
 
-    /**
-     * Adds the concept.
-     *
-     * @param extent the extent
-     * @param intent the intent
-     * @return the int
-     */
+    public String getAlgoName();
+
+    // ===== concepts ========================================================
+
     public int addConcept(ISet extent, ISet intent);
 
-    /**
-     * Adds the concept.
-     *
-     * @param extent the extent
-     * @param intent the intent
-     * @param rextent the rextent
-     * @param rintent the rintent
-     * @return the int
-     */
     public int addConcept(ISet extent, ISet intent, ISet rextent, ISet rintent);
 
-    /**
-     * Gets the concept extent.
-     *
-     * @param numConcept the num concept
-     * @return the concept extent
-     */
-    public ISet getConceptExtent(int numConcept);
-
-    /**
-     * Gets the concept intent.
-     *
-     * @param numConcept the num concept
-     * @return the concept intent
-     */
-    public ISet getConceptIntent(int numConcept);
-
-    /**
-     * Gets the concept reduced extent.
-     *
-     * @param numConcept the num concept
-     * @return the concept reduced extent
-     */
-    public ISet getConceptReducedExtent(int numConcept);
-
-    /**
-     * Sets the reduced extent.
-     *
-     * @param numConcept the num concept
-     * @param rextent the rextent
-     */
-    public void setReducedExtent(int numConcept, ISet rextent);
-
-    /**
-     * Gets the concept reduced intent.
-     *
-     * @param numConcept the num concept
-     * @return the concept reduced intent
-     */
-    public ISet getConceptReducedIntent(int numConcept);
-
-    /**
-     * Sets the reduced intent.
-     *
-     * @param numConcept the num concept
-     * @param rintent the rintent
-     */
-    public void setReducedIntent(int numConcept, ISet rintent);
-
-    /**
-     * Removes the concept.
-     *
-     * @param numConcept the num concept
-     */
     public void removeConcept(int numConcept);
 
-    /**
-     * Adds the precedence connection.
-     *
-     * @param lower the lower
-     * @param greater the greater
-     */
+    public ISet getConceptExtent(int numConcept);
+
+    public ISet getConceptIntent(int numConcept);
+
+    public ISet getConceptReducedExtent(int numConcept);
+
+    public void setReducedExtent(int numConcept, ISet rextent);
+
+    public ISet getConceptReducedIntent(int numConcept);
+
+    public void setReducedIntent(int numConcept, ISet rintent);
+
+    public Set<Integer> getConcepts();
+
+    public int getConceptCount();
+
+    /** True if the concept is a fusion (reduced extent cardinality &gt; 1). */
+    public boolean isFusion(int concept);
+
+    /** True if the concept is new (reduced extent cardinality == 0). */
+    public boolean isNewConcept(int concept);
+
+    /** True if the concept is dummy (empty full extent or empty full intent). */
+    public boolean isDummy(int concept);
+
+    // ===== precedence (Hasse) edges ========================================
+
     public void addPrecedenceConnection(int lower, int greater);
 
     public void addPrecedenceConnections(int[] lowers, int[] greaters);
-    /**
-     * Removes the precedence connection.
-     *
-     * @param lower the lower
-     * @param greater the greater
-     */
+
     public void removePrecedenceConnection(int lower, int greater);
 
-    /**
-     * Gets the top.
-     *
-     * @return the top
-     */
+    public int getEdgeCount();
+
+    /** Bulk load of concepts (reduced sets as bitsets) and edges. */
+    public void populate(int[] concepts, int[] edges, BitSet[] bitsets);
+
+    // ===== extrema =========================================================
+
     public int getTop();
 
-    /**
-     * Gets the maximals.
-     *
-     * @return the maximals
-     */
-    public ISet getMaximals();
-
-    /**
-     * Gets the minimals.
-     *
-     * @return the minimals
-     */
-    public ISet getMinimals();
-
-    /**
-     * Gets the bottom.
-     *
-     * @return the bottom
-     */
     public int getBottom();
 
-    /**
-     * returns all the children of the current concept. This relation is
-     * reflexive so the current concept is included in its children
-     *
-     * @param concept the concept
-     * @return the all children
-     */
+    public ISet getMaximals();
 
-    public ISet getAllChildren(int concept);
+    public ISet getMinimals();
 
-    /**
-     * Computes and returns all the parents of the current concept.This
-     * relation is reflexive so the current concept is included in its parents
-     *
-     * @param concept the concept
-     * @return the all parents
-     */
-    public ISet getAllParents(int concept);
+    // ===== covers / degrees ================================================
 
-    /**
-     * In degree of.
-     *
-     * @param concept the concept
-     * @return the int
-     */
+    public ISet getLowerCover(int concept);
+
+    public ISet getUpperCover(int concept);
+
+    public Set<Integer> getLowerCoverSet(int concept);
+
+    public Set<Integer> getUpperCoverSet(int concept);
+
+    public Iterator<Integer> getLowerCoverIterator(int concept);
+
+    public Iterator<Integer> getUpperCoverIterator(int concept);
+
     public int inDegreeOf(int concept);
 
-    /**
-     * Out degree of.
-     *
-     * @param concept the concept
-     * @return the int
-     */
     public int outDegreeOf(int concept);
 
     /**
-     * Gets the lower cover.
-     *
-     * @param concept the concept
-     * @return the lower cover
+     * All the (transitive) children of the concept. Reflexive: the concept is
+     * included in its children.
      */
-    public ISet getLowerCover(int concept);
+    public ISet getAllChildren(int concept);
 
     /**
-     * Gets the upper cover.
-     *
-     * @param concept the concept
-     * @return the upper cover
+     * All the (transitive) parents of the concept. Reflexive: the concept is
+     * included in its parents.
      */
-    public ISet getUpperCover(int concept);
+    public ISet getAllParents(int concept);
 
-    /**
-     * Gets the basic iterator.
-     *
-     * @return the basic iterator
-     */
+    // ===== iterators =======================================================
+
     public Iterator<Integer> getBasicIterator();
 
-    /**
-     * Gets the bottom up iterator.
-     *
-     * @return the bottom up iterator
-     */
     public Iterator<Integer> getBottomUpIterator();
 
-    /**
-     * Gets the top down iterator.
-     *
-     * @return the top down iterator
-     */
     public Iterator<Integer> getTopDownIterator();
 
-    /**
-     * Gets the concept count.
-     *
-     * @return the concept count
-     */
-    public int getConceptCount();
+    public Iterator<Integer> getDepthFirstIterator();
+
+    public Iterator<Integer> getBreadthFirstIterator();
+
+    public Iterator<Integer> getTopologicalIterator();
+
+    public ArrayList<Integer> sortByExtent(boolean increasing);
+
+    public ArrayList<Integer> sortByIntent(boolean increasing);
+
+    // ===== implications (require full intents/extents) =====================
+
+    public List<Implication> getDepthFirstImplications();
+
+    public List<Implication> getBreadthFirstImplications();
+
+    public List<Implication> getTopologicalImplications();
+
+    // ===== full extents / intents ==========================================
+
+    public void computeIntents();
+
+    public void computeExtents();
+
+    public void buildExtentIntent();
+
+    // ===== order transforms ================================================
+
+    /** Transitive reduction (keep only cover edges). */
+    public void reduce();
+
+    /** Transitive closure (add all reachable pairs). */
+    public void closure();
 
     /**
-     * Gets the edge count.
-     *
-     * @return the edge count
+     * Remaps reduced and full sets (and the context) from a clarified context
+     * back to the original (un-clarified) one.
      */
-    public int getEdgeCount();
+    public void substitution(IBinaryContext notClarifiedContext, List<ISet> attrClasses, List<ISet> objClasses);
 
-    /**  
-     * 
-     * @return the name of the algorithm which have built this order
-     * 
-     */
-    public String getAlgoName();
-    
     /**
-     * Clone.
-     *
-     * @param newFactory the new factory
-     * @return the concept order
+     * Like {@link #substitution} but remaps only the reduced extents/intents (and
+     * the context); the full sets are left untouched. Use when only the reduced
+     * sets and the Hasse diagram are consumed downstream (e.g. JSON output).
      */
+    public void substitutionReduced(IBinaryContext notClarifiedContext, List<ISet> attrClasses, List<ISet> objClasses);
+
+    /**
+     * Turns the order of the transposed context into that of the original:
+     * swaps extents/intents, reverses the Hasse diagram, swaps extrema.
+     */
+    public void dual(IBinaryContext originalContext);
+
+    // ===== paths / clones / listeners ======================================
+
+    /** Shortest directed path between two concepts, or null if none exists. */
+    public List<Integer> getShortestPath(int vertex1, int vertex2);
+
+    public ConceptOrder clone();
+
     public ConceptOrder clone(ISetFactory newFactory);
-    /**
-     * Get the shortest path between deux concept
-     * @param vertex1
-     * @param vertex2
-     * @return the path or null if no path exist
-     */
-    public List<Integer> getShortestPath(int vertex1,int vertex2);
 
+    public void addPropertyChangeListener(PropertyChangeListener l);
+
+    public void removePropertyChangeListener(PropertyChangeListener l);
 }

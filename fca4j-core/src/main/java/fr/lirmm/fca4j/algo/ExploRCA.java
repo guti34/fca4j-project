@@ -14,6 +14,7 @@ import java.util.Stack;
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.ConceptOrderFamily;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
 import fr.lirmm.fca4j.core.RCAFamily.RelationalContext;
@@ -107,7 +108,7 @@ public abstract class ExploRCA {
 		long time_before_extending = System.currentTimeMillis() / 1000;
 		for (RelationalContext rc : family.getRelationalContexts()) {
 			FormalContext fc = family.getTargetOf(rc);
-			ConceptOrder targetOrder = fc.getOrder();
+			IConceptOrder targetOrder = fc.getOrder();
 			AbstractScalingOperator op = rc.getOperator();
 			HashMap<ConceptExtentKey, Integer> mapNumSteps = conceptExtentsNumStep.get(fc.getName());
 			for (Iterator<Integer> it = targetOrder.getBasicIterator(); it.hasNext();) {
@@ -153,9 +154,9 @@ public abstract class ExploRCA {
 				System.out.println(
 						"computing ctx " + formalContext.getName() + " " + formalContext.getContext().getObjectCount()
 								+ "x" + formalContext.getContext().getAttributeCount() + " .");
-				AbstractAlgo<ConceptOrder> rca_algo = createAlgo(formalContext.getContext(), numstep);
+				AbstractAlgo<IConceptOrder> rca_algo = createAlgo(formalContext.getContext(), numstep);
 				rca_algo.run();
-				ConceptOrder conceptOrder = rca_algo.getResult();
+				IConceptOrder conceptOrder = rca_algo.getResult();
 				// rename (ids)
 				conceptOrder = renamedConceptOrder(conceptOrder, formalContext);
 				formalContext.setOrder(conceptOrder);
@@ -197,9 +198,9 @@ public abstract class ExploRCA {
 	 * @param numstep the numstep
 	 * @return the abstract algo
 	 */
-	protected abstract AbstractAlgo<ConceptOrder> createAlgo(IBinaryContext context, int numstep);
+	protected abstract AbstractAlgo<IConceptOrder> createAlgo(IBinaryContext context, int numstep);
 
-	private boolean controlCO(ConceptOrder conceptOrder) {
+	private boolean controlCO(IConceptOrder conceptOrder) {
 		HashSet<ConceptExtentKey> extents = new HashSet<>();
 		for (Iterator<Integer> itc = conceptOrder.getBasicIterator(); itc.hasNext();) {
 			int concept = itc.next();
@@ -290,7 +291,7 @@ public abstract class ExploRCA {
 	 * newId=conceptIds.get(formalContext.getName())+1;
 	 * conceptIds.put(formalContext.getName(), newId); return newId; }
 	 */
-	private ConceptOrder renamedConceptOrder(ConceptOrder order, FormalContext formalContext)
+	private ConceptOrder renamedConceptOrder(IConceptOrder order, FormalContext formalContext)
 			throws CloneNotSupportedException {
 		HashMap<ConceptExtentKey, Integer> extents = conceptExtentsList.get(formalContext.getName());
 		HashMap<ConceptExtentKey, Integer> numSteps = conceptExtentsNumStep.get(formalContext.getName());
@@ -355,11 +356,11 @@ public abstract class ExploRCA {
 		}
 	}
 	public class GhostFinder implements ConceptOrderFinder {
-	public ConceptOrder findConceptOrder(String formalContext,int numConcept) {
+	public IConceptOrder findConceptOrder(String formalContext,int numConcept) {
 		for(int step=conceptOrderFamilies.size()-1;step>=0;step--)
 		{
 			ConceptOrderFamily orderFamily=conceptOrderFamilies.get(step);
-			for(ConceptOrder order:orderFamily.getConceptOrders())
+			for(IConceptOrder order:orderFamily.getConceptOrders())
 				if(order.getContext().getName().equals(formalContext) && order.getConcepts().contains(numConcept))
 					return order;
 		}

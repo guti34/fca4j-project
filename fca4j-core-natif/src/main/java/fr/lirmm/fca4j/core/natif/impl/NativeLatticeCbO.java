@@ -8,7 +8,8 @@ import java.util.BitSet;
 import java.util.Iterator;
 
 import fr.lirmm.fca4j.algo.AbstractAlgo;
-import fr.lirmm.fca4j.core.ConceptOrder;
+import fr.lirmm.fca4j.core.IConceptOrder;
+import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.natif.NativeBridge;
 import fr.lirmm.fca4j.iset.ISet;
@@ -17,14 +18,36 @@ import fr.lirmm.fca4j.util.Chrono;
 
 /**
  * Implémentation native de Lattice_ParallelCbO : délègue au C via
- * {@link NativeBridge#runLatticeCbOFlat}, puis remplit le ConceptOrder à partir
- * du tableau plat (même format et même consommateur que NativeLatticeAddExtent).
+ * {@link NativeBridge#runLatticeCbOFlat} (ordre roaring) ou
+ * {@link NativeBridge#runLatticeCbOCsrFlat} (ordre packé/CSR), puis remplit le
+ * ConceptOrder à partir du tableau plat (format identique, même consommateur).
+ *
+ * <p>Le choix d'orientation est fait <b>côté Java</b>, autour du noyau C qui
+ * reste inchangé : l'alphabet de Close-by-One étant les attributs du contexte de
+ * travail, le coût de canonicité croît avec le nombre d'attributs. Si le contexte
+ * a plus d'attributs que d'objets, on énumère sur sa transposée (axe d'attributs
+ * plus court) puis on dualise l'ordre obtenu via {@link IConceptOrder#dual} —
+ * échange extents/intents et ensembles réduits, inversion du diagramme de Hasse.
+ * Le treillis produit est identique ; seul le temps d'énumération change (souvent
+ * d'un ordre de grandeur sur les contextes très déséquilibrés).
+ *
+ * <p>Noyau natif par défaut : packé/CSR (pas d'aller-retour roaring par concept,
+ * pas d'intents complets, adjacence CSR). Bascule via la propriété système
+ * {@code fca4j.native.lattice.csr} :
+ * <ul>
+ *   <li>absente ou {@code true} → noyau packé/CSR (défaut) ;</li>
+ *   <li>{@code false} → noyau roaring historique (filet de sécurité comparatif).</li>
+ * </ul>
+ * Pour revenir au roaring : {@code -Dfca4j.native.lattice.csr=false}.
  */
 public class NativeLatticeCbO implements AbstractAlgo {
 
+    /** Propriété système ({@code true} par défaut) : {@code false} force le noyau roaring. */
+    public static final String PROP_CSR = "fca4j.native.lattice.csr";
+
     private final IBinaryContext matrix;
     private final ISetFactory    factory;
-    private ConceptOrder         order;
+    private IConceptOrder         order;
 
     public NativeLatticeCbO(IBinaryContext matrix) {
         this.matrix  = matrix;
@@ -37,31 +60,54 @@ public class NativeLatticeCbO implements AbstractAlgo {
     }
 
     @Override
-    public ConceptOrder getResult() {
+    public IConceptOrder getResult() {
         return order;
     }
 
     @Override
     public void run() {
-        int nObj  = matrix.getObjectCount();
-        int nAttr = matrix.getAttributeCount();
-        Chrono chrono=new Chrono("nativepcbo");
+        IBinaryContext original = matrix;
+
+        // Énumérer sur l'axe d'attributs le plus court. Si attributs > objets, on
+        // travaille sur la transposée et on dualise l'ordre à la fin. Sans effet
+        // sur le treillis, mais évite l'explosion de la canonicité côté natif.
+        boolean transposed = original.getAttributeCount() > original.getObjectCount();
+        IBinaryContext work = transposed ? original.transpose() : original;
+
+        int nObj  = work.getObjectCount();
+        int nAttr = work.getAttributeCount();
+        boolean csr = Boolean.parseBoolean(System.getProperty(PROP_CSR, "true"));
+
+        Chrono chrono = new Chrono("nativepcbo");
         chrono.start("buildMatrix");
-        byte[] mat  = buildMatrix(matrix);
+        byte[] mat = buildMatrix(work);
         chrono.stop("buildMatrix");
-         chrono.start("runLatticeCbOFlat");
-       int[]  flat = NativeBridge.runLatticeCbOFlat(nObj, nAttr, mat);
-         chrono.stop("runLatticeCbOFlat");
+
+        chrono.start("runLatticeCbOFlat");
+        int[] flat = csr
+                ? NativeBridge.runLatticeCbOCsrFlat(nObj, nAttr, mat)
+                : NativeBridge.runLatticeCbOFlat(nObj, nAttr, mat);
+        chrono.stop("runLatticeCbOFlat");
 
         chrono.start("populateFromFlat");
-         order = new ConceptOrder("LatticeWithParallelCbO", matrix, getDescription());
+        // Build the order in the working orientation; dual() remaps it back below.
+        order = new CsrConceptOrder("LatticeWithParallelCbO", work, getDescription());
         populateFromFlat(order, flat);
         chrono.stop("populateFromFlat");
-        for(String serie: chrono.getSerieNames())
-        	System.out.println(serie+": "+chrono.getResult(serie));
+
+        if (transposed) {
+            chrono.start("dual");
+            order.dual(original);
+            chrono.stop("dual");
+        }
+
+        System.out.println("native lattice kernel: " + (csr ? "CSR/packed" : "roaring")
+                + (transposed ? " (transposed: " + nObj + " x " + nAttr + ")" : ""));
+        for (String serie : chrono.getSerieNames())
+            System.out.println(serie + ": " + chrono.getResult(serie));
     }
 
-    private void populateFromFlat(ConceptOrder co, int[] flat) {
+    private void populateFromFlat(IConceptOrder co, int[] flat) {
         if (flat == null || flat.length < 2) return;
 
         int p = 0;

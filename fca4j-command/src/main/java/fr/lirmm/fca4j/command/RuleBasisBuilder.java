@@ -4,6 +4,7 @@
  */
 package fr.lirmm.fca4j.command;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -25,11 +26,6 @@ import fr.lirmm.fca4j.algo.ClosureDirect;
 import fr.lirmm.fca4j.algo.ClosureDirectWithForkJoinPool;
 import fr.lirmm.fca4j.algo.ClosureStrategy;
 import fr.lirmm.fca4j.algo.ClosureWithHistory;
-import fr.lirmm.fca4j.algo.DBaseV18;
-import fr.lirmm.fca4j.algo.DBaseV19;
-import fr.lirmm.fca4j.algo.DBaseV2;
-import fr.lirmm.fca4j.algo.DBaseV20;
-import fr.lirmm.fca4j.algo.DBaseV23;
 import fr.lirmm.fca4j.algo.DBaseV24;
 import fr.lirmm.fca4j.algo.LinCbO;
 import fr.lirmm.fca4j.algo.LinCbOWithPruning;
@@ -37,7 +33,7 @@ import fr.lirmm.fca4j.cli.io.RuleBasisReader;
 import fr.lirmm.fca4j.cli.io.RuleExporter;
 import fr.lirmm.fca4j.cli.io.RuleExporters;
 import fr.lirmm.fca4j.cli.io.SLFReader;
-import fr.lirmm.fca4j.command.Command.RuleBasisFormat;
+import fr.lirmm.fca4j.cli.io.SLFWriter;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.core.RuleBasis;
@@ -540,6 +536,7 @@ public class RuleBasisBuilder extends Command {
 	}
 
 	public static void main(String[] args) throws IOException {
+		transpose("C:\\projects\\rules\\ord10shuttle\\ord10shuttle.slf");
 //		test("example0.5.2");
 //		test("FontaineDuTheil_attribute");
 //		test("PlantSpecies");
@@ -584,12 +581,17 @@ public class RuleBasisBuilder extends Command {
 //		compareBasis("attribute");
 //		test("dbasis/UsedPlant");
 //		test("dbasis/dbasis_10x21");
-		test("dbasis/dbasis_9x8");
+//		test("dbasis/dbasis_9x8");
 //		compareBasis("ProtectedOrganism","ProtectedOrganism");
 //		test23vs24();
 //		test18vs24();
 	}
-
+	private static void transpose(String path)  throws IOException{
+		IBinaryContext cxt=SLFReader.read(new File(path));
+		String newPath=path.replace(".", "_T.");
+		BufferedWriter bf=new BufferedWriter(new FileWriter(new File(newPath)));
+		SLFWriter.writeContext(bf, cxt.transpose()); 		
+	}
 	final static int DIRECT_TEST_DEEP = -1;
 
 	private static void findCycles2(String name1) throws IOException {
@@ -651,70 +653,6 @@ public class RuleBasisBuilder extends Command {
 
 	}
 
-		private static void test23vs24() throws IOException {
-		IBinaryContext initial_context = SLFReader.read(new File("c:\\projects\\rules\\inter1shuttle\\inter4shuttle.slf"));
-		System.out.println("context=" + initial_context.getObjectCount() + "x" + initial_context.getAttributeCount());
-		// compute duquenne guigues
-		ClosureStrategy closureEngine = new ClosureDirect(initial_context);
-		LinCbO linCbO = new LinCbO(initial_context, null, closureEngine, false);
-		linCbO.run();
-		List<Implication> dqBasis = linCbO.getResult();
-		DBaseV24 calculator24 = new DBaseV24(initial_context, 1, -1);
-		calculator24.run();
-		RuleBasis ruleBaseDB24 = new RuleBasis(calculator24.getResult(), initial_context);
-		DBaseV23 calculator23 = new DBaseV23(initial_context, 1 , -1);
-		calculator23.run();
-		RuleBasis ruleBaseDB23 = new RuleBasis(calculator23.getResult(), initial_context);
-		
-		compareNonBinaryBasis(ruleBaseDB23.getImplications(), ruleBaseDB24.getImplications());
-		System.out.println(
-				"ruleBaseDQ<ruleBaseDB24=" + RuleUtilities.isIncludedIn(dqBasis, ruleBaseDB24.getImplications()));
-		System.out.println(
-				"ruleBaseDB24<ruleBaseDQ=" + RuleUtilities.isIncludedIn(ruleBaseDB24.getImplications(), dqBasis));
-		System.out.println("DB23 is direct= " + RuleUtilities.isDirect(ruleBaseDB23.getImplications(), DIRECT_TEST_DEEP,
-				initial_context.getFactory()));
-		System.out.println("DB24 is direct= " + RuleUtilities.isDirect(ruleBaseDB24.getImplications(), DIRECT_TEST_DEEP,
-				initial_context.getFactory()));
-		System.out.println(
-				"ruleBaseDB23<ruleBase24=" + RuleUtilities.isIncludedIn(ruleBaseDB23.getImplications(), ruleBaseDB24.getImplications()));
-		System.out.println(
-				"ruleBaseDB24<ruleBase23=" + RuleUtilities.isIncludedIn(ruleBaseDB24.getImplications(), ruleBaseDB23.getImplications()));
-		System.out.println("ruleBaseDB24 card="+ruleBaseDB24.getImplications().size());
-		System.out.println("ruleBaseDB23 card="+ruleBaseDB23.getImplications().size());
-		
-		}
-		private static void test18vs24() throws IOException {
-		IBinaryContext initial_context = SLFReader.read(new File("c:\\projects\\rules\\inter1shuttle\\inter4shuttle.slf"));
-		System.out.println("context=" + initial_context.getObjectCount() + "x" + initial_context.getAttributeCount());
-		// compute duquenne guigues
-		ClosureStrategy closureEngine = new ClosureDirect(initial_context);
-		LinCbO linCbO = new LinCbO(initial_context, null, closureEngine, false);
-		linCbO.run();
-		List<Implication> dqBasis = linCbO.getResult();
-		DBaseV24 calculator24 = new DBaseV24(initial_context, 1, -1);
-		calculator24.run();
-		RuleBasis ruleBaseDB24 = new RuleBasis(calculator24.getResult(), initial_context);
-		DBaseV18 calculator18 = new DBaseV18(initial_context, 1 , -1);
-		calculator18.run();
-		RuleBasis ruleBaseDB18 = new RuleBasis(calculator18.getResult(), initial_context);
-		
-		compareNonBinaryBasis(ruleBaseDB18.getImplications(), ruleBaseDB24.getImplications());
-		System.out.println(
-				"ruleBaseDQ<ruleBaseDB24=" + RuleUtilities.isIncludedIn(dqBasis, ruleBaseDB24.getImplications()));
-		System.out.println(
-				"ruleBaseDB24<ruleBaseDQ=" + RuleUtilities.isIncludedIn(ruleBaseDB24.getImplications(), dqBasis));
-		System.out.println("DB18 is direct= " + RuleUtilities.isDirect(ruleBaseDB18.getImplications(), DIRECT_TEST_DEEP,
-				initial_context.getFactory()));
-		System.out.println("DB24 is direct= " + RuleUtilities.isDirect(ruleBaseDB24.getImplications(), DIRECT_TEST_DEEP,
-				initial_context.getFactory()));
-		System.out.println(
-				"ruleBaseDB18<ruleBase24=" + RuleUtilities.isIncludedIn(ruleBaseDB18.getImplications(), ruleBaseDB24.getImplications()));
-		System.out.println(
-				"ruleBaseDB24<ruleBase18=" + RuleUtilities.isIncludedIn(ruleBaseDB24.getImplications(), ruleBaseDB18.getImplications()));
-		System.out.println("ruleBaseDB24 card="+ruleBaseDB24.getImplications().size());
-		System.out.println("ruleBaseDB18 card="+ruleBaseDB18.getImplications().size());
-		
-		}
 		private static void compareNonBinaryBasis(List<Implication> list1,List<Implication> list2) {
 			HashSet<Implication> basis1=new HashSet<>();
 			HashSet<Implication> basis2=new HashSet<>();

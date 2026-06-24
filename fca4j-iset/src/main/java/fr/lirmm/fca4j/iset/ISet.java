@@ -218,5 +218,23 @@ public interface ISet extends Cloneable {
      *
      */
     public int first();
-
+    /**
+     * Replaces the content of this set with that of {@code other}, in place,
+     * reusing the backing storage when possible (no new set is allocated): after
+     * the call {@code this} equals {@code other}. Building block for
+     * allocation-free hot loops, e.g. an intersection into a reusable scratch:
+     * {@code scratch.setTo(a); scratch.retainAll(b);}.
+     *
+     * <p>The default empties this set and copies {@code other}, correct for every
+     * implementation; backing-array implementations (BITSET_PACKED) override it.
+     *
+     * @param other the set whose content replaces this set's content
+     */
+    public default void setTo(ISet other) {
+        if (other == this) {
+            return;
+        }
+        removeAll(this);
+        addAll(other);
+    }
 }

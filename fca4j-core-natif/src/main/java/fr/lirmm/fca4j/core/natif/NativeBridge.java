@@ -50,7 +50,32 @@ public final class NativeBridge {
             String[] attrNames,
             int minSupport,
             int maxThreads);
-
+    /**
+     * Pipeline DBasis complet en C — variante rapide.
+     *
+     * <p>Renvoie un tableau d'entiers plat auto-descriptif (indices uniquement,
+     * aucun nom, aucune allocation de String côté Java) :
+     * <pre>
+     *   [0]                      M = nombre d'implications
+     *   puis pour chaque implication :
+     *       [cardP] p0 p1 ... p(cardP-1)
+     *       [cardC] c0 c1 ... c(cardC-1)
+     *       [support]
+     * </pre>
+     * Indices exprimés dans le contexte ORIGINAL (déjà réécrits côté C).
+     *
+     * @param nObjects    nombre d'objets
+     * @param nAttributes nombre d'attributs
+     * @param matrix      matrice binaire aplatie row-major
+     * @param minSupport  seuil de support (0 = pas de filtre)
+     * @param maxThreads  1 = mono, 0 = auto, >1 = fixé (pthread côté C)
+     * @return            tableau plat (voir format ci-dessus)
+     */
+    public static native int[] runDbasisFlat(
+            int nObjects, int nAttributes,
+            byte[] matrix,
+            int minSupport,
+            int maxThreads);
     /**
      * Calcule les transversaux minimaux pour un attribut cible — mode MULTITHREAD.
      * Appelé par attribut depuis les threads workers Java.
@@ -154,6 +179,23 @@ public final class NativeBridge {
             int nObjects, int nAttributes,
             byte[] matrix);
     
+    /**
+     * Treillis complet Lattice_ParallelCbO en C — variante packée/CSR.
+     *
+     * <p>Même tableau plat que {@link #runLatticeCbOFlat} (consommé à l'identique
+     * par {@code CsrConceptOrder.populate}), mais le ConceptOrder n'est jamais
+     * matérialisé en roaring côté C : extents packés, aucun intent complet,
+     * adjacence CSR. Sélectionné via la propriété {@code fca4j.native.lattice.csr}.
+     *
+     * @param nObjects    nombre d'objets
+     * @param nAttributes nombre d'attributs
+     * @param matrix      matrice binaire aplatie row-major
+     * @return            tableau plat (cf. format runAddExtentFlat)
+     */
+    public static native int[] runLatticeCbOCsrFlat(
+            int nObjects, int nAttributes,
+            byte[] matrix);
+
     /**
      * Treillis complet AddExtent en C — variante rapide.
      *

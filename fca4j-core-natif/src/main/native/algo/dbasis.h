@@ -14,5 +14,9 @@
  * max_threads : 1 = mono, 0 = auto, >1 = fixé.
  */
 char *run_dbasis_impl(BinaryContext *orig_ctx, int min_support, int max_threads);
-
+/*
+ * Variante rapide : renvoie un int[] plat (indices uniquement), *out_len
+ * reçoit la longueur. Tableau à libérer avec free().
+ */
+int *run_dbasis_flat(BinaryContext *orig_ctx, int min_support, int max_threads, int *out_len);
 #endif /* FCA4J_DBASIS_H */

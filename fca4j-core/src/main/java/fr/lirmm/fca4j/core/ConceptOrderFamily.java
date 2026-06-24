@@ -7,7 +7,7 @@ package fr.lirmm.fca4j.core;
 import java.util.ArrayList;
 
 public class ConceptOrderFamily {
-	protected ArrayList<ConceptOrder> conceptOrders;
+	protected ArrayList<IConceptOrder> conceptOrders;
 	private int stepNb;
 
 	/**
@@ -24,7 +24,7 @@ public class ConceptOrderFamily {
 	 * @param e the e
 	 * @return true, if successful
 	 */
-	public boolean addConceptOrder(ConceptOrder e) {
+	public boolean addConceptOrder(IConceptOrder e) {
 		return conceptOrders.add(e);
 	}
 
@@ -33,7 +33,7 @@ public class ConceptOrderFamily {
 	 *
 	 * @return the concept orders
 	 */
-	public ArrayList<ConceptOrder> getConceptOrders() {
+	public ArrayList<IConceptOrder> getConceptOrders() {
 		return conceptOrders;
 	}
 
@@ -45,7 +45,7 @@ public class ConceptOrderFamily {
 	 */
 	public int totalConceptNb() {
 		int result = 0;
-		for (ConceptOrder co : conceptOrders) {
+		for (IConceptOrder co : conceptOrders) {
 			result += co.getConceptCount();
 		}
 		return result;

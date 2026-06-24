@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.ConceptOrderFamily;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RelationalAttribute;
 
@@ -63,14 +64,14 @@ public class FamilyXMLWriter {
 		doc.appendChild(root);
 		Element step_elem = addElement(root, "Step");
 		step_elem.setAttribute("nb", "" + step);
-		for (ConceptOrder co : coFamily.getConceptOrders()) {
+		for (IConceptOrder co : coFamily.getConceptOrders()) {
 			Element latticeElement = addElement(step_elem, "Lattice");
 			generateOrderXML(latticeElement, co);
 		}
 
 	}
 
-	private void generateOrderXML(Element latticeElement, ConceptOrder co) {
+	private void generateOrderXML(Element latticeElement, IConceptOrder co) {
 		latticeElement.setAttribute("numberObj", Integer.toString(co.getContext().getObjectCount()));
 		latticeElement.setAttribute("numberAtt", Integer.toString(co.getContext().getAttributeCount()));
 		int nbCpt = co.getConceptCount();

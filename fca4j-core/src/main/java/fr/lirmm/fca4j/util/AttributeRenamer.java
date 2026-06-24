@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
 import fr.lirmm.fca4j.iset.ISet;
@@ -141,7 +142,7 @@ static HashMap<Integer,String> conceptNames=new HashMap<>();
 		// infinite loop in the construction process or the concept from a previous step
 		// in this case the concept name is built with the concept extent
 		if (visited.contains(concept) || ghostConcepts) {
-			ConceptOrder conceptOrder;
+			IConceptOrder conceptOrder;
 			if (ghostConcepts)
 				conceptOrder = conceptOrderFinder.findConceptOrder(fcName, concept);
 			else
@@ -262,7 +263,7 @@ static HashMap<Integer,String> conceptNames=new HashMap<>();
 	 * @return
 	 */
 
-	private static String buildConceptNameWithExtent(String attrName, FormalContext fc, ConceptOrder conceptOrder,
+	private static String buildConceptNameWithExtent(String attrName, FormalContext fc, IConceptOrder conceptOrder,
 			int concept) {
 		String conceptName = null;
 		ISet extentToDisplay;

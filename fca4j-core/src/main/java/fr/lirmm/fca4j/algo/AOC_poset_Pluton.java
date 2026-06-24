@@ -11,8 +11,9 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fr.lirmm.fca4j.core.ConceptOrder;
+import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.util.Chrono;
@@ -20,10 +21,10 @@ import fr.lirmm.fca4j.util.Chrono;
 /**
  * The Class AOC_poset_Pluton.
  */
-public class AOC_poset_Pluton implements AbstractAlgo<ConceptOrder> {
+public class AOC_poset_Pluton implements AbstractAlgo<IConceptOrder> {
 
     private IBinaryContext matrix; //ressource de depart
-    private ConceptOrder gsh = null; //ressource d'arrivee
+    private IConceptOrder gsh = null; //ressource d'arrivee
     protected ISetFactory factory;
     private Chrono chrono = null; // eventually a chrono to store execution time 
     private final HashSet<Integer> visited = new HashSet<>();
@@ -313,8 +314,8 @@ public class AOC_poset_Pluton implements AbstractAlgo<ConceptOrder> {
      * @throws Exception the exception
      */
     //fonction principale, celle qui calcule la SHG
-    public ConceptOrder computeGSH() throws Exception {
-        gsh = new ConceptOrder("AOCposetWithPluton", matrix, getDescription());
+    public IConceptOrder computeGSH() throws Exception {
+        gsh = new CsrConceptOrder("AOCposetWithPluton", matrix, getDescription());
         if (chrono != null) {
             chrono.start("concept");
         }
@@ -372,7 +373,7 @@ public class AOC_poset_Pluton implements AbstractAlgo<ConceptOrder> {
      * @return the result
      */
     @Override
-    public ConceptOrder getResult() {
+    public IConceptOrder getResult() {
         return gsh;
     }
 
