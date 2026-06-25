@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.IConceptOrder;
@@ -315,7 +316,7 @@ public class AOC_poset_Pluton implements AbstractAlgo<IConceptOrder> {
      */
     //fonction principale, celle qui calcule la SHG
     public IConceptOrder computeGSH() throws Exception {
-        gsh = new CsrConceptOrder("AOCposetWithPluton", matrix, getDescription());
+        gsh = new ConceptOrder("AOCposetWithPluton", matrix, getDescription());
         if (chrono != null) {
             chrono.start("concept");
         }

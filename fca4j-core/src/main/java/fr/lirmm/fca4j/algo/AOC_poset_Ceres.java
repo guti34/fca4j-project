@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 
+import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.IConceptOrder;
@@ -211,7 +212,7 @@ public class AOC_poset_Ceres implements AbstractAlgo<IConceptOrder> {
             return;
         }
 
-        theGSH = new CsrConceptOrder("AOCposetWithCeres", binCtx, getDescription());
+        theGSH = new ConceptOrder("AOCposetWithCeres", binCtx, getDescription());
         if (chrono != null) {
             chrono.start("concept/order");
         }

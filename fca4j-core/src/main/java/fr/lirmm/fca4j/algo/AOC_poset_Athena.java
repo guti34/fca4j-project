@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import fr.lirmm.fca4j.core.IConceptOrder;
+import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;
@@ -54,7 +55,7 @@ public class AOC_poset_Athena implements AbstractAlgo<IConceptOrder> {
 			chrono.stop("clarify");
 			chrono.start("concept");
 		}
-		gsh = new CsrConceptOrder("AOCposetWithAthena", clarified_matrix, getDescription());
+		gsh = new ConceptOrder("AOCposetWithAthena", clarified_matrix, getDescription());
 
 		// create concept of attributes
 		HashMap<Integer,Integer> conceptsA=new HashMap<>();

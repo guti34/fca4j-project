@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.IConceptOrder;
@@ -223,7 +224,7 @@ public class AOC_poset_Hermes implements AbstractAlgo<IConceptOrder> {
      * @throws Exception the exception
      */
     public IConceptOrder computeGSH() throws Exception {
-        gsh = new CsrConceptOrder("AOCposetWithHermes", matrix, getDescription());
+        gsh = new ConceptOrder("AOCposetWithHermes", matrix, getDescription());
         ArrayList<RefSet> attrSets = new ArrayList<>();
         ArrayList<RefSet> objSets = new ArrayList<>();
         if (chrono != null) {
