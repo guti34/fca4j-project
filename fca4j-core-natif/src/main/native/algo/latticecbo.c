@@ -43,8 +43,10 @@
 #include "../core/conceptorder.h"
 #include "../core/closure.h"
 #include "../core/fca4j_common.h"
-#ifndef _WIN32
-  #include <unistd.h>   /* sysconf(_SC_NPROCESSORS_ONLN) */
+#ifdef __APPLE__
+  #include <sys/sysctl.h>  /* sysctlbyname("hw.logicalcpu") */
+#elif !defined(_WIN32)
+  #include <unistd.h>      /* sysconf(_SC_NPROCESSORS_ONLN) */
 #endif
 
 extern int croaring_hardware_support(void);
@@ -350,6 +352,10 @@ static int detect_nthreads(void) {
 #ifdef _WIN32
     SYSTEM_INFO si; GetSystemInfo(&si);
     int n = (int)si.dwNumberOfProcessors; return n > 0 ? n : 1;
+#elif defined(__APPLE__)
+    int n = 1; size_t len = sizeof(n);
+    sysctlbyname("hw.logicalcpu", &n, &len, NULL, 0);
+    return n > 0 ? n : 1;
 #else
     long n = sysconf(_SC_NPROCESSORS_ONLN); return n > 0 ? (int)n : 1;
 #endif
