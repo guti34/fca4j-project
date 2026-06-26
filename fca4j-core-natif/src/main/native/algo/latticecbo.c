@@ -44,7 +44,8 @@
 #include "../core/closure.h"
 #include "../core/fca4j_common.h"
 #ifdef __APPLE__
-  #include <sys/sysctl.h>  /* sysctlbyname("hw.logicalcpu") */
+	#include <sys/types.h>
+  	#include <sys/sysctl.h>  /* sysctlbyname("hw.logicalcpu") */
 #elif !defined(_WIN32)
   #include <unistd.h>      /* sysconf(_SC_NPROCESSORS_ONLN) */
 #endif
