@@ -28,9 +28,17 @@
  * Copyright (c) 2022 LIRMM — BSD 3-Clause License
  */
 
-/* Expose clock_gettime/CLOCK_MONOTONIC (timing) sur Linux/macOS, avant tout
- * en-tête système. Sans effet sous Windows (timing via QueryPerformanceCounter). */
-#ifndef _WIN32
+/* Macros de feature-test avant tout en-tête système.
+ * - macOS  : _DARWIN_C_SOURCE expose POSIX + extensions Darwin
+ *            (clock_gettime, sysconf/_SC_NPROCESSORS_ONLN, u_int…)
+ * - Linux  : _POSIX_C_SOURCE 199309L suffit pour clock_gettime + sysconf
+ * - Windows: rien (timing via QueryPerformanceCounter, CPU via GetSystemInfo) */
+ 
+#ifdef __APPLE__
+#  ifndef _DARWIN_C_SOURCE
+#    define _DARWIN_C_SOURCE
+#  endif
+#elif !defined(_WIN32)
 #  ifndef _POSIX_C_SOURCE
 #    define _POSIX_C_SOURCE 199309L
 #  endif
@@ -43,11 +51,8 @@
 #include "../core/conceptorder.h"
 #include "../core/closure.h"
 #include "../core/fca4j_common.h"
-#ifdef __APPLE__
-	#include <sys/types.h>
-  	#include <sys/sysctl.h>  /* sysctlbyname("hw.logicalcpu") */
-#elif !defined(_WIN32)
-  #include <unistd.h>      /* sysconf(_SC_NPROCESSORS_ONLN) */
+#ifndef _WIN32
+  #include <unistd.h>   /* sysconf(_SC_NPROCESSORS_ONLN), clock_gettime */
 #endif
 
 extern int croaring_hardware_support(void);
@@ -353,10 +358,6 @@ static int detect_nthreads(void) {
 #ifdef _WIN32
     SYSTEM_INFO si; GetSystemInfo(&si);
     int n = (int)si.dwNumberOfProcessors; return n > 0 ? n : 1;
-#elif defined(__APPLE__)
-    int n = 1; size_t len = sizeof(n);
-    sysctlbyname("hw.logicalcpu", &n, &len, NULL, 0);
-    return n > 0 ? n : 1;
 #else
     long n = sysconf(_SC_NPROCESSORS_ONLN); return n > 0 ? (int)n : 1;
 #endif
