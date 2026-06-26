@@ -43,6 +43,9 @@
 #include "../core/conceptorder.h"
 #include "../core/closure.h"
 #include "../core/fca4j_common.h"
+#ifndef _WIN32
+  #include <unistd.h>   /* sysconf(_SC_NPROCESSORS_ONLN) */
+#endif
 
 extern int croaring_hardware_support(void);
 
