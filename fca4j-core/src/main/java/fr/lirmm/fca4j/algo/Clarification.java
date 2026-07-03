@@ -11,6 +11,7 @@ import java.util.List;
 
 import fr.lirmm.fca4j.core.BinaryContext;
 import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.iset.AbstractSetFactory;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
 import fr.lirmm.fca4j.iset.std.BitSetFactory;
@@ -76,7 +77,7 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
         }
         ArrayList<RefSet> attrSets = new ArrayList<RefSet>(setToSynchronize.size());
         for (int i = 0; i < setToSynchronize.size(); i++) {
-            attrSets.add(new RefSet(setToSynchronize.get(i).refs));
+            attrSets.add(new RefSet(setToSynchronize.get(i).refs,factory));
         }
         for (int i = 0; i < setToClarify.size(); i++) {
             ISet ms = setToClarify.get(i).values;
@@ -106,7 +107,7 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
         ArrayList<RefSet> attrSets = new ArrayList<>();
         
             for (int numAttr = 0; numAttr < context.getAttributeCount(); numAttr++) {
-                attrSets.add(new RefSet(numAttr, context.getExtent(numAttr)));
+                attrSets.add(new RefSet(numAttr, context.getExtent(numAttr),context.getFactory()));
             }
         Collections.sort(attrSets);
         for (int i = attrSets.size() - 1; i > 0; i--) {
@@ -144,7 +145,7 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
         ArrayList<RefSet> objSets = new ArrayList<>();
         int sizeSet=Integer.max(context.getAttributeCount(), context.getObjectCount());
             for (int numObj = 0; numObj < context.getObjectCount(); numObj++) {
-                objSets.add(new RefSet(numObj, context.getIntent(numObj)));
+                objSets.add(new RefSet(numObj, context.getIntent(numObj),context.getFactory()));
             }
         Collections.sort(objSets);
         for (int i = objSets.size() - 1; i > 0; i--) {
@@ -191,19 +192,19 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
         ArrayList<RefSet> objSets = new ArrayList<>();
         if (matrix.getAttributeCount() > matrix.getObjectCount()) {
             for (int numAttr = 0; numAttr < matrix.getAttributeCount(); numAttr++) {
-                attrSets.add(new RefSet(numAttr, matrix.getExtent(numAttr)));
+                attrSets.add(new RefSet(numAttr, matrix.getExtent(numAttr), matrix.getFactory()));
             }
             for (int numObj = 0; numObj < matrix.getObjectCount(); numObj++) {
-                objSets.add(new RefSet(numObj));
+                objSets.add(new RefSet(numObj,matrix.getFactory()));
             }
             objSets = clarify(attrSets, objSets);
             attrSets = clarify(objSets, attrSets);
         } else {
             for (int numObj = 0; numObj < matrix.getObjectCount(); numObj++) {
-                objSets.add(new RefSet(numObj, matrix.getIntent(numObj)));
+                objSets.add(new RefSet(numObj, matrix.getIntent(numObj),matrix.getFactory()));
             }
             for (int numAttr = 0; numAttr < matrix.getAttributeCount(); numAttr++) {
-                attrSets.add(new RefSet(numAttr));
+                attrSets.add(new RefSet(numAttr,matrix.getFactory()));
             }
         }
         if(clarifyObjects) attrSets = clarify(objSets, attrSets);
@@ -211,18 +212,18 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
         ArrayList<ISet> rows=new ArrayList<>();
         ArrayList<ISet> columns=new ArrayList<>();
         for(RefSet ref:attrSets){
-        	ISet col=factory.createSet(ref.values.toBitSet(), matrix.getObjectCount());
+        	ISet col=factory.clone(ref.values);
         	columns.add(col);            
         }
         for(RefSet ref:objSets){
-        	ISet row=factory.createSet(ref.values.toBitSet(), matrix.getAttributeCount());
+        	ISet row=factory.clone(ref.values);
             rows.add(row);   
         }
         BinaryContext newContext=new BinaryContext(rows, columns, nameContext,factory);
         for(RefSet ref:attrSets)
         {
             String attrName=matrix.getAttributeName(ref.refs.first());
-        	ISet refs=factory.createSet(ref.refs.toBitSet(), matrix.getAttributeCount());           
+        	ISet refs=factory.clone(ref.refs);           
             equivClassAttributes.add(refs);
             if(rename && ref.refs.cardinality()>1) attrName=attrName+"("+ref.refs.cardinality()+")";
             newContext.addAttributeName(attrName);
@@ -260,21 +261,20 @@ public class Clarification implements AbstractAlgo<IBinaryContext>{
         private ISet refs;
         private ISet values;
 
-        RefSet(int ref, ISet values) {
-            this.refs = new BitSetFactory().createSet();
+        RefSet(int ref, ISet values, ISetFactory factory) {
+            this.refs = factory.createSet();
             this.refs.add(ref);
             this.values = values.clone();
         }
 
-        RefSet(int ref) {
-        	ISetFactory defaultFactory=new BitSetFactory();
-            this.refs = defaultFactory.createSet();
+        RefSet(int ref, ISetFactory factory) {
+            this.refs = factory.createSet();
             this.refs.add(ref);
-            this.values = defaultFactory.createSet();
+            this.values = factory.createSet();
         }
 
-        RefSet(ISet refs) {
-            this.values = new BitSetFactory().createSet();
+        RefSet(ISet refs, ISetFactory factory) {
+            this.values = factory.createSet();
             this.refs = refs.clone();
         }
 
