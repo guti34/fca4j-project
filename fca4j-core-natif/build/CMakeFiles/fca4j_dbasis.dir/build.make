@@ -281,11 +281,26 @@ CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.s"
 	C:\dev_tools\mingw64\bin\cc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S C:\platform\fca4j-project\fca4j-core-natif\src\main\native\algo\latticecbo.c -o CMakeFiles\fca4j_dbasis.dir\algo\latticecbo.c.s
 
+CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj: CMakeFiles/fca4j_dbasis.dir/flags.make
+CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj: CMakeFiles/fca4j_dbasis.dir/includes_C.rsp
+CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj: C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/pluton.c
+CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj: CMakeFiles/fca4j_dbasis.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj"
+	C:\dev_tools\mingw64\bin\cc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj -MF CMakeFiles\fca4j_dbasis.dir\algo\pluton.c.obj.d -o CMakeFiles\fca4j_dbasis.dir\algo\pluton.c.obj -c C:\platform\fca4j-project\fca4j-core-natif\src\main\native\algo\pluton.c
+
+CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.i"
+	C:\dev_tools\mingw64\bin\cc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E C:\platform\fca4j-project\fca4j-core-natif\src\main\native\algo\pluton.c > CMakeFiles\fca4j_dbasis.dir\algo\pluton.c.i
+
+CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.s"
+	C:\dev_tools\mingw64\bin\cc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S C:\platform\fca4j-project\fca4j-core-natif\src\main\native\algo\pluton.c -o CMakeFiles\fca4j_dbasis.dir\algo\pluton.c.s
+
 CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj: CMakeFiles/fca4j_dbasis.dir/flags.make
 CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj: CMakeFiles/fca4j_dbasis.dir/includes_C.rsp
 CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj: C:/platform/fca4j-project/fca4j-core-natif/src/main/native/fca4j_jni.c
 CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj: CMakeFiles/fca4j_dbasis.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj"
 	C:\dev_tools\mingw64\bin\cc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj -MF CMakeFiles\fca4j_dbasis.dir\fca4j_jni.c.obj.d -o CMakeFiles\fca4j_dbasis.dir\fca4j_jni.c.obj -c C:\platform\fca4j-project\fca4j-core-natif\src\main\native\fca4j_jni.c
 
 CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.i: cmake_force
@@ -312,6 +327,7 @@ fca4j_dbasis_OBJECTS = \
 "CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.obj" \
 "CMakeFiles/fca4j_dbasis.dir/algo/addextent.c.obj" \
 "CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj" \
+"CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj" \
 "CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj"
 
 # External object files for target fca4j_dbasis
@@ -331,12 +347,13 @@ fca4j_dbasis.dll: CMakeFiles/fca4j_dbasis.dir/algo/hermes.c.obj
 fca4j_dbasis.dll: CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.obj
 fca4j_dbasis.dll: CMakeFiles/fca4j_dbasis.dir/algo/addextent.c.obj
 fca4j_dbasis.dll: CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj
+fca4j_dbasis.dll: CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj
 fca4j_dbasis.dll: CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj
 fca4j_dbasis.dll: CMakeFiles/fca4j_dbasis.dir/build.make
 fca4j_dbasis.dll: CMakeFiles/fca4j_dbasis.dir/linkLibs.rsp
 fca4j_dbasis.dll: CMakeFiles/fca4j_dbasis.dir/objects1.rsp
 fca4j_dbasis.dll: CMakeFiles/fca4j_dbasis.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Linking C shared library fca4j_dbasis.dll"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Linking C shared library fca4j_dbasis.dll"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\fca4j_dbasis.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

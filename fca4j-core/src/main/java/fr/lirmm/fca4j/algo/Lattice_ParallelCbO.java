@@ -84,12 +84,23 @@ public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 	private int parallelism = Runtime.getRuntime().availableProcessors();
 
 	/**
-	 * Whether to materialise full intents. Not needed for the LATTICE -> JSON
-	 * output (the writer emits reduced intents only), so off by default; enable it
-	 * if full intents are required downstream (e.g. rule extraction).
+	 * Whether the caller needs the FULL sets (extents and intents) in the ORIGINAL
+	 * (non-clarified, non-transposed) space. Off by default: the LATTICE -> JSON
+	 * output reads reduced sets only, so full intents are not materialised and only
+	 * the reduced sets are remapped out of the clarified space.
+	 *
+	 * <p>Turn it on for any consumer that reads getConceptExtent()/getConceptIntent(),
+	 * e.g. rule extraction, or RCA (ExploRCA identifies concepts across steps by
+	 * their full extent). Two reasons, both mandatory:
+	 * <ul>
+	 * <li>without it the full intents stay empty, and dual() swaps extents/intents
+	 * when the working orientation is the transpose -> ALL extents become empty;</li>
+	 * <li>without it substitutionReduced() leaves the full extents in clarified
+	 * space, where they are meaningless to the caller.</li>
+	 * </ul>
 	 */
-	private boolean computeFullIntents = false;
-
+	private boolean needFullSets = false;
+	
 	/** extent (ISet) -> concept id in the clarified-space order (concurrent). */
 	private final ConcurrentHashMap<ISet, Integer> conceptByExtent = new ConcurrentHashMap<>();
 
@@ -448,7 +459,7 @@ public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 		// 4) Full intents are NOT needed for the LATTICE -> JSON output: the writer
 		//    emits reduced intents only. Computed only on demand (rule extraction).
 		long tIntents = 0;
-		if (computeFullIntents) {
+		if (needFullSets) {
 			long tIntents0 = System.nanoTime();
 			clarOrder.computeIntents();
 			tIntents = System.nanoTime() - tIntents0;
@@ -514,7 +525,7 @@ public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 			if (chrono != null) {
 				chrono.start("expand");
 			}
-			if (computeFullIntents) {
+			if (needFullSets) {
 				order.substitution(base, attrClasses, objClasses);
 			} else {
 				order.substitutionReduced(base, attrClasses, objClasses);
@@ -571,19 +582,32 @@ public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 	}
 
 	/**
-	 * Enables/disables materialising full intents (off by default; not needed for
-	 * the JSON output, required for rule extraction).
+	 * Enables/disables materialising the full sets in the original space (off by
+	 * default; not needed for the JSON output, required for rule extraction and
+	 * for RCA).
 	 *
-	 * @param computeFullIntents whether to compute full intents
+	 * @param needFullSets whether full extents/intents are needed
 	 */
+	public void setNeedFullSets(boolean needFullSets) {
+		this.needFullSets = needFullSets;
+	}
+
+	public boolean isNeedFullSets() {
+		return needFullSets;
+	}
+
+	/** @deprecated misleading name, use {@link #setNeedFullSets(boolean)}. */
+	@Deprecated
 	public void setComputeFullIntents(boolean computeFullIntents) {
-		this.computeFullIntents = computeFullIntents;
+		setNeedFullSets(computeFullIntents);
 	}
 
+	/** @deprecated misleading name, use {@link #isNeedFullSets()}. */
+	@Deprecated
 	public boolean isComputeFullIntents() {
-		return computeFullIntents;
+		return isNeedFullSets();
 	}
-
+	
 	public int getTotalConcepts() {
 		return totalNewConcepts;
 	}

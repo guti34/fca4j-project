@@ -123,6 +123,37 @@ public final class NativeBridge {
     public static native int[] runHermesFlat(
             int nObjects, int nAttributes,
             byte[] matrix);
+    /**
+     * AOC-poset Pluton en C.
+     *
+     * @param nObjects    nombre d'objets
+     * @param nAttributes nombre d'attributs
+     * @param matrix      matrice binaire aplatie row-major
+     * @param attrNames   noms des attributs (peut être null)
+     * @return            JSON ConceptOrder (co_to_json)
+     */
+    public static native String runPluton(
+            int nObjects, int nAttributes,
+            byte[] matrix,
+            String[] attrNames);
+
+    /**
+     * AOC-poset Pluton en C — variante rapide.
+     *
+     * <p>Renvoie un tableau d'entiers plat auto-descriptif (mêmes conventions
+     * que {@link #runHermesFlat}) : aucun nom, indices uniquement, consommé
+     * directement par {@code ConceptOrder.populate}. La clarification et la
+     * substitution sont faites côté C : les indices sont déjà exprimés dans le
+     * contexte ORIGINAL.
+     *
+     * @param nObjects    nombre d'objets
+     * @param nAttributes nombre d'attributs
+     * @param matrix      matrice binaire aplatie row-major
+     * @return            tableau plat (cf. format runAddExtentFlat)
+     */
+    public static native int[] runPlutonFlat(
+            int nObjects, int nAttributes,
+            byte[] matrix);
 
     /**
      * LinCbO en C.

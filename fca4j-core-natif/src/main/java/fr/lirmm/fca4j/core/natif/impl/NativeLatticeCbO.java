@@ -48,7 +48,21 @@ public class NativeLatticeCbO implements AbstractAlgo {
     private final IBinaryContext matrix;
     private final ISetFactory    factory;
     private IConceptOrder         order;
+    /**
+     * Matérialiser les sets complets (extents/intents) avant la dualisation.
+     * populate() ne renseigne que les sets réduits ; les consommateurs qui lisent
+     * getConceptExtent()/getConceptIntent() (extraction de règles, RCA) doivent
+     * l'activer, sinon ils récupèrent des null (ou des vides après dual()).
+     */
+    private boolean needFullSets = false;
 
+    public void setNeedFullSets(boolean needFullSets) {
+        this.needFullSets = needFullSets;
+    }
+
+    public boolean isNeedFullSets() {
+        return needFullSets;
+    }
     public NativeLatticeCbO(IBinaryContext matrix) {
         this.matrix  = matrix;
         this.factory = matrix.getFactory();
@@ -95,8 +109,17 @@ public class NativeLatticeCbO implements AbstractAlgo {
         populateFromFlat(order, flat);
         chrono.stop("populateFromFlat");
 
+        // Sets complets dans l'orientation de travail : dual() les échangera ensuite.
+        // Surtout pas buildExtentIntent(), qui réécrirait le contexte (transposé).
+        if (needFullSets) {
+            chrono.start("fullSets");
+            order.computeIntents();
+            order.computeExtents();
+            chrono.stop("fullSets");
+        }
+
         if (transposed) {
-            chrono.start("dual");
+        	chrono.start("dual");
             order.dual(original);
             chrono.stop("dual");
         }

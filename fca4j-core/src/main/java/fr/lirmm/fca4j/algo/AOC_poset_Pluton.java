@@ -5,9 +5,11 @@
 package fr.lirmm.fca4j.algo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,7 +30,12 @@ public class AOC_poset_Pluton implements AbstractAlgo<IConceptOrder> {
     private IConceptOrder gsh = null; //ressource d'arrivee
     protected ISetFactory factory;
     private Chrono chrono = null; // eventually a chrono to store execution time 
-    private final HashSet<Integer> visited = new HashSet<>();
+    // visited flags for the order phase. A flat boolean[] indexed by concept id
+    // replaces the former HashSet<Integer> (boxing + hashing on every get/add/remove),
+    // which was hit K^2 times in the order loop and once per node in completeDescendance.
+    private boolean[] visited;
+    /** reusable DFS stack for completeDescendance, grown on demand */
+    private int[] descStack = new int[64];
     protected HashSet<Integer> upperCover = new HashSet<>();
     protected HashSet<Integer> lowerCover = new HashSet<>();
 
@@ -260,18 +267,21 @@ public class AOC_poset_Pluton implements AbstractAlgo<IConceptOrder> {
     }
 
     //pour determiner si S est le pere de T
-    private boolean isParentOf(int conceptS, int conceptT) {
-        boolean s_hasObjects = !gsh.getConceptReducedExtent(conceptS).isEmpty();
+    //les donnees relatives a S (calculees une seule fois par la boucle externe) sont passees en parametres:
+    //  s_hasObjects : S a-t-il une extension reduite non vide
+    //  fs           : f(objet representant de S), si s_hasObjects
+    //  gs           : g(attribut representant de S), sinon
+    //  s_attr       : attribut representant de S, sinon
+    private boolean isParentOf(boolean s_hasObjects, ISet fs, ISet gs, int s_attr, int conceptT) {
         boolean t_hasObjects = !gsh.getConceptReducedExtent(conceptT).isEmpty();
         boolean t_hasAttributes = !gsh.getConceptReducedIntent(conceptT).isEmpty();
 
         if (s_hasObjects) {
-            ISet fs = matrix.getIntent(gsh.getConceptReducedExtent(conceptS).first());
             // si S et T ont des extensions reduites non vide, on compare par inclusion de ces deux ensembles
             if (t_hasObjects) {
                 ISet ft = matrix.getIntent(gsh.getConceptReducedExtent(conceptT).first());
                 return ft.containsAll(fs);
-            } // sinon on verifie que les objets partageant les attributs de S incluent l'ensemble 
+            } // sinon on verifie que les objets partageant les attributs de S incluent l'ensemble
             // des objets ayant un attribut de T
             else {
                 ISet ft = matrix.getExtent(gsh.getConceptReducedIntent(conceptT).first());
@@ -283,8 +293,6 @@ public class AOC_poset_Pluton implements AbstractAlgo<IConceptOrder> {
                 return true;
             }
         } else {
-            int s_attr = gsh.getConceptReducedIntent(conceptS).first();
-            ISet gs = matrix.getExtent(s_attr);
             // si S et T ont des intensions reduites non vide, on compare par inclusion de ces deux ensembles
             if (t_hasAttributes) {
                 ISet gt = matrix.getExtent(gsh.getConceptReducedIntent(conceptT).first());
@@ -297,15 +305,40 @@ public class AOC_poset_Pluton implements AbstractAlgo<IConceptOrder> {
     }
 
     //marquer tous les descendants d'un concept et heriter des attributs des parents (pour eviter les arcs de transitivite)
+    // Iterative DFS: the recursion could reach the JVM stack limit on deep lattices,
+    // and on a DAG a node shared by several paths must be marked (and inherit) exactly
+    // once. The visited flag is the guard, exactly as in the recursive form: the start
+    // node is never marked, each descendant is pushed only when first seen, marked and
+    // made to inherit intent once. Semantics are identical to the former recursion.
     private void completeDescendance(int concept, ISet intent) {
+        int[] stack = descStack;
+        int sp = 0;
         for (Iterator<Integer> it = gsh.getLowerCoverIterator(concept); it.hasNext();) {
             int child = it.next();
             if (!isVisited(child)) {
                 setVisited(child, true);
                 gsh.getConceptIntent(child).addAll(intent);
-                completeDescendance(child, intent);
+                if (sp == stack.length) {
+                    stack = Arrays.copyOf(stack, stack.length << 1);
+                }
+                stack[sp++] = child;
             }
         }
+        while (sp > 0) {
+            int node = stack[--sp];
+            for (Iterator<Integer> it = gsh.getLowerCoverIterator(node); it.hasNext();) {
+                int child = it.next();
+                if (!isVisited(child)) {
+                    setVisited(child, true);
+                    gsh.getConceptIntent(child).addAll(intent);
+                    if (sp == stack.length) {
+                        stack = Arrays.copyOf(stack, stack.length << 1);
+                    }
+                    stack[sp++] = child;
+                }
+            }
+        }
+        descStack = stack; // keep the (possibly grown) buffer for reuse
     }
 
     /**
@@ -316,7 +349,31 @@ public class AOC_poset_Pluton implements AbstractAlgo<IConceptOrder> {
      */
     //fonction principale, celle qui calcule la SHG
     public IConceptOrder computeGSH() throws Exception {
-        gsh = new ConceptOrder("AOCposetWithPluton", matrix, getDescription());
+        // Clarify first, exactly like Hermes: equivalent objects (resp. attributes)
+        // collapse into one class, Pluton runs on the smaller clarified context, and
+        // the reduced sets are expanded back to the original ids at the end via
+        // ConceptOrder.substitutionReduced. This removes Pluton's only weak spot --
+        // contexts with heavy object redundancy (e.g. ord6magic raw, 19020 objects for
+        // 4461 classes) -- without touching the algorithm itself: the clarified context
+        // is what the whole computation sees, so correctness is unchanged and is still
+        // exercised end-to-end by AocAudit (which calls run() directly).
+        IBinaryContext originalCtx = matrix;
+        if (chrono != null) {
+            chrono.start("clarify");
+        }
+        Clarification clarification = new Clarification(originalCtx, originalCtx.getName(), true, true, false);
+        clarification.run();
+        IBinaryContext clarifiedCtx = clarification.getResult();
+        List<ISet> objClasses = clarification.getObjectClasses();
+        List<ISet> attrClasses = clarification.getAttributeClasses();
+        if (chrono != null) {
+            chrono.stop("clarify");
+        }
+        // run the whole algorithm against the clarified context
+        matrix = clarifiedCtx;
+        gsh = new ConceptOrder("AOCposetWithPluton", clarifiedCtx, getDescription());
+        // concept ids stay in [0, |G|+|M|); no removeConcept happens during the build
+        visited = new boolean[clarifiedCtx.getObjectCount() + clarifiedCtx.getAttributeCount() + 1];
         if (chrono != null) {
             chrono.start("concept");
         }
@@ -331,21 +388,33 @@ public class AOC_poset_Pluton implements AbstractAlgo<IConceptOrder> {
         //il faut calculer l'ordre
         for (int i = 0; i < linext.size(); i++) {
             int conceptS = linext.get(i);
+            // Everything isParentOf needs about S is invariant across the inner loop,
+            // so prepare it once here instead of recomputing f(repr(S)) / g(attr(S))
+            // for every predecessor T.
+            ISet sRExtent = gsh.getConceptReducedExtent(conceptS);
+            boolean s_hasObjects = !sRExtent.isEmpty();
+            ISet fs = null;   // f(representative object of S), when S has objects
+            ISet gs = null;   // g(representative attribute of S), when S has none
+            int s_attr = -1;
+            if (s_hasObjects) {
+                fs = matrix.getIntent(sRExtent.first());
+            } else {
+                s_attr = gsh.getConceptReducedIntent(conceptS).first();
+                gs = matrix.getExtent(s_attr);
+            }
+            ISet sRIntent = gsh.getConceptReducedIntent(conceptS);
             for (int j = i - 1; j >= 0; j--) {
                 //on compare chaque noeud dans l'extension lineaire e ces precedents
                 //sauf ceux qui sont marques, afin d'eviter les arcs de transitivite
                 int conceptT = linext.get(j);
                 if (isVisited(conceptT)) {
                     setVisited(conceptT, false); //on demarque pour le prochain tour de la boucle principale
-                } else if (isParentOf(conceptS, conceptT)) {
+                } else if (isParentOf(s_hasObjects, fs, gs, s_attr, conceptT)) {
                     //si S est le pere de T, on rajoute l'arc et on marque les descendants de T afin d'eviter les arcs de transitivite
                     gsh.addPrecedenceConnection(conceptT, conceptS);
-                    for (Iterator<Integer> k = gsh.getConceptExtent(conceptT).iterator(); k.hasNext();) {
-                        gsh.getConceptExtent(conceptS).add(k.next());
-                    }
-                    //                                           gsh.addObjectToConcept(conceptS,k.next());
-                    gsh.getConceptIntent(conceptT).addAll(gsh.getConceptReducedIntent(conceptS));
-                    completeDescendance(conceptT, gsh.getConceptReducedIntent(conceptS));
+                    gsh.getConceptExtent(conceptS).addAll(gsh.getConceptExtent(conceptT));
+                    gsh.getConceptIntent(conceptT).addAll(sRIntent);
+                    completeDescendance(conceptT, sRIntent);
                 }
             }
 //			setPercentageOfWork((i*100)/linext.size());
@@ -353,19 +422,29 @@ public class AOC_poset_Pluton implements AbstractAlgo<IConceptOrder> {
         if (chrono != null) {
             chrono.stop("order");
         }
+        // expand the reduced extents/intents from clarified-class ids back to the
+        // original object/attribute ids, and reset the order's context to the
+        // original. substitutionReduced only remaps the reduced sets (and the
+        // context): that is what the JSON lattice output and the audit read. If a
+        // consumer needs the full extents/intents in original space, call
+        // buildExtentIntent() afterwards.
+        if (chrono != null) {
+            chrono.start("substitution");
+        }
+        ((ConceptOrder) gsh).substitutionReduced(originalCtx, attrClasses, objClasses);
+        matrix = originalCtx;
+        if (chrono != null) {
+            chrono.stop("substitution");
+        }
         return gsh;
     }
 
     private boolean isVisited(int concept) {
-        return visited.contains(concept);
+        return visited[concept];
     }
 
     private void setVisited(int concept, boolean b) {
-        if (b) {
-            visited.add(concept);
-        } else {
-            visited.remove(concept);
-        }
+        visited[concept] = b;
     }
 
     /**

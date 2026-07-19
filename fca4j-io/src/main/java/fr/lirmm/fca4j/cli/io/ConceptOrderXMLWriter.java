@@ -26,7 +26,7 @@ public class ConceptOrderXMLWriter {
 	 * @param reduced the reduced
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public static void write(BufferedWriter buff, IConceptOrder order, IBinaryContext mbc, boolean reduced)
+	public static void write(BufferedWriter buff, IConceptOrder order, IBinaryContext mbc)
 			throws IOException {
 
 		ISet setOfAllObjects = mbc.getFactory().createSet();
@@ -43,30 +43,13 @@ public class ConceptOrderXMLWriter {
 			setOfAllAttributes.addAll(order.getConceptIntent(cpt));
 		}
 
-		buff.write("<GSH numberObj=\"" + setOfAllObjects.cardinality()
-				+ "\" numberAtt=\"" + setOfAllAttributes.cardinality()
+		buff.write("<GSH numberObj=\"" + mbc.getObjectCount()
+				+ "\" numberAtt=\"" + mbc.getAttributeCount()
 				+ "\" numberCpt=\"" + order.getConceptCount() + "\">\n");
 
 		buff.write("<Name>" + order.getId() + "</Name>\n");
 
-		int fo;
-		for (Iterator<Integer> it = setOfAllObjects.iterator(); it.hasNext();) {
-			fo = it.next();
-			buff.write("<Object>");
-			buff.write(mbc.getObjectName(fo));
-			buff.write("</Object>\n");
-		}
-		buff.flush();
-
-		int fa;
-		for (Iterator<Integer> it = setOfAllAttributes.iterator(); it.hasNext();) {
-			fa = it.next();
-			buff.write("<Attribute>");
-			buff.write(mbc.getAttributeName(fa));
-			buff.write("</Attribute>\n");
-		}
-		buff.flush();
-		writeConceptualStructure(buff, order, mbc, reduced);
+		writeConceptualStructure(buff, order, mbc);
 
 		buff.write("</GSH>\n");
 		buff.flush();
@@ -81,8 +64,7 @@ public class ConceptOrderXMLWriter {
 	 * @param reduced the reduced
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	static protected void writeConceptualStructure(BufferedWriter buff, IConceptOrder order, IBinaryContext mbc,
-			boolean reduced) throws IOException {
+	static protected void writeConceptualStructure(BufferedWriter buff, IConceptOrder order, IBinaryContext mbc) throws IOException {
 		int fo;
 		int fa;
 
@@ -95,10 +77,7 @@ public class ConceptOrderXMLWriter {
 
 			buff.write("<Extent>\n");
 			Iterator<Integer> it_extent;
-			if (reduced)
-				it_extent = order.getConceptReducedExtent(cpt).iterator();
-			else
-				it_extent = order.getConceptExtent(cpt).iterator();
+			it_extent = order.getConceptReducedExtent(cpt).iterator();
 			while (it_extent.hasNext()) {
 				fo = it_extent.next();
 				buff.write("<Object_Ref>");
@@ -109,10 +88,7 @@ public class ConceptOrderXMLWriter {
 
 			buff.write("<Intent>\n");
 			Iterator<Integer> it_intent;
-			if (reduced)
-				it_intent = order.getConceptReducedIntent(cpt).iterator();
-			else
-				it_intent = order.getConceptIntent(cpt).iterator();
+			it_intent = order.getConceptReducedIntent(cpt).iterator();
 			while (it_intent.hasNext()) {
 				fa = it_intent.next();
 				buff.write("<Attribute_Ref>");

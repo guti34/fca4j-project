@@ -19,6 +19,7 @@
 #include "algo/lincbo.h"
 #include "algo/addextent.h"
 #include "algo/latticecbo.h"
+#include "algo/pluton.h"
 #include "fr_lirmm_fca4j_core_natif_NativeBridge.h"
 
 /* ── Utilitaire : construction BinaryContext depuis paramètres JNI ── */
@@ -130,6 +131,51 @@ Java_fr_lirmm_fca4j_core_natif_NativeBridge_runHermesFlat(
 
     int len = 0;
     int *flat = run_hermes_flat(ctx, &len);
+    ctx_free(ctx);
+
+    if (flat == NULL || len == 0) {
+        if (flat) free(flat);
+        return (*env)->NewIntArray(env, 0);
+    }
+
+    jintArray result = (*env)->NewIntArray(env, len);
+    if (result != NULL)
+        (*env)->SetIntArrayRegion(env, result, 0, len, (jint*)flat);
+    free(flat);
+    return result;
+}
+/* ── Pluton ──────────────────────────────────────────────────────────── */
+
+JNIEXPORT jstring JNICALL
+Java_fr_lirmm_fca4j_core_natif_NativeBridge_runPluton(
+        JNIEnv *env, jclass clazz,
+        jint nObjects, jint nAttributes,
+        jbyteArray jmatrix,
+        jobjectArray jattrNames) {
+
+    BinaryContext *ctx = ctx_from_jni(env, nObjects, nAttributes, jmatrix, jattrNames);
+    char *json = run_pluton_impl(ctx);
+    ctx_free(ctx);
+
+    jstring result = (*env)->NewStringUTF(env, json);
+    free(json);
+    return result;
+}
+
+/*
+ * runPlutonFlat — variante rapide renvoyant un int[] plat (même format que
+ * runHermesFlat / runAddExtentFlat). Indices uniquement, aucun nom.
+ */
+JNIEXPORT jintArray JNICALL
+Java_fr_lirmm_fca4j_core_natif_NativeBridge_runPlutonFlat(
+        JNIEnv *env, jclass clazz,
+        jint nObjects, jint nAttributes,
+        jbyteArray jmatrix) {
+
+    BinaryContext *ctx = ctx_from_jni(env, nObjects, nAttributes, jmatrix, NULL);
+
+    int len = 0;
+    int *flat = run_pluton_flat(ctx, &len);
     ctx_free(ctx);
 
     if (flat == NULL || len == 0) {

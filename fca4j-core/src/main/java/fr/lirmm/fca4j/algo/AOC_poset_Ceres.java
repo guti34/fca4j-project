@@ -6,12 +6,9 @@ package fr.lirmm.fca4j.algo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Random;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.CsrConceptOrder;
@@ -33,10 +30,13 @@ public class AOC_poset_Ceres implements AbstractAlgo<IConceptOrder> {
     private Chrono chrono = null; // eventually a chrono to store execution time 
     protected ISetFactory factory;
 
-    HashMap<Integer, Integer> cIdentifiers = new HashMap<>();
-    HashMap<Integer, Integer> marks = new HashMap<>();
-    Random ran = new Random(System.currentTimeMillis());
-    int classifyIdentifier;
+    // Flat mark buffers indexed by concept id, with a monotonic epoch stamp so a
+    // whole BFS is "reset" simply by bumping classifyIdentifier. Replaces the two
+    // HashMap<Integer,Integer> (boxing + hashing on every mark update) and the
+    // ran.nextInt() epoch, which could collide and make stale marks read as fresh.
+    int[] marks;
+    int[] cIdentifiers;
+    int classifyIdentifier = 0;
 
     //	--------------------------------------
     // --------------------------------------
@@ -68,7 +68,7 @@ public class AOC_poset_Ceres implements AbstractAlgo<IConceptOrder> {
 
     private void Classify(PreConcept cptToAdd, ISet allCoveredIntent, boolean isAttributeCpt) {
 
-        classifyIdentifier = ran.nextInt();
+        classifyIdentifier++;
         LinkedList<Integer> fifoQueue = new LinkedList<>(); // File accueillant des noeuds potentiellement parent de N
         ISet potentialUpperCover = factory.createSet(binCtx.getAttributeCount()+binCtx.getObjectCount()); // un ensemble de parents de N
         fifoQueue.add(theGSH.getTop()); // Q recoit top en initialisation
@@ -110,46 +110,63 @@ public class AOC_poset_Ceres implements AbstractAlgo<IConceptOrder> {
                 lesObjsTrie.add(anObject);
             }
         }
-        Collections.sort(lesObjsTrie, new Comparator<Integer>() {
+        // increasing intent-size sort. f(o) and |f(o)| are read many times below, so
+        // materialise them once per object instead of calling binCtx.getIntent(o)
+        // (and cardinality()) repeatedly.
+        int n = lesObjsTrie.size();
+        int[] objs = new int[n];
+        for (int i = 0; i < n; i++) {
+            objs[i] = lesObjsTrie.get(i);
+        }
+        final ISet[] fo = new ISet[n];
+        final int[] foCard = new int[n];
+        // sort object indices by |f(o)| ascending, then fill parallel arrays in order
+        Integer[] order = new Integer[n];
+        for (int i = 0; i < n; i++) {
+            order[i] = objs[i];
+        }
+        Arrays.sort(order, new Comparator<Integer>() {
             @Override
             public int compare(Integer e, Integer o) {
-                int tailleFe = binCtx.getIntent(e).cardinality();
-                int tailleFo = binCtx.getIntent(o).cardinality();
-                return Integer.compare(tailleFe, tailleFo);
+                return Integer.compare(binCtx.getIntent(e).cardinality(), binCtx.getIntent(o).cardinality());
             }
         });
+        for (int i = 0; i < n; i++) {
+            objs[i] = order[i];
+            fo[i] = binCtx.getIntent(objs[i]);
+            foCard[i] = fo[i].cardinality();
+        }
 
-        // Ici lesObjsTrie est l'ensemble des objets formel contenus dans CC trie par taille d'intension croissante
-        int potentialObjectCptGenerator;
-        for (int i = 0; i < lesObjsTrie.size(); i++) {
-            potentialObjectCptGenerator = lesObjsTrie.get(i);
-            ISet theAssocitedIntent = factory.clone(binCtx.getIntent(potentialObjectCptGenerator));
+        // Ici objs est l'ensemble des objets formel contenus dans CC trie par taille d'intension croissante.
+        // consumed[j] marks an object already merged into an earlier object-concept; the
+        // original compacted the list with remove((Integer)), this skips instead -- same
+        // effect, without the O(n) shift inside the inner loop.
+        boolean[] consumed = new boolean[n];
+        for (int i = 0; i < n; i++) {
+            if (consumed[i]) {
+                continue;
+            }
+            ISet theAssocitedIntent = factory.clone(fo[i]);
             if (allCoveredIntent.containsAll(theAssocitedIntent)) {
-                // potentialObjectCptGenerator genere donc un nouveau concept objet
-
-                // Creation d'un nouveau noeud
+                // objs[i] genere donc un nouveau concept objet
                 ISet LP = factory.createSet(binCtx.getObjectCount());
-                LP.add(potentialObjectCptGenerator); // Son extension contient l'objet en question, e
+                LP.add(objs[i]);
                 // L'Intension simplifie est forcement vide puisque ce concept est obligatoirement un concept objet !
                 PreConcept theNexCpt = new PreConcept(LP, theAssocitedIntent);
-                theNexCpt.getRExtent().add(potentialObjectCptGenerator); // L'extension simplifie contient egalement cet objet particulier, e
-                int complementaryObjectGenerator;
-                for (int j = i + 1; j < lesObjsTrie.size(); j++) {
-                    // On vas parcourir les objets suivant pour completer l'extension complete et simplifie
-                    // au cas oe ce concept objet representerai plusieurs objets
-                    complementaryObjectGenerator = lesObjsTrie.get(j);
-                    if (binCtx.getIntent(complementaryObjectGenerator).cardinality() == theAssocitedIntent.cardinality()) {
-                        if (binCtx.getIntent(complementaryObjectGenerator).equals(theAssocitedIntent)) {
-                            theNexCpt.getExtent().add(complementaryObjectGenerator);
-                            theNexCpt.getRExtent().add(complementaryObjectGenerator);
-                            lesObjsTrie.remove((Integer) complementaryObjectGenerator);
-                            // Comme il y a un retrait il faut re-ajouster le compteur
-                            j--;
+                theNexCpt.getRExtent().add(objs[i]);
+                int card = theAssocitedIntent.cardinality();
+                for (int j = i + 1; j < n; j++) {
+                    if (consumed[j]) {
+                        continue;
+                    }
+                    if (foCard[j] == card) {
+                        if (fo[j].equals(theAssocitedIntent)) {
+                            theNexCpt.getExtent().add(objs[j]);
+                            theNexCpt.getRExtent().add(objs[j]);
+                            consumed[j] = true;
                         }
-                    } else {
-                        if (binCtx.getIntent(complementaryObjectGenerator).containsAll(theAssocitedIntent)) {
-                            theNexCpt.getExtent().add(complementaryObjectGenerator);
-                        }
+                    } else if (fo[j].containsAll(theAssocitedIntent)) {
+                        theNexCpt.getExtent().add(objs[j]);
                     }
                 }
                 // On vas placer ce nouveau noeud dans le treilli
@@ -160,23 +177,22 @@ public class AOC_poset_Ceres implements AbstractAlgo<IConceptOrder> {
     }
 
     private void initMark(int aCpt) {
-        marks.put(aCpt, theGSH.getUpperCover(aCpt).cardinality());
-        cIdentifiers.put(aCpt, classifyIdentifier);
+        marks[aCpt] = theGSH.getUpperCover(aCpt).cardinality();
+        cIdentifiers[aCpt] = classifyIdentifier;
     }
 
     private boolean isReady(int aCpt) {
-        if (marks.get(aCpt) == null || cIdentifiers.get(aCpt) != classifyIdentifier) {
+        if (cIdentifiers[aCpt] != classifyIdentifier) {
             initMark(aCpt);
         }
-        boolean ret = marks.get(aCpt) == 0;
-        return ret;
+        return marks[aCpt] == 0;
     }
 
     private void changeMarkValue(int aCpt) {
-        if (marks.get(aCpt) == null || cIdentifiers.get(aCpt) != classifyIdentifier) {
+        if (cIdentifiers[aCpt] != classifyIdentifier) {
             initMark(aCpt);
         }
-        marks.put(aCpt, marks.get(aCpt) - 1);
+        marks[aCpt]--;
     }
 
     // --------------------------------------
@@ -213,6 +229,12 @@ public class AOC_poset_Ceres implements AbstractAlgo<IConceptOrder> {
         }
 
         theGSH = new ConceptOrder("AOCposetWithCeres", binCtx, getDescription());
+        // Concept ids handed out by addConcept stay in [0, |G|+|M|) throughout the
+        // build (the single removeConcept happens only at the very end), so flat
+        // buffers of this size cover every id Classify will ever mark.
+        int maxConcepts = binCtx.getObjectCount() + binCtx.getAttributeCount() + 1;
+        marks = new int[maxConcepts];
+        cIdentifiers = new int[maxConcepts];
         if (chrono != null) {
             chrono.start("concept/order");
         }
@@ -236,11 +258,16 @@ public class AOC_poset_Ceres implements AbstractAlgo<IConceptOrder> {
             preCptTab[i] = aCpt;
         }
         // Debut Algo
-        // decreeasing extent sort
+        // decreasing extent sort. cardinality() is O(|G|/64) on a bitset; caching it
+        // once on each PreConcept avoids recomputing it at every comparison (a sort is
+        // O(K log K) comparisons).
+        for (PreConcept p : preCptTab) {
+            p.extentCard = p.getExtent().cardinality();
+        }
         Arrays.sort(preCptTab, new Comparator<PreConcept>() {
             @Override
             public int compare(PreConcept p1, PreConcept p2) {
-                return Integer.compare(p2.getExtent().cardinality(), p1.getExtent().cardinality());
+                return Integer.compare(p2.extentCard, p1.extentCard);
             }
         });
         boolean preCptDone[] = new boolean[preCptTab.length];
@@ -253,11 +280,11 @@ public class AOC_poset_Ceres implements AbstractAlgo<IConceptOrder> {
 
         ISet allCoveredIntent = factory.createSet(binCtx.getAttributeCount());
         while (startIndex < preCptTab.length) {
-            sizeToDo = preCptTab[startIndex].getExtent().cardinality();
+            sizeToDo = preCptTab[startIndex].extentCard;
 
             // On rassemle les pre-concepts de taille d'extent identique
             // Si deux pre-concept ont un extent identique on fusionne ces deux concepts dans le premier le dernier ne sera pas considere
-            while (endIndex < preCptTab.length && preCptTab[endIndex].getExtent().cardinality() == sizeToDo) {
+            while (endIndex < preCptTab.length && preCptTab[endIndex].extentCard == sizeToDo) {
                 for (int i = startIndex; i < endIndex; i++) {
                     if (!preCptDone[i] && preCptTab[i].getExtent().equals(preCptTab[endIndex].getExtent())) {
                         preCptTab[i].getIntent().addAll(preCptTab[endIndex].getIntent());
@@ -335,6 +362,8 @@ public class AOC_poset_Ceres implements AbstractAlgo<IConceptOrder> {
     private class PreConcept {
 
         ISet extent, intent, rextent, rintent;
+        /** cardinality of extent, cached for the decreasing-extent sort */
+        int extentCard;
 
         PreConcept(ISet extent, ISet intent) {
             this(extent, intent, factory.createSet(binCtx.getObjectCount()), factory.createSet(binCtx.getAttributeCount()));

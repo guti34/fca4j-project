@@ -32,6 +32,7 @@ import fr.lirmm.fca4j.algo.ExploRCA;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
 import fr.lirmm.fca4j.algo.Lattice_AddIntent;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
+import fr.lirmm.fca4j.algo.Lattice_ParallelCbO;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
 import fr.lirmm.fca4j.cli.io.FamilyXMLWriter;
 import fr.lirmm.fca4j.cli.io.RCFALReader;
@@ -44,6 +45,9 @@ import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
 import fr.lirmm.fca4j.core.RCAFamily.RelationalContext;
+import fr.lirmm.fca4j.core.natif.FastAOCPosetHermes;
+import fr.lirmm.fca4j.core.natif.FastLatticeAddExtent;
+import fr.lirmm.fca4j.core.natif.FastLatticeCbO;
 import fr.lirmm.fca4j.core.operator.AbstractScalingOperator;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
@@ -78,6 +82,8 @@ public class RCACommand extends Command {
 
 	/** The algorithm. */
 	protected AlgoRCA algo;
+	/** use native code when available (ADD_EXTENT or PARALLEL_CBO or HERMES), false by default */
+	protected boolean useNativeCode = false;
 
 	/** The percent. */
 	protected int percent = -1;
@@ -151,6 +157,8 @@ public class RCACommand extends Command {
 		PLUTON,
 		/** The hermes algorithm. */
 		HERMES,
+		/** The parallel cbo algorithm */
+		PARALLEL_CBO,
 		/** The add extent algorithm. */
 		ADD_EXTENT,
 		/** The add intent algorithm. */
@@ -180,6 +188,9 @@ public class RCACommand extends Command {
 		for (AlgoRCA algo : AlgoRCA.values()) {
 			sb_algo_aoc.append("\n* " + algo.name());
 		}
+		options.addOption(Option.builder("native")
+				.desc("enable native code (CRoaring/JNI), use C implementation instead")
+				.build());
 		options.addOption(Option.builder("clean").desc(
 				"remove relational attributes concerning disappeared target concepts. Be careful, this option can cause the algorithm to loop")
 				.build());
@@ -301,6 +312,9 @@ public class RCACommand extends Command {
 
 		} else
 			throw new Exception("algorithm must be specified (-a option)");
+		// native code
+		useNativeCode = line.hasOption("native");
+
 		try {
 			if (line.hasOption("d"))
 				displayMode = DisplayFormat.valueOf(line.getOptionValue("d").toUpperCase());
@@ -411,13 +425,30 @@ public class RCACommand extends Command {
 			protected AbstractAlgo<IConceptOrder> createAlgo(IBinaryContext context, int numstep) {
 				switch (algo) {
 				case ADD_EXTENT:
-					return new Lattice_AddExtent(context, chrono);
+					if (useNativeCode) {
+						return FastLatticeAddExtent.create(context,true);
+					} else {
+						return new Lattice_AddExtent(context, chrono);
+					}
 				case ADD_INTENT:
-					return new Lattice_AddIntent(context, chrono);
+					return new Lattice_AddIntent(context,chrono);
+				case PARALLEL_CBO:
+					if (useNativeCode) {
+						// RCA identifie les concepts par leur extension complète
+						return FastLatticeCbO.create(context, true);
+					} else {
+						Lattice_ParallelCbO cbo = new Lattice_ParallelCbO(context, chrono);
+						cbo.setNeedFullSets(true);
+						return cbo;
+					}				
 				case ICEBERG:
 					return new Lattice_Iceberg(context, percent, chrono);
 				case HERMES:
-					return new AOC_poset_Hermes(context, chrono);
+					if (useNativeCode) {
+						return FastAOCPosetHermes.create(context);
+					} else {
+						return new AOC_poset_Hermes(context, chrono);
+					}
 				case PLUTON:
 					return new AOC_poset_Pluton(context, chrono);
 				case ARES:

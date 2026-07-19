@@ -52,8 +52,8 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 	/** The percent. */
 	protected int percent = -1;
 
-	/** use native code when available (ADD_EXTENT only), true by default */
-	protected boolean useNativeCode = true;
+	/** use native code when available (ADD_EXTENT or PARALLEL_CBO), false by default */
+	protected boolean useNativeCode = false;
 
 	/**
 	 * The Enum AlgoLattice.
@@ -110,9 +110,9 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 //		declareImplicationsOptions();
 		// implementation
 		declareImplementation(false);
-		// native code (ADD_EXTENT only)
+		// native code (ADD_EXTENT or PARALLEL_CBO)
 		options.addOption(Option.builder("native")
-				.desc("disable native code (CRoaring/JNI), use C implementation instead")
+				.desc("enable native code (CRoaring/JNI), use C implementation instead")
 				.build());
 		// concept descriptors
 		declareConceptDescriptorOptions();
@@ -201,15 +201,22 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 	 * @throws Exception the exception
 	 */
 	@Override
-	public Object exec() throws Exception {
-		ctx = readContext(inputFormat, inputFile);
-		Chrono chrono = new Chrono("lattice");
+		public Object exec() throws Exception {
+			ctx = readContext(inputFormat, inputFile);
+
+			// Les consommateurs de sets COMPLETS : DOT, implications, descripteurs
+			// datalog, et (par prudence) la sortie XML. La sortie JSON via
+			// writeStreamingFast n'utilise que les sets réduits.
+			boolean needFullSets = dotFile != null || itpFile != null || idfFile != null
+					|| ibfFile != null || cdFolder != null || cdFile != null;
+
+			Chrono chrono = new Chrono("lattice");		
 		AbstractAlgo<IConceptOrder> lat_algo;
 		// choose algo dynamically
 		switch (algo) {
 		case ADD_EXTENT:
 			if (useNativeCode) {
-				lat_algo = FastLatticeAddExtent.create(ctx);
+				lat_algo = FastLatticeAddExtent.create(ctx,needFullSets);
 			} else {
 				lat_algo = new Lattice_AddExtent(ctx, chrono);
 			}
@@ -219,7 +226,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 			break;
 		case PARALLEL_CBO:
 			if (useNativeCode) {
-			lat_algo = FastLatticeCbO.create(ctx);
+			lat_algo = FastLatticeCbO.create(ctx,needFullSets);
 			} else {
 				lat_algo = new Lattice_ParallelCbO(ctx,chrono);
 			}
@@ -227,10 +234,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		case ICEBERG:
 			lat_algo = new Lattice_Iceberg(ctx, percent, chrono);
 			break;
-/*		case ADD_EXTENT_GPU:
-		    lat_algo = new Lattice_AddExtent_Parallel(ctx, chrono);
-		    break;	
-*/
+
 		default:
 			throw new Exception("unknown algorithm");
 		}
@@ -241,12 +245,6 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		lat_algo.run();
 		chrono.stop(lat_algo.getDescription());
 		IConceptOrder result = lat_algo.getResult();
-		// complete full extent and intent for native ADD_EXTENT and PARRALEL_CBO
-		if(options.hasOption("g")||options.hasOption("itp")||options.hasOption("idf")||options.hasOption("ibf"))
-		{
-		if(useNativeCode && (algo==AlgoLattice.ADD_EXTENT ||algo==AlgoLattice.PARALLEL_CBO))
-			result.buildExtentIntent();	
-		}
 		chrono.start("write output");
 		// output result
 		BufferedWriter writer;
@@ -261,7 +259,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		if (outputFile != null)
 			switch (outputFormat) {
 			case XML:
-				ConceptOrderXMLWriter.write(writer, result, ctx, true);
+				ConceptOrderXMLWriter.write(writer, result, ctx);
 				break;
 			case JSON:
 			    ConceptOrderJSONWriter.writeStreamingFast(writer, result, ctx.getName(), lat_algo.getDescription());

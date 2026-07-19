@@ -296,6 +296,10 @@ public abstract class ExploRCA {
 		HashMap<ConceptExtentKey, Integer> extents = conceptExtentsList.get(formalContext.getName());
 		HashMap<ConceptExtentKey, Integer> numSteps = conceptExtentsNumStep.get(formalContext.getName());
 		HashMap<Integer, Integer> renames = new HashMap<>();
+		// Garde-fou : renames doit être injectif sur l'ordre courant. Deux concepts
+		// distincts partageant une extension complète signalent que l'algo ne les a
+		// pas matérialisées, ou les a laissées dans l'espace clarifié.
+		HashMap<Integer, Integer> reverse = new HashMap<>();
 		int numConcept = 0;
 		for (int c : order.getConcepts()) {
 			if (c > numConcept)
@@ -303,23 +307,39 @@ public abstract class ExploRCA {
 		}
 		if (maxRegisteredConcept > numConcept)
 			numConcept = maxRegisteredConcept;
-		for (Iterator<Integer> it = order.getBasicIterator(); it.hasNext();/* numConcept++ */) {
+		for (Iterator<Integer> it = order.getBasicIterator(); it.hasNext();) {
 			int concept = it.next();
-			ConceptExtentKey cek = new ConceptExtentKey(order.getConceptExtent(concept));
+			ISet extent = order.getConceptExtent(concept);
+			if (extent == null) {
+				throw new IllegalStateException("algo " + order.getAlgoName() + " / ctx "
+						+ formalContext.getName() + ": full extent is null for concept " + concept
+						+ ". RCA identifies concepts across steps by their full extent: the algorithm"
+						+ " must materialise full extents in the original (non-clarified) space.");
+			}
+			ConceptExtentKey cek = new ConceptExtentKey(extent);
+			int newId;
 			if (extents.containsKey(cek)) {
-				int existingC = extents.get(cek);
-				renames.put(concept, existingC);
+				newId = extents.get(cek);
 			} else {
 				// choose next id for new concept
 				numConcept += 1;
-				extents.put(cek, numConcept);
+				newId = numConcept;
+				extents.put(cek, newId);
 				numSteps.put(cek, numstep);
 				newConcept = true;
-				renames.put(concept, numConcept);
-				maxRegisteredConcept = numConcept;
+				maxRegisteredConcept = newId;
 			}
-		}
-		// store concept rextent and rintent
+			renames.put(concept, newId);
+			Integer clash = reverse.put(newId, concept);
+			if (clash != null) {
+				throw new IllegalStateException("algo " + order.getAlgoName() + " / ctx "
+						+ formalContext.getName() + ": concepts " + clash + " and " + concept
+						+ " share the same full extent (cardinality " + extent.cardinality()
+						+ ", " + order.getConceptCount() + " concepts). Renaming would create a loop."
+						+ " The full extents produced by this algorithm are unusable as identity keys"
+						+ " (not materialised, or still in clarified space).");
+			}
+		}		// store concept rextent and rintent
 		int[] concepts = new int[order.getConceptCount()];
 		int ex = 0, in = 1;
 		BitSet[] bitsets = new BitSet[order.getConceptCount() * 2];
@@ -350,6 +370,7 @@ public abstract class ExploRCA {
 			newConceptOrder.buildExtentIntent();
 			return newConceptOrder;
 		} catch (Exception e) {
+			e.printStackTrace();
 			boolean b1 = controlCO(order);
 			System.out.println("b1=" + b1);
 			return null;

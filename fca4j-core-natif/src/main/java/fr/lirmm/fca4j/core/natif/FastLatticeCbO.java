@@ -24,13 +24,24 @@ public final class FastLatticeCbO {
     private FastLatticeCbO() {}
 
     public static AbstractAlgo create(IBinaryContext context) {
-        if (NativeBridge.isAvailable()) {
-            return new NativeLatticeCbO(context);
-        } else {
-            return new Lattice_ParallelCbO(context);
-        }
+        return create(context, false);
     }
 
+    /**
+     * @param needFullSets true si l'appelant lit les extents/intents complets
+     *                     (extraction de règles, RCA). Faux pour la sortie JSON.
+     */
+    public static AbstractAlgo create(IBinaryContext context, boolean needFullSets) {
+        if (NativeBridge.isAvailable()) {
+            NativeLatticeCbO algo = new NativeLatticeCbO(context);
+            algo.setNeedFullSets(needFullSets);
+            return algo;
+        } else {
+            Lattice_ParallelCbO algo = new Lattice_ParallelCbO(context);
+            algo.setNeedFullSets(needFullSets);
+            return algo;
+        }
+    }
     public static String activeBackend() {
         return NativeBridge.isAvailable()
                 ? "native (C)"

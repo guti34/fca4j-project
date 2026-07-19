@@ -34,13 +34,23 @@ public final class FastLatticeAddExtent {
      * @return instance prête à exécuter (appeler {@code run()} puis {@code getResult()})
      */
     public static AbstractAlgo create(IBinaryContext context) {
-        if (NativeBridge.isAvailable()) {
-            return new NativeLatticeAddExtent(context);
-        } else {
-            return new Lattice_AddExtent(context);
-        }
+        return create(context, false);
     }
 
+    /**
+     * @param needFullSets true si l'appelant lit les extents/intents complets
+     *                     (RCA, implications, DOT, descripteurs). Faux pour la
+     *                     sortie JSON, qui n'utilise que les sets réduits.
+     */
+    public static AbstractAlgo create(IBinaryContext context, boolean needFullSets) {
+        if (NativeBridge.isAvailable()) {
+            NativeLatticeAddExtent algo = new NativeLatticeAddExtent(context);
+            algo.setNeedFullSets(needFullSets);
+            return algo;
+        } else {
+            return new Lattice_AddExtent(context);   // produit déjà les sets complets
+        }
+    }
     /**
      * Indique quel backend est actif.
      */

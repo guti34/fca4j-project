@@ -7,6 +7,7 @@ package fr.lirmm.fca4j.core;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,7 +18,6 @@ import java.util.Set;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.TransitiveClosure;
-import org.jgrapht.alg.TransitiveReduction;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.EdgeReversedGraph;
@@ -94,7 +94,6 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      * @param concepts the concepts
      * @param edges the edges
      * @param bitsets the bitsets
-     * @param buildExtentIntent the build extent intent
      */
     public void populate(int[] concepts, int[] edges, BitSet[] bitsets) {
         // add vertices to graph, rintent and rextent
@@ -413,16 +412,7 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      */
 
     public ISet getAllChildren(int concept) {
-        ISet children = factory.createSet(context.getObjectCount()+context.getAttributeCount());
-        populateChildren(concept, children);
-        return children;
-    }
-
-    private void populateChildren(int concept, ISet children) {
-        children.add(concept);
-        for (Iterator<Integer> it = getLowerCoverIterator(concept); it.hasNext();) {
-            populateChildren(it.next(), children);
-        }
+        return reachable(concept, true);
     }
 
     /**
@@ -433,16 +423,39 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      * @return the all parents
      */
     public ISet getAllParents(int concept) {
-        ISet parents = factory.createSet(context.getObjectCount()+context.getAttributeCount());
-        populateParents(concept, parents);
-        return parents;
+        return reachable(concept, false);
     }
 
-    private void populateParents(int concept, ISet parents) {
-        parents.add(concept);
-        for (Iterator<Integer> it = getUpperCoverIterator(concept); it.hasNext();) {
-            populateParents(it.next(), parents);
+    /**
+     * Reflexive transitive descendants (down, via lower covers) or ancestors (up,
+     * via upper covers) of {@code start}.
+     *
+     * <p>Iterative and guarded by the result set itself acting as the visited
+     * marker: on a DAG a plain recursion without such a guard re-explores every
+     * distinct path, which is exponential in the number of paths rather than
+     * linear in |V|+|E|. The iterative form also removes the stack-depth limit on
+     * long chains. Same contract and same complexity as
+     * {@code CsrConceptOrder.reachable}.
+     */
+    private ISet reachable(int start, boolean down) {
+        ISet res = factory.createSet(context.getObjectCount() + context.getAttributeCount());
+        int[] stack = new int[16];
+        int sp = 0;
+        stack[sp++] = start;
+        while (sp > 0) {
+            int v = stack[--sp];
+            if (res.contains(v)) {
+                continue;
+            }
+            res.add(v);
+            for (Iterator<Integer> it = down ? getLowerCoverIterator(v) : getUpperCoverIterator(v); it.hasNext();) {
+                if (sp == stack.length) {
+                    stack = Arrays.copyOf(stack, stack.length << 1);
+                }
+                stack[sp++] = it.next();
+            }
         }
+        return res;
     }
 
     /**
@@ -608,11 +621,54 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      * @return the array list
      */
     public ArrayList<Integer> sortByExtent(boolean increasing) {
-        ArrayList<Integer> list = new ArrayList<>(hierarchy.vertexSet());
+        return sortBy(extents, increasing);
+    }
+
+    /**
+     * Sorts the concepts by the cardinality of the given set family.
+     *
+     * <p>The cardinalities are materialised once instead of being recomputed at
+     * every comparison (a {@code cardinality()} call is O(n/64) on a bitset, so
+     * the comparator version costs O(K log K . n/64)); the keys are bounded
+     * integers, so a counting sort in O(K + maxCard) replaces the comparison
+     * sort and the boxing it entails.
+     */
+    private ArrayList<Integer> sortBy(HashMap<Integer, ISet> sets, boolean increasing) {
+        Set<Integer> vertices = hierarchy.vertexSet();
+        int k = vertices.size();
+        int[] ids = new int[k];
+        int[] key = new int[k];
+        int i = 0;
+        int maxKey = 0;
+        for (int v : vertices) {
+            ids[i] = v;
+            int card = sets.get(v).cardinality();
+            key[i] = card;
+            if (card > maxKey) {
+                maxKey = card;
+            }
+            i++;
+        }
+        int[] count = new int[maxKey + 2];
+        for (i = 0; i < k; i++) {
+            count[key[i] + 1]++;
+        }
+        for (i = 0; i <= maxKey; i++) {
+            count[i + 1] += count[i];
+        }
+        int[] sorted = new int[k];
+        for (i = 0; i < k; i++) {
+            sorted[count[key[i]]++] = ids[i];
+        }
+        ArrayList<Integer> list = new ArrayList<>(k);
         if (increasing) {
-            list.sort((Integer c1, Integer c2) -> Integer.compare(getConceptExtent(c1).cardinality(), getConceptExtent(c2).cardinality()));
+            for (i = 0; i < k; i++) {
+                list.add(sorted[i]);
+            }
         } else {
-            list.sort((Integer c1, Integer c2) -> -Integer.compare(getConceptExtent(c2).cardinality(), getConceptExtent(c1).cardinality()));
+            for (i = k - 1; i >= 0; i--) {
+                list.add(sorted[i]);
+            }
         }
         return list;
     }
@@ -624,13 +680,7 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      * @return the array list
      */
     public ArrayList<Integer> sortByIntent(boolean increasing) {
-        ArrayList<Integer> list = new ArrayList<>(hierarchy.vertexSet());
-        if (increasing) {
-            list.sort((Integer c1, Integer c2) -> Integer.compare(getConceptIntent(c1).cardinality(), getConceptIntent(c2).cardinality()));
-        } else {
-            list.sort((Integer c1, Integer c2) -> -Integer.compare(getConceptIntent(c2).cardinality(), getConceptIntent(c1).cardinality()));
-        }
-        return list;
+        return sortBy(intents, increasing);
     }
 
     /**
@@ -808,7 +858,88 @@ public void exportJSON(Writer writer){
     Attention: This transformation remove edges without notification to listeners
      */
     public void reduce() {
-        TransitiveReduction.INSTANCE.reduce(hierarchy);
+        Set<Integer> vertexSet = hierarchy.vertexSet();
+        int n = vertexSet.size();
+        if (n > 0) {
+            int maxId = -1;
+            for (int v : vertexSet) {
+                if (v > maxId) {
+                    maxId = v;
+                }
+            }
+            // dense re-indexing of the (possibly sparse) concept ids
+            int[] idx = new int[maxId + 1];
+            Arrays.fill(idx, -1);
+            int[] ids = new int[n];
+            int i = 0;
+            for (int v : vertexSet) {
+                idx[v] = i;
+                ids[i] = v;
+                i++;
+            }
+            // CSR of the up-edges (lower -> greater)
+            int[] ptr = new int[n + 1];
+            for (i = 0; i < n; i++) {
+                ptr[i + 1] = ptr[i] + hierarchy.outDegreeOf(ids[i]);
+            }
+            int[] adj = new int[ptr[n]];
+            for (i = 0; i < n; i++) {
+                int k = ptr[i];
+                for (DefaultEdge e : hierarchy.outgoingEdgesOf(ids[i])) {
+                    adj[k++] = idx[hierarchy.getEdgeTarget(e)];
+                }
+            }
+            boolean[] reach = new boolean[n];
+            int[] touched = new int[n];
+            int[] stack = new int[16];
+            ArrayList<int[]> redundant = new ArrayList<>();
+            for (i = 0; i < n; i++) {
+                // with a single successor no alternative path can exist (the graph is acyclic)
+                if (ptr[i + 1] - ptr[i] < 2) {
+                    continue;
+                }
+                int nbTouched = 0;
+                int sp = 0;
+                // seed with the successors of the successors: paths of length >= 2 only
+                for (int k = ptr[i]; k < ptr[i + 1]; k++) {
+                    int s = adj[k];
+                    for (int j = ptr[s]; j < ptr[s + 1]; j++) {
+                        if (sp == stack.length) {
+                            stack = Arrays.copyOf(stack, stack.length << 1);
+                        }
+                        stack[sp++] = adj[j];
+                    }
+                }
+                while (sp > 0) {
+                    int v = stack[--sp];
+                    if (reach[v]) {
+                        continue;
+                    }
+                    reach[v] = true;
+                    touched[nbTouched++] = v;
+                    for (int k = ptr[v]; k < ptr[v + 1]; k++) {
+                        if (!reach[adj[k]]) {
+                            if (sp == stack.length) {
+                                stack = Arrays.copyOf(stack, stack.length << 1);
+                            }
+                            stack[sp++] = adj[k];
+                        }
+                    }
+                }
+                for (int k = ptr[i]; k < ptr[i + 1]; k++) {
+                    if (reach[adj[k]]) {
+                        redundant.add(new int[] { ids[i], ids[adj[k]] });
+                    }
+                }
+                // reset only what was actually marked
+                for (int t = 0; t < nbTouched; t++) {
+                    reach[touched[t]] = false;
+                }
+            }
+            for (int[] e : redundant) {
+                hierarchy.removeEdge(e[0], e[1]);
+            }
+        }
         minimals.clear(minimals.capacity());
         maximals.clear(maximals.capacity());
         for(int concept:hierarchy.vertexSet())

@@ -39,6 +39,21 @@ public class NativeLatticeAddExtent implements AbstractAlgo {
     private final ISetFactory    factory;
     private ConceptOrder         order;
 
+    /**
+     * Matérialiser les sets complets après populate(). populate() n'alimente que
+     * les sets réduits et alloue extents/intents VIDES : tout consommateur de
+     * getConceptExtent()/getConceptIntent() (RCA, extraction de règles, DOT,
+     * descripteurs datalog) doit l'activer.
+     */
+    private boolean needFullSets = false;
+
+    public void setNeedFullSets(boolean needFullSets) {
+        this.needFullSets = needFullSets;
+    }
+
+    public boolean isNeedFullSets() {
+        return needFullSets;
+    }
     public NativeLatticeAddExtent(IBinaryContext matrix) {
         this.matrix  = matrix;
         this.factory = matrix.getFactory();
@@ -100,8 +115,10 @@ public class NativeLatticeAddExtent implements AbstractAlgo {
         }
 
         co.populate(concepts, edges, bitsets);
+        if (needFullSets) {
+            co.buildExtentIntent();   // comme NativeAOCPosetHermes
+        }
     }
-
     // ── Utilitaires ──────────────────────────────────────────────────────────
 
     static byte[] buildMatrix(IBinaryContext ctx) {

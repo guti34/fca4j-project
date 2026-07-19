@@ -248,6 +248,30 @@ algo/lincbo.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.s
 .PHONY : algo/lincbo.c.s
 
+algo/pluton.obj: algo/pluton.c.obj
+.PHONY : algo/pluton.obj
+
+# target to build an object file
+algo/pluton.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj
+.PHONY : algo/pluton.c.obj
+
+algo/pluton.i: algo/pluton.c.i
+.PHONY : algo/pluton.i
+
+# target to preprocess a source file
+algo/pluton.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.i
+.PHONY : algo/pluton.c.i
+
+algo/pluton.s: algo/pluton.c.s
+.PHONY : algo/pluton.s
+
+# target to generate assembly for a file
+algo/pluton.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.s
+.PHONY : algo/pluton.c.s
+
 core/clarification.obj: core/clarification.c.obj
 .PHONY : core/clarification.obj
 
@@ -512,6 +536,9 @@ help:
 	@echo ... algo/lincbo.obj
 	@echo ... algo/lincbo.i
 	@echo ... algo/lincbo.s
+	@echo ... algo/pluton.obj
+	@echo ... algo/pluton.i
+	@echo ... algo/pluton.s
 	@echo ... core/clarification.obj
 	@echo ... core/clarification.i
 	@echo ... core/clarification.s

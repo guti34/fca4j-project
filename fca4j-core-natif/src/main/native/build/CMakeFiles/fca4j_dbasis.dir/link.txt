@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\fca4j_dbasis.dir/objects.a
+C:\dev_tools\mingw64\bin\ar.exe qc CMakeFiles\fca4j_dbasis.dir/objects.a @CMakeFiles\fca4j_dbasis.dir\objects1.rsp
+C:\dev_tools\mingw64\bin\cc.exe -O3 -DNDEBUG -shared -o fca4j_dbasis.dll -Wl,--out-implib,libfca4j_dbasis.dll.a -Wl,--major-image-version,0,--minor-image-version,0 -Wl,--whole-archive CMakeFiles\fca4j_dbasis.dir/objects.a -Wl,--no-whole-archive @CMakeFiles\fca4j_dbasis.dir\linkLibs.rsp

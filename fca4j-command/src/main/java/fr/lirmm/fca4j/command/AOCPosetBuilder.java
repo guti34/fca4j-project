@@ -26,6 +26,7 @@ import fr.lirmm.fca4j.cli.io.SLFReader;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.natif.FastAOCPosetHermes;
+import fr.lirmm.fca4j.core.natif.FastAOCPosetPluton;
 import fr.lirmm.fca4j.core.natif.impl.NativeAOCPosetHermes;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
@@ -51,7 +52,7 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 	/** The algo. */
 	protected AlgoAOCPoset algo;
 
-	/** use native code when available (HERMES only), false by default */
+	/** use native code when available (HERMES, PLUTON), false by default */
 	protected boolean useNativeCode = false;
 
 	/**
@@ -196,7 +197,11 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 			}
 			break;
 		case PLUTON:
-			aoc_algo = new AOC_poset_Pluton(ctx, chrono);
+			if (useNativeCode) {
+				aoc_algo = FastAOCPosetPluton.create(ctx);
+			} else {
+				aoc_algo = new AOC_poset_Pluton(ctx, chrono);
+			}			
 			break;
 		case ARES:
 			aoc_algo = new AOC_poset_Ares(ctx, chrono, null, true, true);
@@ -227,7 +232,7 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		if (outputFile != null)
 			switch (outputFormat) {
 			case XML:
-				ConceptOrderXMLWriter.write(writer, result, ctx, true);
+				ConceptOrderXMLWriter.write(writer, result, ctx);
 				break;
 			case JSON:
 			    ConceptOrderJSONWriter.writeStreamingFast(writer, result, ctx.getName(), aoc_algo.getDescription());
@@ -269,7 +274,9 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 		if (cdFile != null)
 			produceConceptDescriptorsInFile(result);
 		// display chrono
-		System.out.println("duration: " + chrono.getResult(aoc_algo.getDescription()) + " ms");
+		for(String serie:chrono.getSerieNames()) {
+			System.out.println(serie+": "+chrono.getResult(serie));
+		}
 		if (verbose) {
 			System.out.println("done");
 			System.out.println("concepts: "+result.getConceptCount() + " edges: "+result.getEdgeCount());

@@ -33,6 +33,7 @@ set(ALGO_SOURCES
     algo/lincbo.c
     algo/addextent.c
     algo/latticecbo.c
+    algo/pluton.c 
 )
 
 add_library(fca4j_dbasis SHARED
