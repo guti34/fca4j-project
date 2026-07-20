@@ -18,4 +18,4 @@ local.properties
 # Locally stored "Eclipse launch configurations"
 *.launch
 
-
+fca4j-core-natif/src/main/native/build/
