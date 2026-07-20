@@ -430,7 +430,7 @@ public class AOC_poset_Pluton implements AbstractAlgo<IConceptOrder> {
         if (chrono != null) {
             chrono.start("substitution");
         }
-        ((ConceptOrder) gsh).substitutionReduced(originalCtx, attrClasses, objClasses);
+        ((ConceptOrder) gsh).substitution(originalCtx, attrClasses, objClasses);
         matrix = originalCtx;
         if (chrono != null) {
             chrono.stop("substitution");
