@@ -93,45 +93,47 @@ public class Main {
 		}
 		// create the parser
 		CommandLineParser parser = new DefaultParser();
-		// parse the command line arguments
 		try {
-			CommandLine line = parser.parse(command.getOptions(), args, false);
-			command.checkOptions(line);
-			if (line.hasOption("z"))
-				timeout = Long.parseLong(line.getOptionValue("z"));
+		    CommandLine line = parser.parse(command.getOptions(), args, false);
+		    command.checkOptions(line);
+		    if (line.hasOption("timeout"))                    // était "z" — ne matchait jamais
+		        timeout = Long.parseLong(line.getOptionValue("timeout"));
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println(e.getClass().getName() + ": " + e.getMessage());
-			System.out.println("\nTry \"help " + command.name() + "\" to get help on command syntax\n");
-			exitCode=1;
-			return;
+		    e.printStackTrace();
+		    System.out.println(e.getClass().getName() + ": " + e.getMessage());
+		    System.out.println("\nTry \"help " + command.name() + "\" to get help on command syntax\n");
+		    exitCode = 1;
+		    return;
 		}
-		Runnable task = new Runnable() {
-			public void run() {
-				try {
-					command.exec();
-				} catch (Exception e) {
-					e.printStackTrace();
-//					System.out.println(e.getClass().getName() + ": " + e.getMessage());
-					System.out.println("Abort during algorithm execution\n");
-					exitCode=1;
-				}
-			}
+
+		Runnable task = () -> {
+		    try {
+		        command.exec();
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        System.out.println("Abort during algorithm execution\n");
+		        exitCode = 1;
+		    }
 		};
+
 		if (timeout > 0) {
-			ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
-			Future future = executor.submit(task);
-			executor.schedule(new Runnable() {
-				public void run() {
-					System.out.println("timeout= " + timeout + "s");
-					future.cancel(true);
-				}
-			}, timeout, TimeUnit.SECONDS);
-			executor.shutdown();
-		} else
-			task.run();
+		    Thread worker = new Thread(task, "fca4j-algo");
+		    worker.start();
+		    try {
+		        worker.join(timeout * 1000L);
+		    } catch (InterruptedException ie) {
+		        Thread.currentThread().interrupt();
+		    }
+		    if (worker.isAlive()) {
+		        System.out.println("timeout reached (" + timeout + "s) — aborting");
+		        System.out.flush();
+		        Runtime.getRuntime().halt(2);   // tue la JVM + threads natifs, code ≠ 0
+		    }
+		} else {
+		    task.run();
+		}
 		System.exit(exitCode);
-	}
+		}
 
 	/**
 	 * Gets the command.
