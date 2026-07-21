@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import fr.lirmm.fca4j.core.ConceptOrder;
-import fr.lirmm.fca4j.core.CsrConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.iset.ISet;

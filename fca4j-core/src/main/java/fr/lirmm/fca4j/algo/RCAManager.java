@@ -9,7 +9,6 @@ import java.util.Iterator;
 
 import org.jgrapht.graph.DefaultDirectedGraph;
 
-import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;

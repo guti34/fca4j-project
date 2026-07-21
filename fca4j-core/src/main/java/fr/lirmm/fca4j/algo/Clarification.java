@@ -11,10 +11,8 @@ import java.util.List;
 
 import fr.lirmm.fca4j.core.BinaryContext;
 import fr.lirmm.fca4j.core.IBinaryContext;
-import fr.lirmm.fca4j.iset.AbstractSetFactory;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
-import fr.lirmm.fca4j.iset.std.BitSetFactory;
 
 /**
  * The Class Clarification.
