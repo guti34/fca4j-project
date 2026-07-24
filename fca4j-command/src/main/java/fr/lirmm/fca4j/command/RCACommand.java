@@ -14,8 +14,6 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +37,6 @@ import fr.lirmm.fca4j.cli.io.RCFALReader;
 import fr.lirmm.fca4j.cli.io.RCFALWriter;
 import fr.lirmm.fca4j.cli.io.RCFTReader;
 import fr.lirmm.fca4j.cli.io.RCFTWriter;
-import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;

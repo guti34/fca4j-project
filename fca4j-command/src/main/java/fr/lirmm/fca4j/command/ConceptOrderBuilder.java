@@ -15,14 +15,12 @@ import java.util.Map;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 
-import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.Implication;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.ConceptUtilities;
-import fr.lirmm.fca4j.util.GraphVizDotWriter;
 import fr.lirmm.fca4j.util.GraphVizDotWriter.DisplayFormat;
 
 /**

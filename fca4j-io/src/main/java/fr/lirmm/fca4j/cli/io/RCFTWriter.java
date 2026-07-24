@@ -11,7 +11,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPOutputStream;
 
 import fr.lirmm.fca4j.core.IBinaryContext;

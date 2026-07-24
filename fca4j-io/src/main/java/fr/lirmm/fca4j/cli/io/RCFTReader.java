@@ -9,7 +9,6 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipInputStream;
 
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.iset.ISetFactory;
