@@ -6,7 +6,6 @@ package fr.lirmm.fca4j.core.natif;
 
 import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
-import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.natif.impl.NativeLatticeAddExtent;
 

@@ -5,11 +5,8 @@
 package fr.lirmm.fca4j.core.natif.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import fr.lirmm.fca4j.algo.DBaseV24;
 import fr.lirmm.fca4j.core.IBinaryContext;
