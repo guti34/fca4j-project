@@ -96,7 +96,7 @@ public class Main {
 		try {
 		    CommandLine line = parser.parse(command.getOptions(), args, false);
 		    command.checkOptions(line);
-		    if (line.hasOption("timeout"))                    // était "z" — ne matchait jamais
+		    if (line.hasOption("timeout")) 
 		        timeout = Long.parseLong(line.getOptionValue("timeout"));
 		} catch (Exception e) {
 		    e.printStackTrace();
