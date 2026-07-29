@@ -6,12 +6,10 @@ package fr.lirmm.fca4j.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 
-import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.iset.ISet;
 
 public class DlgpUtils {

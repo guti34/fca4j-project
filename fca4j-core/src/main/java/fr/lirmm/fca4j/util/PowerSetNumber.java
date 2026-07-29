@@ -4,9 +4,12 @@
  */
 package fr.lirmm.fca4j.util;
 
-import java.util.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.TreeSet;
 
 public class PowerSetNumber {
     private final TreeSet<Integer> exponents; // ex: [5,3,0] = 2^5 + 2^3 + 2^0

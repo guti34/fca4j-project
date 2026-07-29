@@ -4,13 +4,18 @@
  */
 package fr.lirmm.fca4j.util;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import fr.lirmm.fca4j.core.Implication;
-import fr.lirmm.fca4j.core.RuleBasis;
 import fr.lirmm.fca4j.iset.ISet;
 import fr.lirmm.fca4j.iset.ISetFactory;
-import fr.lirmm.fca4j.util.RuleUtilities;
-
-import java.util.*;
 
 /**
  * MinGen / MinGen0 utility (CLA'12)

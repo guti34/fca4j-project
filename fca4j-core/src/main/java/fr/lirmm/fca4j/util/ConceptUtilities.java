@@ -4,9 +4,6 @@
  */
 package fr.lirmm.fca4j.util;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -18,7 +15,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import fr.lirmm.fca4j.algo.ClosureDirect;
-import fr.lirmm.fca4j.core.ConceptOrder;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.iset.ISet;
