@@ -119,7 +119,11 @@ public class GraphVizDotWriter {
 			sb.append("E: " + lattice.getConceptExtent(concept).cardinality());
 			if (computeStability) {
 				sb.append(", ");
-				sb.append("Sta: " + String.format("%.3f", stability.get(concept)));
+				// stability may legitimately be unavailable (map is null, or the
+				// concept is missing from it) if ConceptUtilities.computeStability
+				// failed upstream; never let a formatting call NPE the whole export.
+				Double sta = (stability != null) ? stability.get(concept) : null;
+				sb.append("Sta: " + (sta != null ? String.format("%.3f", sta) : "N/A"));
 			}
 			sb.append(")");
 		} else
@@ -217,8 +221,13 @@ public class GraphVizDotWriter {
 //		Chrono chrono=new Chrono("sta");
 //		chrono.start("stability");
 		Map<Integer, Double> stability = null;
-		if (computeStability)
-			ConceptUtilities.computeStability(lattice);
+		if (computeStability) {
+			try {
+				stability = ConceptUtilities.computeStability(lattice);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 //		chrono.stop("stability");
 //		System.out.println(chrono.getResult());
 		for (Iterator<Integer> it = lattice.getBasicIterator(); it.hasNext();) {
@@ -246,8 +255,13 @@ public class GraphVizDotWriter {
 //		Chrono chrono=new Chrono("sta");
 //		chrono.start("stability");
 		Map<Integer, Double> stability = null;
-		if (computeStability)
-			stability = ConceptUtilities.computeStability(conceptOrder);
+		if (computeStability) {
+			try {
+				stability = ConceptUtilities.computeStability(conceptOrder);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
 //		chrono.stop("stability");
 //		System.out.println(chrono.getResult());
