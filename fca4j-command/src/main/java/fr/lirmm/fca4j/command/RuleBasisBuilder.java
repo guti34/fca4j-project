@@ -319,6 +319,14 @@ public class RuleBasisBuilder extends Command {
 	/**
 	 * Prints by support.
 	 *
+	 * <p>Regroupe par {@code getSupportSize()} (et non {@code
+	 * getSupport().cardinality()}) : {@code getSupport()} peut être {@code
+	 * null} selon le constructeur d'{@link Implication} utilisé en amont ;
+	 * {@code getSupportSize()} gère les deux cas et ne lève jamais de
+	 * NullPointerException. Corrigé par cohérence avec {@code
+	 * DBasisBuilder}, qui a rencontré ce problème avec son pipeline natif
+	 * (voir {@code NativeDBaseV24}).</p>
+	 *
 	 * @param folder       the folder
 	 * @param implications the implications
 	 * @throws IOException Signals that an I/O exception has occurred.
@@ -327,10 +335,10 @@ public class RuleBasisBuilder extends Command {
 		TreeMap<Integer, List<Implication>> map = new TreeMap<>();
 
 		for (Implication implication : implications) {
-			List<Implication> list = map.get(implication.getSupport().cardinality());
+			List<Implication> list = map.get(implication.getSupportSize());
 			if (list == null) {
 				list = new ArrayList<>();
-				map.put(implication.getSupport().cardinality(), list);
+				map.put(implication.getSupportSize(), list);
 			}
 			list.add(implication);
 		}
@@ -343,16 +351,14 @@ public class RuleBasisBuilder extends Command {
 			exporter.export(printWriter, map.get(support), ctx);
 			printWriter.flush();
 			printWriter.close();
-			printWriter.close();
-		}
-		StringBuilder sb = new StringBuilder();
-		for (int support : map.keySet()) {
-			sb.append(String.format("support %d: %d rules\n", support, map.get(support).size()));
 		}
 	}
 
 	/**
 	 * Prints sorted implications.
+	 *
+	 * <p>Même remarque que {@link #printBySupport} : regroupement par
+	 * {@code getSupportSize()}, null-safe.</p>
 	 *
 	 * @param printWriter  the print writer
 	 * @param implications the implications
@@ -361,10 +367,10 @@ public class RuleBasisBuilder extends Command {
 		TreeMap<Integer, List<Implication>> map = new TreeMap<>();
 
 		for (Implication implication : implications) {
-			List<Implication> list = map.get(implication.getSupport().cardinality());
+			List<Implication> list = map.get(implication.getSupportSize());
 			if (list == null) {
 				list = new ArrayList<>();
-				map.put(implication.getSupport().cardinality(), list);
+				map.put(implication.getSupportSize(), list);
 			}
 			list.add(implication);
 		}

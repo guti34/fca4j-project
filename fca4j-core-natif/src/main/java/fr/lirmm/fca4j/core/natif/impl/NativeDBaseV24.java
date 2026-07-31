@@ -59,6 +59,20 @@ public class NativeDBaseV24 extends DBaseV24 {
      * Désérialise le tableau plat produit par {@code run_dbasis_flat} en
      * construisant directement les {@link Implication} à partir des indices :
      * aucun JSON, aucune résolution de noms, aucune allocation de String.
+     *
+     * <p><b>Important :</b> le C ne renvoie que la <i>cardinalité</i> du
+     * support (un entier), pas les objets qui le composent. On reconstruit
+     * ici un {@link ISet} de support réel via {@code closureEngine} (déjà
+     * configuré sur le contexte d'origine par le constructeur de
+     * {@link DBaseV24}), exactement comme le fait le pipeline Java pur dans
+     * {@code DBaseV24.computeDBasis()}. Sans cela, {@code new
+     * Implication(premise, conclusion, support)} avec un {@code int} résout
+     * silencieusement vers le constructeur {@code Implication(ISet, ISet,
+     * int supportSize)}, qui laisse le champ {@code support} (l'{@link ISet})
+     * à {@code null} — et {@link Implication#getSupport()} renvoie alors
+     * {@code null}, provoquant un {@code NullPointerException} dans tout code
+     * appelant {@code getSupport().cardinality()} (ex. impression triée /
+     * regroupée par support).</p>
      */
     private List<Implication> parseDbasisFlat(int[] flat) {
         List<Implication> result = new ArrayList<>();
@@ -75,12 +89,19 @@ public class NativeDBaseV24 extends DBaseV24 {
             int cardC = flat[p++];
             for (int k = 0; k < cardC; k++) conclusion.add(flat[p++]);
 
-            int support = flat[p++];
+            // Cardinalité renvoyée par le C — non utilisée directement : on
+            // recalcule le vrai support (ISet) ci-dessous. Conservée en
+            // commentaire pour la relecture / le debug futur si besoin :
+            // int nativeSupportSize = flat[p++];
+            p++; // consomme la valeur sans la garder
 
             // Mêmes conventions que l'ancien parseImplication :
             // le constructeur Implication(premise, conclusion, support) fait conclusion \ premise.
             conclusion.addAll(premise);
-            result.add(new Implication(premise, conclusion, support));
+
+            // Support réel (ISet), pas seulement sa cardinalité.
+            ISet supportSet = closureEngine.computeExtent(premise);
+            result.add(new Implication(premise, conclusion, supportSet));
         }
         return result;
     }

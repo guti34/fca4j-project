@@ -46,11 +46,15 @@ public class DBasisBuilder extends Command {
 	/** if report exist. */
 	protected boolean reportExist = false;
 
+	/** The result folder. */
+	protected File resultFolder;
+
 	/** The binary context. */
 	protected IBinaryContext ctx;
 
 	/** The algorithm. */
 	protected DBaseV24 algo;
+
 
 	/** The input format. */
 	protected ContextFormat inputFormat;
@@ -104,6 +108,9 @@ public class DBasisBuilder extends Command {
 		// output report
 		options.addOption(Option.builder("r").desc("generate report about algorithm execution").hasArg()
 				.argName("REPORTFILE").build());
+		// folder output with 1 file by support
+		options.addOption(Option.builder("folder").desc("folder to generate a file by support for results").hasArg()
+				.argName("PATH").build());
 		// input format
 		declareContextFormat("i", "INPUT-FORMAT");
 		// output format
@@ -152,6 +159,21 @@ public class DBasisBuilder extends Command {
 				throw new Exception("the specified output file path for the result is not writable !");
 		} else
 			outputFile = null;
+		if (line.hasOption("folder")) {
+			String folderPath = line.getOptionValue("folder");
+			resultFolder = new File(folderPath);
+			if (!resultFolder.exists()) {
+				try {
+					if (!resultFolder.mkdirs())
+						throw new Exception();
+				} catch (Exception e) {
+					throw new Exception("folder " + folderPath + " cannot be created. " + e.getMessage());
+				}
+			}
+			if (!resultFolder.isDirectory()) {
+				throw new Exception("path " + folderPath + " to store results is not a directory");
+			}
+		}
 		checkImplementation(line);
 		// thread mode
 		if (line.hasOption("t")) {
@@ -198,6 +220,14 @@ public class DBasisBuilder extends Command {
 	/**
 	 * Prints by support.
 	 *
+	 * <p>Regroupe par {@code getSupportSize()} (et non {@code
+	 * getSupport().cardinality()}) : {@code getSupport()} peut être {@code
+	 * null} selon la façon dont l'implication a été construite (voir
+	 * {@link Implication#Implication(fr.lirmm.fca4j.iset.ISet,
+	 * fr.lirmm.fca4j.iset.ISet, int)}), notamment pour les implications
+	 * produites par le pipeline natif (-native). {@code getSupportSize()}
+	 * gère les deux cas et ne lève jamais de NullPointerException.</p>
+	 *
 	 * @param folder       the folder
 	 * @param implications the implications
 	 * @throws IOException Signals that an I/O exception has occurred.
@@ -206,10 +236,10 @@ public class DBasisBuilder extends Command {
 		TreeMap<Integer, List<Implication>> map = new TreeMap<>();
 
 		for (Implication implication : implications) {
-			List<Implication> list = map.get(implication.getSupport().cardinality());
+			List<Implication> list = map.get(implication.getSupportSize());
 			if (list == null) {
 				list = new ArrayList<>();
-				map.put(implication.getSupport().cardinality(), list);
+				map.put(implication.getSupportSize(), list);
 			}
 			list.add(implication);
 		}
@@ -228,6 +258,36 @@ public class DBasisBuilder extends Command {
 			sb.append(String.format("support %d: %d rules\n", support, map.get(support).size()));
 		}
 */		
+	}
+	/**
+	 * Prints sorted implications.
+	 *
+	 * <p>Même remarque que {@link #printBySupport} : regroupement par
+	 * {@code getSupportSize()}, null-safe.</p>
+	 *
+	 * @param printWriter  the print writer
+	 * @param implications the implications
+	 */
+	private void printSortedImplications(PrintWriter printWriter, List<Implication> implications) {
+		TreeMap<Integer, List<Implication>> map = new TreeMap<>();
+
+		for (Implication implication : implications) {
+			List<Implication> list = map.get(implication.getSupportSize());
+			if (list == null) {
+				list = new ArrayList<>();
+				map.put(implication.getSupportSize(), list);
+			}
+			list.add(implication);
+		}
+		ArrayList<Implication> result = new ArrayList<>();
+		for (int support : map.keySet()) {
+			result.addAll(map.get(support));
+		}
+		// output results
+		RuleExporter exporter = RuleExporters.fromFormat(ruleBasisFormat.name());
+		exporter.export(printWriter, result, ctx);
+		printWriter.flush();
+		printWriter.close();
 	}
 
 	/**
@@ -326,13 +386,22 @@ public class DBasisBuilder extends Command {
 			pw = new PrintWriter(outputFile);
 		else
 			pw = new PrintWriter(System.out);
-		RuleExporter exporter = RuleExporters.fromFormat(ruleBasisFormat.name());
-		exporter.export(pw, result, ctx);
+			// output results
+			RuleExporter exporter = RuleExporters.fromFormat(ruleBasisFormat.name());
+			exporter.export(pw, result, ctx);
 		pw.flush();
 		pw.close();
 
 		if (reportFile != null)
 			printReport(result, chrono);
+		if (resultFolder != null) {
+			try {
+			printBySupport(resultFolder, result);
+			}catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
 		return result;
 	}
 
