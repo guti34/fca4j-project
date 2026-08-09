@@ -707,9 +707,18 @@ public class ConceptOrder implements IConceptOrder, Cloneable {
      * @return the top down iterator
      */
     public Iterator<Integer> getTopDownIterator() {
+        // Ordre topologique, maximaux d'abord. La construction par add(0, x) etait
+        // en O(n^2) : chaque insertion en tete decale tout le tableau sous-jacent,
+        // soit ~5.10^11 deplacements d'elements sur un treillis d'un million de
+        // concepts. On ajoute en queue puis on inverse sur place : O(n).
         ArrayList<Integer> vertices = new ArrayList<>();
         for (Iterator<Integer> it = new TopologicalOrderIterator<>(hierarchy); it.hasNext();) {
-            vertices.add(0, it.next());
+            vertices.add(it.next());
+        }
+        for (int i = 0, j = vertices.size() - 1; i < j; i++, j--) {
+            Integer tmp = vertices.get(i);
+            vertices.set(i, vertices.get(j));
+            vertices.set(j, tmp);
         }
         return vertices.iterator();
     }

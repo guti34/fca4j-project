@@ -5,6 +5,7 @@
 package fr.lirmm.fca4j.algo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,6 +73,27 @@ import fr.lirmm.fca4j.util.Chrono;
  * introduced at the smallest concept that still contains it (extent minus the
  * union of the children's extents); an attribute is introduced at the concept
  * whose extent is that attribute's column.
+ *
+ * <p>
+ * <b>Cover phase, two optimisations ported from the native C kernel.</b>
+ * <ul>
+ * <li><i>No allocation per candidate.</i> The candidate extents used to be
+ * materialised with {@code scratch.clone()}, one fresh set per surviving
+ * candidate. On a 43500-object context that is roughly 5.4 million sets of 680
+ * words each — tens of gigabytes of allocation churn for data that dies
+ * immediately. They now live in a per-thread workspace reused across concepts,
+ * as the C kernel does with its {@code cw} buffer.</li>
+ * <li><i>Domination against confirmed maximals only.</i> The maximality test
+ * used to compare every candidate against every other one, i.e. O(k²)
+ * inclusion tests. Candidates are now counting-sorted by decreasing cardinality
+ * and each one is compared only against the maximals already confirmed: a
+ * candidate can only be dominated by a strictly larger one, which by
+ * construction has been confirmed first. With ~70 candidates and ~5 covers per
+ * concept that is an order of magnitude fewer inclusion tests.</li>
+ * </ul>
+ * Both are pure implementation changes: the set of lower covers is unchanged,
+ * including the tie-break between candidates with equal extents, where a single
+ * representative is kept.
  */
 public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 
@@ -100,7 +122,7 @@ public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 	 * </ul>
 	 */
 	private boolean needFullSets = false;
-	
+
 	/** extent (ISet) -> concept id in the clarified-space order (concurrent). */
 	private final ConcurrentHashMap<ISet, Integer> conceptByExtent = new ConcurrentHashMap<>();
 
@@ -265,6 +287,48 @@ public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 	}
 
 	// ========================================================================
+	// Cover phase workspace
+	// ========================================================================
+
+	/**
+	 * Per-thread scratch for the cover phase, allocated once per worker thread and
+	 * reused for every concept it processes.
+	 *
+	 * <p>This replaces the previous {@code scratch.clone()} per candidate. The
+	 * candidate extents are transient — they are only needed to select the maximal
+	 * ones and to look their concept up — so a fixed pool of {@code nIrr} sets is
+	 * enough, and the allocation disappears entirely from the hot loop.
+	 *
+	 * <p>{@code head} / {@code next} implement the counting sort of the candidates
+	 * by decreasing cardinality. {@code head} is indexed by cardinality, so it is
+	 * sized {@code objectCount + 1}; it is left filled with -1 between concepts
+	 * (each bucket is reset while the sorted order is read back), so it costs one
+	 * initialisation per thread, not one per concept.
+	 */
+	private static final class CoverWorkspace {
+		final ISet[] cand;
+		final int[] card;
+		final int[] order;
+		final int[] conf;
+		final int[] head;
+		final int[] next;
+
+		CoverWorkspace(ISetFactory factory, int nIrr, int objectCount) {
+			int cap = Math.max(nIrr, 1);
+			cand = new ISet[cap];
+			for (int i = 0; i < cap; i++) {
+				cand[i] = factory.createSet(objectCount);
+			}
+			card = new int[cap];
+			order = new int[cap];
+			conf = new int[cap];
+			next = new int[cap];
+			head = new int[objectCount + 2];
+			Arrays.fill(head, -1);
+		}
+	}
+
+	// ========================================================================
 	// Phase 2: clarified-space ConceptOrder with direct Hasse covers and
 	//          directly-derived reduced sets (no AOC-poset pass)
 	// ========================================================================
@@ -274,6 +338,9 @@ public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 	 * reduced sets derived directly from the lattice, then the Hasse diagram by
 	 * direct lower covers (parallel). Full intents are reconstructed only when
 	 * computeFullIntents is set.
+	 *
+	 * @return the clarified-space concept order
+	 * @throws Exception if a worker task fails
 	 */
 	private IConceptOrder buildOrder() throws Exception {
 		if (chrono != null) {
@@ -339,6 +406,12 @@ public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 		final LongAdder nsGet = new LongAdder();
 
 		final int objCount = matrix.getObjectCount();
+		final int nIrr = irrExtents.length;
+		final ISetFactory setFactory = factory;
+		// one workspace per worker thread, reused for every concept it handles
+		final ThreadLocal<CoverWorkspace> workspace =
+				ThreadLocal.withInitial(() -> new CoverWorkspace(setFactory, nIrr, objCount));
+
 		ForkJoinPool pool = new ForkJoinPool(Math.max(1, parallelism));
 		try {
 			// Submitting the parallel stream to this pool forces it to run on this
@@ -346,55 +419,84 @@ public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 			pool.submit(() -> IntStream.range(0, n).parallel().forEach(idx -> {
 				ISet a = extents.get(idx);
 				int cardA = a.cardinality();
+				CoverWorkspace w = workspace.get();
 				long c0 = System.nanoTime();
 
-				// candidate child extents (duplicates allowed: equal extents are
-				// dropped by the maximal selection; no id lookup yet)
-				ISet scratch = factory.createSet(objCount);
-				ArrayList<ISet> cand = new ArrayList<>();
-				for (int k = 0; k < irrExtents.length; k++) {
-					scratch.setTo(a);
-					scratch.retainAll(irrExtents[k]);
-					if (scratch.cardinality() < cardA) {
-						cand.add(scratch.clone());
+				// Candidate child extents, built in place in the workspace: no set is
+				// allocated here. Duplicates are allowed (equal extents from different
+				// columns) and dropped by the maximal selection below.
+				int kc = 0;
+				for (int k = 0; k < nIrr; k++) {
+					ISet dst = w.cand[kc];
+					dst.setTo(a);
+					dst.retainAll(irrExtents[k]);
+					int c = dst.cardinality();
+					if (c == cardA) {
+						continue; // A subseteq m' : attribute already in intent(A)
 					}
+					w.card[kc] = c;
+					kc++;
 				}
 				long c1 = System.nanoTime();
 
-				// maximal candidates = lower covers (allocation-free; cand is small,
-				// bounded by the number of irreducible attributes). cand may contain
-				// duplicate extents from different columns: an equal extent is kept
-				// once via the j<i tie-break.
-				int cc = cand.size();
-				int[] card = new int[cc];
-				for (int i = 0; i < cc; i++) {
-					card[i] = cand.get(i).cardinality();
+				// Counting sort of the candidate indices by DECREASING cardinality.
+				// O(kc), no comparison, no allocation. Each bucket head is reset to -1
+				// as it is read back, so `head` stays clean for the next concept.
+				int maxc = -1;
+				int minc = Integer.MAX_VALUE;
+				for (int i = 0; i < kc; i++) {
+					int c = w.card[i];
+					w.next[i] = w.head[c];
+					w.head[c] = i;
+					if (c > maxc) {
+						maxc = c;
+					}
+					if (c < minc) {
+						minc = c;
+					}
+				}
+				int pos = 0;
+				for (int c = maxc; c >= minc; c--) {
+					for (int i = w.head[c]; i >= 0; i = w.next[i]) {
+						w.order[pos++] = i;
+					}
+					w.head[c] = -1;
 				}
 
-				ArrayList<ISet> covers = new ArrayList<>();
-				for (int i = 0; i < cc; i++) {
-					ISet di = cand.get(i);
-					boolean maximal = true;
-					for (int j = 0; j < cc; j++) {
-						if (j == i) {
-							continue;
-						}
-						if ((card[j] > card[i] || (card[j] == card[i] && j < i))
-								&& cand.get(j).containsAll(di)) {
-							maximal = false;
+				// Maximal candidates = lower covers. Scanning by decreasing cardinality,
+				// a candidate can only be dominated by a STRICTLY LARGER one, which has
+				// therefore already been confirmed: comparing against the confirmed
+				// maximals only is enough, instead of against all candidates.
+				// Equal cardinality means either equal extents (a duplicate, dropped)
+				// or incomparable ones (both kept) — same outcome as the previous
+				// j < i tie-break, a single representative survives.
+				int nconf = 0;
+				for (int t = 0; t < kc; t++) {
+					int xi = w.order[t];
+					ISet cxi = w.cand[xi];
+					boolean dominated = false;
+					for (int j = 0; j < nconf; j++) {
+						int cj = w.conf[j];
+						if (w.card[cj] == w.card[xi]) {
+							if (w.cand[cj].equals(cxi)) {
+								dominated = true; // duplicate extent
+								break;
+							}
+						} else if (w.cand[cj].containsAll(cxi)) {
+							dominated = true; // strictly contained in a confirmed cover
 							break;
 						}
 					}
-					if (maximal) {
-						covers.add(di);
+					if (!dominated) {
+						w.conf[nconf++] = xi;
 					}
 				}
 				long c2 = System.nanoTime();
 
 				// look up concept ids only for the surviving covers
-				int[] arr = new int[covers.size()];
-				for (int k = 0; k < arr.length; k++) {
-					arr[k] = conceptByExtent.get(covers.get(k));
+				int[] arr = new int[nconf];
+				for (int k = 0; k < nconf; k++) {
+					arr[k] = conceptByExtent.get(w.cand[w.conf[k]]);
 				}
 				long c3 = System.nanoTime();
 				nsCand.add(c1 - c0);
@@ -607,7 +709,7 @@ public class Lattice_ParallelCbO implements AbstractAlgo<IConceptOrder> {
 	public boolean isComputeFullIntents() {
 		return isNeedFullSets();
 	}
-	
+
 	public int getTotalConcepts() {
 		return totalNewConcepts;
 	}

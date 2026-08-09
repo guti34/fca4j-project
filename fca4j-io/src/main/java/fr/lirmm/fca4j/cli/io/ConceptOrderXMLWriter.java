@@ -10,38 +10,29 @@ import java.util.Iterator;
 
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.IConceptOrder;
-import fr.lirmm.fca4j.iset.ISet;
 
 /**
  * The Class ConceptOrderXMLWriter.
+ *
+ * <p>Comme {@link ConceptOrderJSONWriter#writeStreamingFast}, ce writer
+ * n'utilise que les ensembles RÉDUITS ({@code getConceptReducedExtent} /
+ * {@code getConceptReducedIntent}) et l'itérateur de tranche CSR des
+ * couvertures supérieures. Il ne lit jamais {@code getConceptExtent} ni
+ * {@code getConceptIntent}, et ne nécessite donc pas que l'algorithme ait
+ * matérialisé les sets complets ({@code needFullSets}).
  */
 public class ConceptOrderXMLWriter {
 
 	/**
 	 * Write.
 	 *
-	 * @param buff    the buff
-	 * @param order   the order
-	 * @param mbc     the mbc
-	 * @param reduced the reduced
+	 * @param buff  the buff
+	 * @param order the order
+	 * @param mbc   the mbc
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public static void write(BufferedWriter buff, IConceptOrder order, IBinaryContext mbc)
 			throws IOException {
-
-		ISet setOfAllObjects = mbc.getFactory().createSet();
-		int cpt;
-
-		for (Iterator<Integer> it = order.getMaximals().iterator(); it.hasNext();) {
-			cpt = it.next();
-			setOfAllObjects.addAll(order.getConceptExtent(cpt));
-		}
-
-		ISet setOfAllAttributes = mbc.getFactory().createSet();
-		for (Iterator<Integer> it = order.getMinimals().iterator(); it.hasNext();) {
-			cpt = it.next();
-			setOfAllAttributes.addAll(order.getConceptIntent(cpt));
-		}
 
 		buff.write("<GSH numberObj=\"" + mbc.getObjectCount()
 				+ "\" numberAtt=\"" + mbc.getAttributeCount()
@@ -58,10 +49,9 @@ public class ConceptOrderXMLWriter {
 	/**
 	 * Write conceptual structure.
 	 *
-	 * @param buff    the buff
-	 * @param order   the order
-	 * @param mbc     the mbc
-	 * @param reduced the reduced
+	 * @param buff  the buff
+	 * @param order the order
+	 * @param mbc   the mbc
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	static protected void writeConceptualStructure(BufferedWriter buff, IConceptOrder order, IBinaryContext mbc) throws IOException {

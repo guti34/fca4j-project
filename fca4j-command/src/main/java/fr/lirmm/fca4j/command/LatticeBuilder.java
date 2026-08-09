@@ -216,22 +216,24 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		switch (algo) {
 		case ADD_EXTENT:
 			if (useNativeCode) {
-				lat_algo = FastLatticeAddExtent.create(ctx,needFullSets);
+				lat_algo = FastLatticeAddExtent.create(ctx, needFullSets);
 			} else {
-				lat_algo = new Lattice_AddExtent(ctx, chrono);
+				Lattice_AddExtent jAddExt = new Lattice_AddExtent(ctx, chrono);
+				jAddExt.setNeedFullSets(needFullSets);
+				lat_algo = jAddExt;
 			}
-			break;
-		case ADD_INTENT:
+			break;		case ADD_INTENT:
 			lat_algo = new Lattice_AddIntent(ctx,chrono);
 			break;
 		case PARALLEL_CBO:
 			if (useNativeCode) {
-			lat_algo = FastLatticeCbO.create(ctx,needFullSets);
+				lat_algo = FastLatticeCbO.create(ctx, needFullSets);
 			} else {
-				lat_algo = new Lattice_ParallelCbO(ctx,chrono);
+				Lattice_ParallelCbO jAlgo = new Lattice_ParallelCbO(ctx, chrono);
+				jAlgo.setNeedFullSets(needFullSets);
+				lat_algo = jAlgo;
 			}
-			break;
-		case ICEBERG:
+			break;		case ICEBERG:
 			lat_algo = new Lattice_Iceberg(ctx, percent, chrono);
 			break;
 

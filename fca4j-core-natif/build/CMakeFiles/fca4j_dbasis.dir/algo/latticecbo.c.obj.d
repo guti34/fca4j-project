@@ -24,6 +24,9 @@ CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj: \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/stdint.h \
  C:/dev_tools/mingw64/lib/gcc/x86_64-w64-mingw32/16.1.0/include/stddef.h \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/stddef.h \
+ C:/dev_tools/mingw64/lib/gcc/x86_64-w64-mingw32/16.1.0/include/stdarg.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/stdarg.h \
+ C:/dev_tools/mingw64/x86_64-w64-mingw32/include/_mingw_stdarg.h \
  C:\platform\fca4j-project\fca4j-core-natif\src\main\native\algo\latticecbo.h \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/pthread.h \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/sys/types.h \
@@ -42,9 +45,6 @@ CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj: \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/windows.h \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/sdkddkver.h \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/excpt.h \
- C:/dev_tools/mingw64/lib/gcc/x86_64-w64-mingw32/16.1.0/include/stdarg.h \
- C:/dev_tools/mingw64/x86_64-w64-mingw32/include/stdarg.h \
- C:/dev_tools/mingw64/x86_64-w64-mingw32/include/_mingw_stdarg.h \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/windef.h \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/winapifamily.h \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/minwindef.h \
