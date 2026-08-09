@@ -20,7 +20,6 @@
 #include "algo/addextent.h"
 #include "algo/latticecbo.h"
 #include "algo/pluton.h"
-#include "fr_lirmm_fca4j_core_natif_NativeBridge.h"
 
 /* ── Utilitaire : construction BinaryContext depuis paramètres JNI ── */
 

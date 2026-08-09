@@ -81,7 +81,7 @@ REM call :BENCH "inter3magic04" "C:\projects\monstre\inter3magic04.slf"
 REM call :BENCH "ord10shuttle"  "C:\projects\rules\ord10shuttle\ord10shuttle.slf"
 call :BENCH "ord5bikesharing_day_cut"  "C:\projects\monstre\ord5bikesharing_day_cut.slf"
 call :BENCH "inter5shuttle" "C:\projects\monstre\inter5shuttle.slf"
-call :BENCH "inter6shuttle" ""C:\projects\rules\inter6shuttle\inter6shuttle.slf""
+call :BENCH "inter6shuttle" "C:\projects\rules\inter6shuttle\inter6shuttle.slf"
 
 REM ==========================================
 
