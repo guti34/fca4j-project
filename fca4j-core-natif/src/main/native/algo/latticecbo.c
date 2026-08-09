@@ -60,7 +60,17 @@
   #include <unistd.h>   /* sysconf(_SC_NPROCESSORS_ONLN), clock_gettime */
 #endif
 
+/* croaring_hardware_support() est declare inconditionnellement dans roaring.h
+ * mais n'est DEFINI que sous la garde x86_64/AMD64 de isadetection.c. Sur ARM
+ * (Apple Silicon, aarch64) le symbole n'existe pas : y faire reference casse
+ * l'edition de liens. On ne l'appelle donc que sur x86, ailleurs on rapporte
+ * -1 (« sans objet »). */
+#if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)
 extern int croaring_hardware_support(void);
+#  define FCA4J_SIMD_SUPPORT() croaring_hardware_support()
+#else
+#  define FCA4J_SIMD_SUPPORT() (-1)
+#endif
 
 /* ══════════════════════════════════════════════════════════════════════════
  * PROFILAGE
@@ -1421,8 +1431,8 @@ static CsrLattice *build_lattice_cbo_csr(BinaryContext *ctx) {
     prof_log("\n=== [latticecbo/CSR] contexte %d objets x %d attributs"
              "  (W=%d mots/extent, Wa=%d mots/intent) ===\n",
              ctx->nb_objects, m, W, Wa);
-    prof_log("  SIMD croaring    : %d (0=scalaire 1=AVX2 3=AVX512)\n",
-             croaring_hardware_support());
+    prof_log("  SIMD croaring    : %d (-1=sans objet hors x86, 0=scalaire,"
+             " 1=AVX2, 3=AVX512)\n", FCA4J_SIMD_SUPPORT());
     prof_log("  profilage        : niveau %d  (2 = rapports detailles, plus couteux)\n",
              g_prof);
 
