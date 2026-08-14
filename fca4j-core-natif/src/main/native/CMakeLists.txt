@@ -16,6 +16,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(CROARING_DIR "${CMAKE_CURRENT_SOURCE_DIR}/croaring")
 include_directories(${CROARING_DIR})
 
+# core/ : structures et briques partagées par plusieurs algorithmes.
+# bitset.h et bitset_roaring.h sont des en-têtes seuls (tout est inline).
+# dynorder.c y a été remonté depuis algo/aresorder.c le jour où un deuxième
+# algorithme en a eu besoin.
 set(CORE_SOURCES
     core/context.c
     core/strbuf.c
@@ -25,15 +29,18 @@ set(CORE_SOURCES
     core/graph.c
     core/tarjan.c
     core/conceptorder.c
+    core/dynorder.c
 )
 
 set(ALGO_SOURCES
+    algo/ares.c
+    algo/ceres.c
     algo/dbasis.c
     algo/hermes.c
     algo/lincbo.c
     algo/addextent.c
     algo/latticecbo.c
-    algo/pluton.c 
+    algo/pluton.c
 )
 
 add_library(fca4j_dbasis SHARED
@@ -79,3 +86,76 @@ set_target_properties(fca4j_dbasis PROPERTIES OUTPUT_NAME "fca4j_dbasis")
 if(WIN32)
     set_target_properties(fca4j_dbasis PROPERTIES PREFIX "")
 endif()
+
+# ── Harnais de vérification, hors JNI ─────────────────────────────────────
+# EXCLUDE_FROM_ALL : ils ne ralentissent pas la compilation ordinaire de la DLL.
+# Construction explicite :
+#   cmake --build build --target dynorder_test ares_test latticecbo_regress
+# Ils tournent sans JVM, ce qui est le point : une régression de portage se
+# constate sans rien démarrer.
+
+# Socle : DynOrder seul, sans croaring ni algorithme.
+add_executable(dynorder_test EXCLUDE_FROM_ALL
+    algo/dynorder_test.c core/dynorder.c)
+target_include_directories(dynorder_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Ares contre Hermes, sur contextes balayés puis aléatoires.
+add_executable(ares_test EXCLUDE_FROM_ALL
+    algo/ares_test.c algo/ares.c core/dynorder.c algo/hermes.c
+    core/context.c core/strbuf.c core/conceptorder.c core/clarification.c
+    core/graph.c core/tarjan.c core/closure.c core/implication.c
+    ${CROARING_DIR}/roaring.c)
+target_include_directories(ares_test PRIVATE ${CROARING_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(ares_test PRIVATE -O2)
+if(NOT WIN32 OR MINGW)
+    target_link_libraries(ares_test m)
+endif()
+
+# Signature canonique du treillis, invariante par renumérotation, balayée sur
+# 1, 4 et 16 threads. Usage : latticecbo_regress > ref.txt puis
+# latticecbo_regress ref.txt. La référence doit être produite AVANT le
+# changement que l'on cherche à valider.
+add_executable(latticecbo_regress EXCLUDE_FROM_ALL
+    algo/latticecbo_regress.c algo/latticecbo.c
+    core/context.c core/strbuf.c core/conceptorder.c core/closure.c
+    core/graph.c core/tarjan.c core/implication.c core/clarification.c
+    ${CROARING_DIR}/roaring.c)
+target_include_directories(latticecbo_regress PRIVATE ${CROARING_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(latticecbo_regress PRIVATE -O2)
+target_link_libraries(latticecbo_regress pthread)
+if(NOT WIN32 OR MINGW)
+    target_link_libraries(latticecbo_regress m)
+endif()
+
+# Ceres contre Hermes, mêmes trois phases qu'ares_test.
+add_executable(ceres_test EXCLUDE_FROM_ALL
+    algo/ceres_test.c algo/ceres.c core/dynorder.c algo/hermes.c
+    core/context.c core/strbuf.c core/conceptorder.c core/clarification.c
+    core/graph.c core/tarjan.c core/closure.c core/implication.c
+    ${CROARING_DIR}/roaring.c)
+target_include_directories(ceres_test PRIVATE ${CROARING_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(ceres_test PRIVATE -O2)
+if(NOT WIN32 OR MINGW)
+    target_link_libraries(ceres_test m)
+endif()
+
+# Signature canonique des quatre AOC-posets, invariante par renumerotation.
+# Indispensable des lors qu'on modifie hermes.c : ares_test et ceres_test le
+# prennent pour oracle, donc ils ne peuvent plus le valider. Usage :
+#   aoc_regress > aoc_ref.txt        AVANT le premier changement
+#   aoc_regress aoc_ref.txt          apres
+add_executable(aoc_regress EXCLUDE_FROM_ALL
+    algo/aoc_regress.c algo/hermes.c algo/ares.c algo/ceres.c algo/pluton.c
+    core/dynorder.c core/context.c core/strbuf.c core/conceptorder.c
+    core/clarification.c core/graph.c core/tarjan.c core/closure.c
+    core/implication.c ${CROARING_DIR}/roaring.c)
+target_include_directories(aoc_regress PRIVATE ${CROARING_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(aoc_regress PRIVATE -O2)
+target_link_libraries(aoc_regress pthread)
+if(NOT WIN32 OR MINGW)
+    target_link_libraries(aoc_regress m)
+endif()
+
+# Cible groupée, pour n'avoir qu'un nom à retenir.
+add_custom_target(tests DEPENDS dynorder_test ares_test ceres_test
+                              aoc_regress latticecbo_regress)

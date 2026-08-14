@@ -34,6 +34,20 @@ import fr.lirmm.fca4j.util.Chrono;
  * {@code getAllChildren} call (and one set allocation) per element;</li>
  * <li>the dead bookkeeping on the local linear extension is removed.</li>
  * </ul>
+ *
+ * <p>Phase 2 optimisation (semantics unchanged, validated on the exhaustive
+ * sweep up to 12 cells plus 20000 random contexts):
+ * <ul>
+ * <li>site A6 answers a targeted reachability question with one epoch-stamped
+ * DFS instead of enumerating the whole ancestor set;</li>
+ * <li>{@code max(children)} and {@code min(parents)} are gone from A6: covers
+ * of a single element are antichains in a reduced diagram, so both calls always
+ * returned their own input. They are restored, and throw if they ever remove
+ * anything, under {@link AresGuard#ASSERT_A6};</li>
+ * <li>case 4 collects the maximal selected descendants in two marker walks
+ * instead of {@code getAllChildren} + intersection + {@code max}, removing
+ * three set allocations per visit.</li>
+ * </ul>
  */
 public class AOC_poset_Ares implements AbstractAlgo<IConceptOrder> {
 
@@ -56,6 +70,28 @@ public class AOC_poset_Ares implements AbstractAlgo<IConceptOrder> {
     private final ISet interScratch;
     /** Scratch holding the reduced extent of the concept being visited. */
     private final ISet redScratch;
+
+    /** Visited marker for the targeted reachability test; a vertex v has been
+     * reached iff {@code reachMark[v] == reachEpoch}. Epoch-stamped, so no reset
+     * between calls. Epochs start at 1 and the arrays at 0, so a freshly grown
+     * slot can never masquerade as visited. */
+    private int[] reachMark;
+    private int reachEpoch;
+    /** Target marker, same epoch trick: v is a target iff {@code targetMark[v] == targetEpoch}. */
+    private int[] targetMark;
+    private int targetEpoch;
+    /** Explicit DFS stack, grown on demand. */
+    private int[] reachStack;
+
+    /** Descendants of the visited concept, epoch-stamped (case 4). */
+    private int[] descMark;
+    private int descEpoch;
+    /** Strict descendants of the selected concepts, epoch-stamped (case 4). */
+    private int[] domMark;
+    private int domEpoch;
+    /** Selected concepts collected by the descending walk, and their count. */
+    private int[] selBuf;
+    private int selCount;
 
     /**
      * Instantiates a new AOC poset algorithm: ares.
@@ -87,6 +123,17 @@ public class AOC_poset_Ares implements AbstractAlgo<IConceptOrder> {
         this.maxNbConcepts = matrix.getAttributeCount() + matrix.getObjectCount();
         this.interScratch = factory.createSet(matrix.getObjectCount());
         this.redScratch = factory.createSet(matrix.getObjectCount());
+        int cap = this.maxNbConcepts + 1;
+        this.reachMark = new int[cap];
+        this.targetMark = new int[cap];
+        this.descMark = new int[cap];
+        this.domMark = new int[cap];
+        this.selBuf = new int[64];
+        this.reachStack = new int[64];
+        this.reachEpoch = 0;
+        this.targetEpoch = 0;
+        this.descEpoch = 0;
+        this.domEpoch = 0;
     }
 
     /**
@@ -164,8 +211,7 @@ public class AOC_poset_Ares implements AbstractAlgo<IConceptOrder> {
     private ISet computeReducedExtent(int c) throws CloneNotSupportedException {
         ISet extsC = factory.clone(gsh.getConceptExtent(c));
         for (Iterator<Integer> it = gsh.getLowerCoverIterator(c); it.hasNext();) {
-            int child = it.next();
-            extsC.removeAll(gsh.getConceptExtent(child));
+            extsC.removeAll(gsh.getConceptExtent(it.next()));
         }
         return extsC;
     }
@@ -177,9 +223,170 @@ public class AOC_poset_Ares implements AbstractAlgo<IConceptOrder> {
     private void reducedExtentInto(int c, ISet out) {
         out.setTo(gsh.getConceptExtent(c));
         for (Iterator<Integer> it = gsh.getLowerCoverIterator(c); it.hasNext();) {
-            int child = it.next();
-            out.removeAll(gsh.getConceptExtent(child));
+            out.removeAll(gsh.getConceptExtent(it.next()));
         }
+    }
+
+    /** Grows the concept-indexed marker arrays so that index {@code v} is addressable. */
+    private void ensureReachCapacity(int v) {
+        if (v < reachMark.length) {
+            return;
+        }
+        int newLen = reachMark.length << 1;
+        if (newLen <= v) {
+            newLen = v + 1;
+        }
+        reachMark = Arrays.copyOf(reachMark, newLen);
+        targetMark = Arrays.copyOf(targetMark, newLen);
+        descMark = Arrays.copyOf(descMark, newLen);
+        domMark = Arrays.copyOf(domMark, newLen);
+    }
+
+    /**
+     * Marks which elements of {@code targets} are reachable from {@code source}
+     * by walking up the upper covers, reflexively. After the call,
+     * {@code isReached(p)} answers for every {@code p} of {@code targets}.
+     *
+     * <p>Replaces {@code getAllParents(source)} at site A6. The former call
+     * allocated an {@code ISet} and enumerated the whole ancestor set on every
+     * removed concept's maximal child, when the question asked is only whether a
+     * handful of minimal parents are above. Here: one DFS on an epoch-stamped
+     * marker array, no allocation, and an early exit as soon as every target has
+     * been met.
+     *
+     * <p>Semantics are those of the code it replaces, deliberately including the
+     * fact that the answer is computed once, before the edges of this A6 pass are
+     * added: an edge created for one target does not make another target
+     * reachable within the same call, exactly as the frozen {@code anc} set did.
+     */
+    private void computeReachableTargets(int source, ISet targets) {
+        targetEpoch++;
+        int remaining = 0;
+        for (Iterator<Integer> it = targets.iterator(); it.hasNext();) {
+            int t = it.next();
+            ensureReachCapacity(t);
+            if (targetMark[t] != targetEpoch) {
+                targetMark[t] = targetEpoch;
+                remaining++;
+            }
+        }
+        reachEpoch++;
+        ensureReachCapacity(source);
+        int scanned = 0;
+        int sp = 0;
+        reachStack[sp++] = source;
+        reachMark[source] = reachEpoch;
+        if (targetMark[source] == targetEpoch) {
+            remaining--;
+        }
+        while (sp > 0 && remaining > 0) {
+            int v = reachStack[--sp];
+            scanned++;
+            for (Iterator<Integer> it = gsh.getUpperCoverIterator(v); it.hasNext();) {
+                int p = it.next();
+                ensureReachCapacity(p);
+                if (reachMark[p] == reachEpoch) {
+                    continue;
+                }
+                reachMark[p] = reachEpoch;
+                if (targetMark[p] == targetEpoch) {
+                    remaining--;
+                }
+                if (sp == reachStack.length) {
+                    reachStack = Arrays.copyOf(reachStack, reachStack.length << 1);
+                }
+                reachStack[sp++] = p;
+            }
+        }
+    }
+
+    /**
+     * Collects into {@code selBuf} the maximal elements of
+     * {@code selected inter descendants(c)}, descendants taken reflexively.
+     *
+     * <p>Replaces {@code max(selected.newIntersect(getAllChildren(c)))} at site
+     * A4. That expression walked the descendants of {@code c} to materialise an
+     * ISet, allocated a second ISet for the intersection, then walked the same
+     * subgraph again inside {@code max}, which itself cloned its input: three
+     * allocations and two traversals of one subgraph. Here, two marker walks and
+     * no allocation at all. The two sites together accounted for a third of the
+     * runtime on ord6magic04.
+     *
+     * <p>After the call, {@code selCount} entries of {@code selBuf} hold the
+     * candidates; entry {@code v} is maximal iff {@code domMark[v] != domEpoch}.
+     * Note that the descending walk cannot be cut short on meeting a selected
+     * concept: a selected descendant of it may still be reachable by another
+     * path avoiding it, so it would be missed.
+     */
+    private void computeMaximalSelectedDescendants(int c, ISet selected) {
+        ensureReachCapacity(c);
+        descEpoch++;
+        selCount = 0;
+        int scanned = 0;
+        int sp = 0;
+        reachStack[sp++] = c;
+        descMark[c] = descEpoch;
+        while (sp > 0) {
+            int v = reachStack[--sp];
+            scanned++;
+            if (selected.contains(v)) {
+                if (selCount == selBuf.length) {
+                    selBuf = Arrays.copyOf(selBuf, selBuf.length << 1);
+                }
+                selBuf[selCount++] = v;
+            }
+            for (Iterator<Integer> it = gsh.getLowerCoverIterator(v); it.hasNext();) {
+                int w = it.next();
+                ensureReachCapacity(w);
+                if (descMark[w] == descEpoch) {
+                    continue;
+                }
+                descMark[w] = descEpoch;
+                if (sp == reachStack.length) {
+                    reachStack = Arrays.copyOf(reachStack, reachStack.length << 1);
+                }
+                reachStack[sp++] = w;
+            }
+        }
+        // second walk: mark the strict descendants of the selected concepts, so
+        // that a selected concept dominated by another is discarded
+        domEpoch++;
+        sp = 0;
+        for (int i = 0; i < selCount; i++) {
+            for (Iterator<Integer> it = gsh.getLowerCoverIterator(selBuf[i]); it.hasNext();) {
+                int w = it.next();
+                ensureReachCapacity(w);
+                if (domMark[w] == domEpoch) {
+                    continue;
+                }
+                domMark[w] = domEpoch;
+                if (sp == reachStack.length) {
+                    reachStack = Arrays.copyOf(reachStack, reachStack.length << 1);
+                }
+                reachStack[sp++] = w;
+            }
+        }
+        while (sp > 0) {
+            int v = reachStack[--sp];
+            scanned++;
+            for (Iterator<Integer> it = gsh.getLowerCoverIterator(v); it.hasNext();) {
+                int w = it.next();
+                ensureReachCapacity(w);
+                if (domMark[w] == domEpoch) {
+                    continue;
+                }
+                domMark[w] = domEpoch;
+                if (sp == reachStack.length) {
+                    reachStack = Arrays.copyOf(reachStack, reachStack.length << 1);
+                }
+                reachStack[sp++] = w;
+            }
+        }
+    }
+
+    /** True iff the vertex was reached by the last {@link #computeReachableTargets}. */
+    private boolean isReached(int v) {
+        return v < reachMark.length && reachMark[v] == reachEpoch;
     }
 
     /**
@@ -389,24 +596,44 @@ public class AOC_poset_Ares implements AbstractAlgo<IConceptOrder> {
                 for (Iterator<Integer> itc = children.iterator(); itc.hasNext();) {
                     unlink(itc.next(), toRemove);
                 }
-                // Reconnect only maximal children to minimal parents, and only when the
-                // parent is not already reachable from the child once toRemove is isolated.
-                // The former cross product reconnected every (child, parent) pair and only
-                // guarded against duplicate edges, so any pair already joined by a lateral
-                // path of length >= 2 became a transitive edge -- the sole leak left in the
-                // algorithm (site A6). Computing ancestors on the current graph is safe even
-                // when several non-introducers are removed in turn: the retained children are
-                // pairwise incomparable, so an edge added for one of them cannot create a new
-                // path feeding another, and edges already re-added by earlier iterations are
-                // visible to getAllParents here.
-                ISet maxChildren = max(children);
-                ISet minParents = min(parents);
+                // Reconnect children to parents, and only when the parent is not already
+                // reachable from the child once toRemove is isolated. The former cross
+                // product reconnected every (child, parent) pair and only guarded against
+                // duplicate edges, so any pair already joined by a lateral path of length
+                // >= 2 became a transitive edge -- the sole leak left in the algorithm
+                // (site A6). Computing reachability on the current graph is safe even when
+                // several non-introducers are removed in turn: the children are pairwise
+                // incomparable, so an edge added for one of them cannot create a new path
+                // feeding another, and edges already re-added by earlier iterations are
+                // visible to the reachability walk here.
+                //
+                // max(children) and min(parents) used to be applied here. They are
+                // identities: children and parents are the covers of toRemove, and in a
+                // transitively reduced diagram the elements of a cover are pairwise
+                // incomparable, so neither can remove anything. Measured on ord6magic04,
+                // the two calls walked 264 and 192 vertices on average, 6932 times each,
+                // to return their own input -- about 15% of the total runtime spent
+                // proving that nothing had to be dropped. The identity was checked on the
+                // exhaustive sweep up to 12 cells, 20000 random contexts and the five
+                // benchmark contexts, without a single counterexample.
+                //
+                // The checks are kept, behind FCA4J_ARES_ASSERT_A6: enabling it restores
+                // both calls, which now throw if they ever remove anything. That is the
+                // regression guard for an invariant the code silently depends on.
+                ISet maxChildren = children;
+                ISet minParents = parents;
+                if (AresGuard.ASSERT_A6) {
+                    maxChildren = max(children);
+                    minParents = min(parents);
+                    AresGuard.checkA6(children, maxChildren, parents, minParents);
+                }
                 for (Iterator<Integer> itc = maxChildren.iterator(); itc.hasNext();) {
                     int child = itc.next();
-                    ISet anc = gsh.getAllParents(child); // reflexive, transitive, toRemove already isolated
+                    // toRemove is already isolated, so the walk cannot go through it
+                    computeReachableTargets(child, minParents);
                     for (Iterator<Integer> itp = minParents.iterator(); itp.hasNext();) {
                         int p = itp.next();
-                        if (!anc.contains(p)) {
+                        if (!isReached(p)) {
                             link(child, p, "A6");
                         }
                     }
@@ -451,7 +678,7 @@ public class AOC_poset_Ares implements AbstractAlgo<IConceptOrder> {
 
             if (aInC) { //case 3 c superconcept of g(a)
                 if (!isCADefined) {
-                    ca = gsh.addConcept(factory.createSet(matrix.getObjectCount()), factory.createSet(matrix.getAttributeCount()));
+                            ca = gsh.addConcept(factory.createSet(matrix.getObjectCount()), factory.createSet(matrix.getAttributeCount()));
                     isCADefined = true;
                     gsh.getConceptIntent(ca).add(a);
                     gsh.getConceptReducedIntent(ca).add(a);
@@ -484,7 +711,8 @@ public class AOC_poset_Ares implements AbstractAlgo<IConceptOrder> {
                     int child = it.next();
                     unlink(child, c);
                 }
-                doNotCheck.addAll(gsh.getAllParents(c));
+                ISet allParents = gsh.getAllParents(c);
+                doNotCheck.addAll(allParents);
                 return true;
             }
 
@@ -504,9 +732,12 @@ public class AOC_poset_Ares implements AbstractAlgo<IConceptOrder> {
             gsh.getConceptIntent(c2).addAll(gsh.getConceptIntent(c));
             gsh.getConceptIntent(c2).add(a);
             link(c2, c, "A3");
-            ISet interC_SCA = subConceptsOfA.newIntersect(gsh.getAllChildren(c));
-            for (Iterator<Integer> it = max(interC_SCA).iterator(); it.hasNext();) {
-                int c3 = it.next();
+            computeMaximalSelectedDescendants(c, subConceptsOfA);
+            for (int i = 0; i < selCount; i++) {
+                int c3 = selBuf[i];
+                if (domMark[c3] == domEpoch) {
+                    continue; // dominated by another selected concept
+                }
                 link(c3, c2, "A4");
                 unlink(c3, c);
             }

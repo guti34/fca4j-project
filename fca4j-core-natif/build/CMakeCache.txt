@@ -39,7 +39,7 @@ CMAKE_C_COMPILER_AR:FILEPATH=C:/dev_tools/mingw64/bin/gcc-ar.exe
 CMAKE_C_COMPILER_RANLIB:FILEPATH=C:/dev_tools/mingw64/bin/gcc-ranlib.exe
 
 //Flags used by the C compiler during all build types.
-CMAKE_C_FLAGS:STRING=-DFCA4J_TIMING
+CMAKE_C_FLAGS:STRING=
 
 //Flags used by the C compiler during DEBUG builds.
 CMAKE_C_FLAGS_DEBUG:STRING=-g
@@ -86,8 +86,8 @@ CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/fca4j_dbasis
 //Path to a program.
 CMAKE_LINKER:FILEPATH=C:/dev_tools/mingw64/bin/ld.exe
 
-//No help, variable specified on the command line.
-CMAKE_MAKE_PROGRAM:UNINITIALIZED=C:/dev_tools/mingw64/bin/mingw32-make.exe
+//Path to a program.
+CMAKE_MAKE_PROGRAM:FILEPATH=C:/dev_tools/mingw64/bin/mingw32-make.exe
 
 //Flags used by the linker during the creation of modules during
 // all build types.
@@ -316,6 +316,8 @@ CMAKE_HOME_DIRECTORY:INTERNAL=C:/platform/fca4j-project/fca4j-core-natif/src/mai
 CMAKE_LINKER-ADVANCED:INTERNAL=1
 //Name of CMakeLists files to read
 CMAKE_LIST_FILE_NAME:INTERNAL=CMakeLists.txt
+//ADVANCED property for variable: CMAKE_MAKE_PROGRAM
+CMAKE_MAKE_PROGRAM-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS
 CMAKE_MODULE_LINKER_FLAGS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS_DEBUG

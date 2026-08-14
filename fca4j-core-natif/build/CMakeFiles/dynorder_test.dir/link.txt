@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\dynorder_test.dir/objects.a
+C:\dev_tools\mingw64\bin\ar.exe qc CMakeFiles\dynorder_test.dir/objects.a @CMakeFiles\dynorder_test.dir\objects1.rsp
+C:\dev_tools\mingw64\bin\cc.exe -O3 -DNDEBUG -Wl,--whole-archive CMakeFiles\dynorder_test.dir/objects.a -Wl,--no-whole-archive -o dynorder_test.exe -Wl,--out-implib,libdynorder_test.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\dynorder_test.dir\linkLibs.rsp

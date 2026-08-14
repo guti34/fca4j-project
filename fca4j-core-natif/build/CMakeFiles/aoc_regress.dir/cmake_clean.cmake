@@ -1,0 +1,41 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/aoc_regress.dir/algo/aoc_regress.c.obj"
+  "CMakeFiles/aoc_regress.dir/algo/aoc_regress.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/algo/ares.c.obj"
+  "CMakeFiles/aoc_regress.dir/algo/ares.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/algo/ceres.c.obj"
+  "CMakeFiles/aoc_regress.dir/algo/ceres.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/algo/hermes.c.obj"
+  "CMakeFiles/aoc_regress.dir/algo/hermes.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/algo/pluton.c.obj"
+  "CMakeFiles/aoc_regress.dir/algo/pluton.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/core/clarification.c.obj"
+  "CMakeFiles/aoc_regress.dir/core/clarification.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/core/closure.c.obj"
+  "CMakeFiles/aoc_regress.dir/core/closure.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/core/conceptorder.c.obj"
+  "CMakeFiles/aoc_regress.dir/core/conceptorder.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/core/context.c.obj"
+  "CMakeFiles/aoc_regress.dir/core/context.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/core/dynorder.c.obj"
+  "CMakeFiles/aoc_regress.dir/core/dynorder.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/core/graph.c.obj"
+  "CMakeFiles/aoc_regress.dir/core/graph.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/core/implication.c.obj"
+  "CMakeFiles/aoc_regress.dir/core/implication.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/core/strbuf.c.obj"
+  "CMakeFiles/aoc_regress.dir/core/strbuf.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/core/tarjan.c.obj"
+  "CMakeFiles/aoc_regress.dir/core/tarjan.c.obj.d"
+  "CMakeFiles/aoc_regress.dir/croaring/roaring.c.obj"
+  "CMakeFiles/aoc_regress.dir/croaring/roaring.c.obj.d"
+  "aoc_regress.exe"
+  "aoc_regress.exe.manifest"
+  "aoc_regress.pdb"
+  "libaoc_regress.dll.a"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang C)
+  include(CMakeFiles/aoc_regress.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

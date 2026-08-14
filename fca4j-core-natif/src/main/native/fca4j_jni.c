@@ -20,6 +20,79 @@
 #include "algo/addextent.h"
 #include "algo/latticecbo.h"
 #include "algo/pluton.h"
+#include "algo/ares.h"
+#include "algo/ceres.h"
+
+/* ── Instrumentation de la frontière JNI ─────────────────────────────────
+ *
+ * La comparaison C/Java de Ceres a montré un profil inattendu : le C gagne 1,7x
+ * sur chess (0,24 M de cellules) mais PERD sur ord10shuttle (3,83 M de
+ * cellules), alors que ce dernier ne produit que 239 concepts. Le classement
+ * suit la taille de la matrice, pas la difficulté du problème — ce qui désigne
+ * la préparation des données plutôt que l'algorithme.
+ *
+ * Trois postes sont donc chronométrés séparément :
+ *
+ *   ctx     construction du BinaryContext depuis la matrice d'octets, soit
+ *           |G| + |A| bitmaps roaring créés puis remplis cellule par cellule ;
+ *   algo    l'algorithme lui-même ;
+ *   total   la traversée complète, pour voir ce qui reste ailleurs.
+ *
+ * Actif seulement si FCA4J_PROFILE vaut 1, comme le reste des instrumentations
+ * du projet. Désactivé, il n'y a qu'une lecture de variable statique par appel.
+ *
+ * Cette instrumentation sert aussi Ares et Pluton, qui empruntent le même
+ * chemin et ont donc la même dette éventuelle.
+ */
+
+#include <stdio.h>
+#include <time.h>
+#ifdef _WIN32
+  #include <windows.h>   /* QueryPerformanceCounter */
+#endif
+
+static int jni_profile_state = -1;   /* -1 = pas encore consulté */
+
+static int jni_profile(void) {
+    if (jni_profile_state < 0) {
+        const char *e = getenv("FCA4J_PROFILE");
+        jni_profile_state = (e && e[0] == '1' && e[1] == '\0') ? 1 : 0;
+    }
+    return jni_profile_state;
+}
+
+/* Horloge murale, en millisecondes. Pas clock() : il mesure le temps CPU cumulé
+ * de tous les threads, ce qui n'a aucun sens pour les algorithmes parallèles.
+ *
+ * Hors Windows, timespec_get plutôt que clock_gettime(CLOCK_MONOTONIC) : ce
+ * dernier exige une macro de test POSIX que -std=c11 désactive, et les en-têtes
+ * libc sont déjà figés quand fca4j_common.h définit _GNU_SOURCE. timespec_get
+ * est du C11 standard, donc disponible sans condition. Il suit l'horloge murale
+ * et non une horloge monotone, ce qui est sans importance ici : on mesure des
+ * intervalles de quelques millisecondes au sein d'un même appel. */
+static double jni_now_ms(void) {
+#ifdef _WIN32
+    LARGE_INTEGER f, t;
+    QueryPerformanceFrequency(&f);
+    QueryPerformanceCounter(&t);
+    return (double)t.QuadPart * 1000.0 / (double)f.QuadPart;
+#else
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1e6;
+#endif
+}
+
+static void jni_report(const char *algo, int nb_obj, int nb_attr,
+                       double t_ctx, double t_algo, double t_total) {
+    fprintf(stderr,
+            "[jni] %-8s %6d x %-5d cellules %8.2f M | ctx %8.2f ms  algo %8.2f ms"
+            "  reste %6.2f ms  total %8.2f ms\n",
+            algo, nb_obj, nb_attr,
+            (double)nb_obj * (double)nb_attr / 1e6,
+            t_ctx, t_algo, t_total - t_ctx - t_algo, t_total);
+    fflush(stderr);
+}
 
 /* ── Utilitaire : construction BinaryContext depuis paramètres JNI ── */
 
@@ -126,11 +199,23 @@ Java_fr_lirmm_fca4j_core_natif_NativeBridge_runHermesFlat(
         jint nObjects, jint nAttributes,
         jbyteArray jmatrix) {
 
+    /* Profil de frontiere. Sur ord6magic04, l'algorithme mesure 155 ms alors que
+     * l'appel complet en prend 293 : il faut savoir ou passent les 137 ms
+     * restantes avant de corriger quoi que ce soit. Meme instrumentation que
+     * pour Ceres et Ares, inerte sans FCA4J_PROFILE=1. */
+    const int prof = jni_profile();
+    const double t0 = prof ? jni_now_ms() : 0.0;
     BinaryContext *ctx = ctx_from_jni(env, nObjects, nAttributes, jmatrix, NULL);
+    const double t1 = prof ? jni_now_ms() : 0.0;
 
     int len = 0;
     int *flat = run_hermes_flat(ctx, &len);
+    const double t2 = prof ? jni_now_ms() : 0.0;
     ctx_free(ctx);
+    if (prof) {
+        jni_report("hermes", (int)nObjects, (int)nAttributes,
+                   t1 - t0, t2 - t1, jni_now_ms() - t0);
+    }
 
     if (flat == NULL || len == 0) {
         if (flat) free(flat);
@@ -470,6 +555,81 @@ Java_fr_lirmm_fca4j_core_natif_NativeBridge_runLatticeCbOCsrFlat(
     int len = 0;
     int *flat = run_latticecbo_csr_flat(ctx, &len);
     ctx_free(ctx);
+
+    if (flat == NULL || len == 0) {
+        if (flat) free(flat);
+        return (*env)->NewIntArray(env, 0);
+    }
+    jintArray result = (*env)->NewIntArray(env, len);
+    if (result != NULL)
+        (*env)->SetIntArrayRegion(env, result, 0, len, (jint*)flat);
+    free(flat);
+    return result;
+}
+/* ── Ares ───────────────────────────────────────────────────────────── */
+
+JNIEXPORT jintArray JNICALL
+Java_fr_lirmm_fca4j_core_natif_NativeBridge_runAresFlat(
+        JNIEnv *env, jclass clazz,
+        jint nObjects, jint nAttributes,
+        jbyteArray jmatrix) {
+
+    const int prof = jni_profile();
+    const double t0 = prof ? jni_now_ms() : 0.0;
+    BinaryContext *ctx = ctx_from_jni(env, nObjects, nAttributes, jmatrix, NULL);
+    const double t1 = prof ? jni_now_ms() : 0.0;
+    int len = 0;
+    int *flat = run_ares_flat(ctx, &len);
+    const double t2 = prof ? jni_now_ms() : 0.0;
+    ctx_free(ctx);
+    if (prof) {
+        jni_report("ares", (int)nObjects, (int)nAttributes,
+                   t1 - t0, t2 - t1, jni_now_ms() - t0);
+    }
+
+    if (flat == NULL || len == 0) {
+        if (flat) free(flat);
+        return (*env)->NewIntArray(env, 0);
+    }
+    jintArray result = (*env)->NewIntArray(env, len);
+    if (result != NULL)
+        (*env)->SetIntArrayRegion(env, result, 0, len, (jint*)flat);
+    free(flat);
+    return result;
+}
+
+/* ── Ceres ───────────────────────────────────────────────────────────── */
+
+JNIEXPORT jintArray JNICALL
+Java_fr_lirmm_fca4j_core_natif_NativeBridge_runCeresFlat(
+        JNIEnv *env, jclass clazz,
+        jint nObjects, jint nAttributes,
+        jbyteArray jmatrix) {
+
+    /* Pas de BinaryContext ici : la matrice alimente directement la forme dense
+     * de Ceres. Le détour par roaring coûtait 64 ms sur ord10shuttle pour 51 ms
+     * d'algorithme — |G| + |A| bitmaps créés puis remplis cellule par cellule,
+     * aussitôt reconvertis en dense.
+     *
+     * Le tableau Java est rendu dès la construction terminée, sans attendre la
+     * fin du calcul. GetByteArrayElements plutôt que sa variante critique : la
+     * copie coûte moins d'une milliseconde même sur 3,8 Mo, alors qu'une section
+     * critique tenue pendant toute la construction gênerait le ramasse-miettes. */
+    const int prof = jni_profile();
+    const double t0 = prof ? jni_now_ms() : 0.0;
+    jbyte *matrix = (*env)->GetByteArrayElements(env, jmatrix, NULL);
+    CeresContext *cx = ceres_ctx_from_matrix((int)nObjects, (int)nAttributes,
+                                             (const signed char*)matrix);
+    (*env)->ReleaseByteArrayElements(env, jmatrix, matrix, JNI_ABORT);
+    const double t1 = prof ? jni_now_ms() : 0.0;
+    int len = 0;
+    int *flat = run_ceres_dense(cx, &len);
+    const double t2 = prof ? jni_now_ms() : 0.0;
+    ceres_ctx_free(cx);
+    if (prof) {
+        jni_report("ceres", (int)nObjects, (int)nAttributes,
+                   t1 - t0, t2 - t1, jni_now_ms() - t0);
+    }
 
     if (flat == NULL || len == 0) {
         if (flat) free(flat);

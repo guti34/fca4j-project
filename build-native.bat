@@ -16,6 +16,11 @@ REM     build-native.bat              build incremental + jar
 REM     build-native.bat /clean       reconfigure CMake de zero
 REM     build-native.bat /nojar       C seulement, pas de rebuild Maven
 REM     build-native.bat /quick       alias de /nojar
+REM     build-native.bat /tests       compile et lance les harnais natifs
+REM
+REM  /clean est OBLIGATOIRE apres tout deplacement ou suppression de
+REM  source C : un cache CMake existant continue de referencer l'ancien
+REM  chemin et la reconfiguration automatique n'est pas garantie.
 REM
 REM  Prerequis dans le PATH : cmake, gcc (MinGW-w64), mvn
 REM ===================================================================
@@ -29,18 +34,34 @@ set BUILD_DIR=%MODULE_ROOT%\build
 set LIB_NAME=fca4j_dbasis.dll
 set LIB_DEST=%MODULE_ROOT%\src\main\resources\native\windows-x86_64
 set APP_TARGET=%PROJECT_ROOT%\fca4j-app-light\target
+set REF_FILE=%NATIVE_DIR%\latticecbo_ref.txt
+
+REM --- Environnement ---------------------------------------------------
+REM FCA4J_PROFILE fait cracher a latticecbo son rapport detaille (phases,
+REM equilibrage, volumes) EN PLUS des signatures canoniques. Si la reference
+REM a ete produite avec la variable active et la comparaison sans — ou
+REM l'inverse — tout se decale d'une quarantaine de lignes et le harnais
+REM signale une divergence qui n'existe pas.
+REM
+REM On la neutralise donc ici : setlocal la rend locale au script, la variable
+REM globale de la session n'est pas touchee. La reference et la comparaison
+REM sont ainsi toujours produites dans le meme etat.
+set FCA4J_PROFILE=
+set FCA4J_TLOG=
 
 REM --- Options --------------------------------------------------------
 set DO_CLEAN=0
 set DO_JAR=1
+set DO_TESTS=0
 for %%A in (%*) do (
     if /I "%%A"=="/clean"  set DO_CLEAN=1
     if /I "%%A"=="/nojar"  set DO_JAR=0
     if /I "%%A"=="/quick"  set DO_JAR=0
+    if /I "%%A"=="/tests"  set DO_TESTS=1
 )
 
 echo ============================================================
-echo  [1/6] Verification de l'outillage
+echo  [1/7] Verification de l'outillage
 echo ============================================================
 where cmake >nul 2>&1 || (echo   ECHEC : cmake introuvable dans le PATH. & goto :fail)
 where gcc   >nul 2>&1 || (echo   ECHEC : gcc introuvable dans le PATH ^(MinGW-w64^). & goto :fail)
@@ -56,7 +77,7 @@ echo   OK
 
 echo.
 echo ============================================================
-echo  [2/6] Configuration CMake
+echo  [2/7] Configuration CMake
 echo ============================================================
 if "%DO_CLEAN%"=="1" (
     echo   /clean demande : suppression de "%BUILD_DIR%"
@@ -72,7 +93,7 @@ if not exist "%BUILD_DIR%\CMakeCache.txt" (
 
 echo.
 echo ============================================================
-echo  [3/6] Compilation de la lib native
+echo  [3/7] Compilation de la lib native
 echo ============================================================
 REM Horodatage AVANT build, pour verifier ensuite que la DLL a bouge.
 set DLL_BEFORE=
@@ -95,7 +116,72 @@ if "!DLL_BEFORE!"=="!DLL_AFTER!" (
 
 echo.
 echo ============================================================
-echo  [4/6] Controle des points d'entree JNI exportes
+echo  [4/7] Harnais de verification natifs
+echo ============================================================
+if "%DO_TESTS%"=="0" (
+    echo   Ignore ^(ajouter /tests pour les lancer^).
+    goto :skiptests
+)
+REM Cibles EXCLUDE_FROM_ALL : elles ne sont pas construites par le build
+REM ordinaire, il faut les demander nommement.
+cmake --build "%BUILD_DIR%" --parallel --target dynorder_test ares_test ceres_test aoc_regress latticecbo_regress
+if errorlevel 1 goto :fail
+
+echo.
+echo   --- socle DynOrder ---
+"%BUILD_DIR%\dynorder_test.exe"
+if errorlevel 1 (echo   ECHEC : dynorder_test & goto :fail)
+
+echo.
+echo   --- Ares contre Hermes ---
+"%BUILD_DIR%\ares_test.exe"
+if errorlevel 1 (echo   ECHEC : ares_test & goto :fail)
+
+echo.
+echo   --- Ceres contre Hermes ---
+"%BUILD_DIR%\ceres_test.exe"
+if errorlevel 1 (echo   ECHEC : ceres_test & goto :fail)
+
+echo.
+echo   --- signature canonique des AOC-posets ---
+REM Meme logique que pour le treillis : la reference doit provenir de l'arbre
+REM d'AVANT le changement que l'on cherche a valider.
+if not exist "%NATIVE_DIR%\aoc_ref.txt" (
+    echo   Aucune reference : "%NATIVE_DIR%\aoc_ref.txt"
+    echo   ATTENTION - une reference generee MAINTENANT enregistre le
+    echo   comportement APRES modification. Elle ne vaut que comme point de
+    echo   depart pour les changements A VENIR.
+    "%BUILD_DIR%\aoc_regress.exe" > "%NATIVE_DIR%\aoc_ref.txt"
+    if errorlevel 1 (echo   ECHEC : generation de la reference AOC & goto :fail)
+    echo   Reference ecrite : %NATIVE_DIR%\aoc_ref.txt
+) else (
+    "%BUILD_DIR%\aoc_regress.exe" "%NATIVE_DIR%\aoc_ref.txt"
+    if errorlevel 1 (echo   ECHEC : un AOC-poset a change & goto :fail)
+)
+
+echo.
+echo   --- signature canonique du treillis ---
+if not exist "%REF_FILE%" (
+    echo   Aucune reference : "%REF_FILE%"
+    echo.
+    echo   ATTENTION - une reference generee MAINTENANT ne vaut rien pour
+    echo   valider le changement en cours : elle enregistrerait le
+    echo   comportement APRES modification. Elle doit provenir de l'arbre
+    echo   d'AVANT. La generer ici ne sert que de point de depart pour les
+    echo   changements A VENIR.
+    echo.
+    "%BUILD_DIR%\latticecbo_regress.exe" > "%REF_FILE%"
+    if errorlevel 1 (echo   ECHEC : generation de la reference & goto :fail)
+    echo   Reference ecrite : %REF_FILE%
+) else (
+    "%BUILD_DIR%\latticecbo_regress.exe" "%REF_FILE%"
+    if errorlevel 1 (echo   ECHEC : le treillis a change & goto :fail)
+)
+:skiptests
+
+echo.
+echo ============================================================
+echo  [5/7] Controle des points d'entree JNI exportes
 echo ============================================================
 REM Purement informatif : en JNI, une fonction Java_* n'a pas besoin de
 REM prototype pour etre compilee et exportee. Ce controle liste ce que la
@@ -115,7 +201,7 @@ if errorlevel 1 (
 
 echo.
 echo ============================================================
-echo  [5/6] Deploiement dans les resources du module
+echo  [6/7] Deploiement dans les resources du module
 echo ============================================================
 if not exist "%LIB_DEST%" mkdir "%LIB_DEST%"
 copy /Y "%BUILD_DIR%\%LIB_NAME%" "%LIB_DEST%\%LIB_NAME%" >nul
@@ -129,7 +215,7 @@ echo   Deployee : %LIB_DEST%\%LIB_NAME%
 if "%DO_JAR%"=="0" (
     echo.
     echo ============================================================
-    echo  [6/6] Rebuild du jar IGNORE ^(/nojar^)
+    echo  [7/7] Rebuild du jar IGNORE ^(/nojar^)
     echo ============================================================
     echo   ATTENTION : le jar embarque encore l'ANCIENNE DLL.
     echo   Les tests lances sur le jar-with-dependencies ne verront PAS
@@ -139,7 +225,7 @@ if "%DO_JAR%"=="0" (
 
 echo.
 echo ============================================================
-echo  [6/6] Rebuild du jar applicatif ^(mvn package^)
+echo  [7/7] Rebuild du jar applicatif ^(mvn package^)
 echo ============================================================
 cd /d "%PROJECT_ROOT%"
 call mvn -q -DskipTests package

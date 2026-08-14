@@ -237,4 +237,59 @@ public interface ISet extends Cloneable {
         removeAll(this);
         addAll(other);
     }
+
+    /**
+     * Indices des mots de 64 bits contenant au moins un élément, écrits par ordre
+     * croissant dans {@code out}, et retourne leur nombre.
+     *
+     * <p>Sert à préparer {@link #containsAllSparse} : quand un même ensemble sert
+     * d'argument à de nombreux tests d'inclusion, on calcule ses mots utiles une
+     * fois puis on ne teste que ceux-là.
+     *
+     * <p>{@code out} doit pouvoir accueillir {@code capacity()/64 + 1} entiers.
+     *
+     * <p>Le comportement par défaut passe par {@link #toBitSet()}, correct pour
+     * toute implémentation ; les implémentations à tableau de mots la redéfinissent
+     * en balayant directement leur tableau.
+     *
+     * @param out tableau recevant les indices
+     * @return le nombre d'indices écrits
+     */
+    public default int nonZeroWords(int[] out) {
+        BitSet bs = toBitSet();
+        int n = 0;
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+            int w = i >> 6;
+            if (n == 0 || out[n - 1] != w) {
+                out[n++] = w;
+            }
+        }
+        return n;
+    }
+
+    /**
+     * Comme {@link #containsAll}, mais ne teste que les mots de 64 bits dont les
+     * indices sont donnés — ceux qu'un appel préalable à {@link #nonZeroWords} a
+     * relevés sur {@code anotherSet}.
+     *
+     * <p>Correct parce qu'un mot nul de {@code anotherSet} ne peut jamais mettre
+     * l'inclusion en défaut : il n'y a rien à y retrouver. L'intérêt est de ne pas
+     * parcourir les mots nuls, que {@link #containsAll} traverse quand même. Sur un
+     * ensemble creux dans un univers large, le rapport est celui de la densité.
+     *
+     * <p>{@code activeWords} et {@code nActive} DOIVENT décrire {@code anotherSet}
+     * tel qu'il est au moment de l'appel : un ensemble modifié entre le relevé et
+     * le test rendrait la réponse fausse, sans que rien ne le signale.
+     *
+     * <p>Le comportement par défaut ignore les indices et délègue à
+     * {@link #containsAll}, ce qui est toujours correct, seulement pas plus rapide.
+     *
+     * @param anotherSet l'ensemble dont on teste l'inclusion dans celui-ci
+     * @param activeWords indices des mots utiles de {@code anotherSet}
+     * @param nActive nombre d'indices valides dans {@code activeWords}
+     * @return true si {@code anotherSet} est inclus dans cet ensemble
+     */
+    public default boolean containsAllSparse(ISet anotherSet, int[] activeWords, int nActive) {
+        return containsAll(anotherSet);
+    }
 }

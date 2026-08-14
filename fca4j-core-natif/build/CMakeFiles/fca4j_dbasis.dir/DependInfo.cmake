@@ -9,6 +9,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/addextent.c" "CMakeFiles/fca4j_dbasis.dir/algo/addextent.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/addextent.c.obj.d"
+  "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/ares.c" "CMakeFiles/fca4j_dbasis.dir/algo/ares.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/ares.c.obj.d"
+  "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/ceres.c" "CMakeFiles/fca4j_dbasis.dir/algo/ceres.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/ceres.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/dbasis.c" "CMakeFiles/fca4j_dbasis.dir/algo/dbasis.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/dbasis.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/hermes.c" "CMakeFiles/fca4j_dbasis.dir/algo/hermes.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/hermes.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/latticecbo.c" "CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj.d"
@@ -18,6 +20,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/closure.c" "CMakeFiles/fca4j_dbasis.dir/core/closure.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/core/closure.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/conceptorder.c" "CMakeFiles/fca4j_dbasis.dir/core/conceptorder.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/core/conceptorder.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/context.c" "CMakeFiles/fca4j_dbasis.dir/core/context.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/core/context.c.obj.d"
+  "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/dynorder.c" "CMakeFiles/fca4j_dbasis.dir/core/dynorder.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/core/dynorder.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/graph.c" "CMakeFiles/fca4j_dbasis.dir/core/graph.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/core/graph.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/implication.c" "CMakeFiles/fca4j_dbasis.dir/core/implication.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/core/implication.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/strbuf.c" "CMakeFiles/fca4j_dbasis.dir/core/strbuf.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/core/strbuf.c.obj.d"

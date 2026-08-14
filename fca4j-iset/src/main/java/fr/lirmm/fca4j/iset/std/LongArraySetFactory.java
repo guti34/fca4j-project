@@ -173,6 +173,30 @@ public class LongArraySetFactory extends AbstractSetFactory {
 			}
 			return true;
 		}
+		@Override
+		public int nonZeroWords(int[] out) {
+			int n = 0;
+			for (int w = 0; w < words.length; w++) {
+				if (words[w] != 0L) {
+					out[n++] = w;
+				}
+			}
+			return n;
+		}
+
+		@Override
+		public boolean containsAllSparse(ISet anotherSet, int[] activeWords, int nActive) {
+			long[] o = ((SetWithLongArray) anotherSet).words;
+			int tl = words.length;
+			for (int k = 0; k < nActive; k++) {
+				int w = activeWords[k];
+				long tw = (w < tl) ? words[w] : 0L;
+				if ((o[w] & ~tw) != 0L) {
+					return false;
+				}
+			}
+			return true;
+		}
 
 		@Override
 		public int capacity() {

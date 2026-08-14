@@ -42,7 +42,10 @@ import fr.lirmm.fca4j.core.IConceptOrder;
 import fr.lirmm.fca4j.core.RCAFamily;
 import fr.lirmm.fca4j.core.RCAFamily.FormalContext;
 import fr.lirmm.fca4j.core.RCAFamily.RelationalContext;
+import fr.lirmm.fca4j.core.natif.FastAOCPosetAres;
+import fr.lirmm.fca4j.core.natif.FastAOCPosetCeres;
 import fr.lirmm.fca4j.core.natif.FastAOCPosetHermes;
+import fr.lirmm.fca4j.core.natif.FastAOCPosetPluton;
 import fr.lirmm.fca4j.core.natif.FastLatticeAddExtent;
 import fr.lirmm.fca4j.core.natif.FastLatticeCbO;
 import fr.lirmm.fca4j.core.operator.AbstractScalingOperator;
@@ -447,11 +450,23 @@ public class RCACommand extends Command {
 						return new AOC_poset_Hermes(context, chrono);
 					}
 				case PLUTON:
-					return new AOC_poset_Pluton(context, chrono);
+					if (useNativeCode) {
+						return FastAOCPosetPluton.create(context);
+					} else {
+						return new AOC_poset_Pluton(context, chrono);
+					}
 				case ARES:
-					return new AOC_poset_Ares(context, chrono, null, true, true);
+					if (useNativeCode) {
+						return FastAOCPosetAres.create(context);
+					} else {
+						return new AOC_poset_Ares(context, chrono, null, true, true);
+					}
 				case CERES:
-					return new AOC_poset_Ceres(context, chrono);
+					if (useNativeCode) {
+						return FastAOCPosetCeres.create(context);
+					} else {
+						return new AOC_poset_Ceres(context, chrono);
+					}
 				default:
 					return null;
 				}

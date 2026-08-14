@@ -314,4 +314,7 @@ CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj: \
  C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/conceptorder.h \
  C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/context.h \
  C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/closure.h \
- C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/fca4j_common.h
+ C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/fca4j_common.h \
+ C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/bitset.h \
+ C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/bitset_roaring.h \
+ C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/bitset.h

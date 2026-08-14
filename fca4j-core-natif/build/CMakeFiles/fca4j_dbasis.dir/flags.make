@@ -6,5 +6,5 @@ C_DEFINES = -Dfca4j_dbasis_EXPORTS
 
 C_INCLUDES = @CMakeFiles/fca4j_dbasis.dir/includes_C.rsp
 
-C_FLAGS = -DFCA4J_TIMING -O3 -DNDEBUG -std=gnu11 -O3 -march=native -funroll-loops
+C_FLAGS = -O3 -DNDEBUG -std=gnu11 -O3 -march=native -funroll-loops
 

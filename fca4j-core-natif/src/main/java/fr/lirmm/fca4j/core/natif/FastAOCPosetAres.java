@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 2026 LIRMM — BSD 3-Clause License
+ * See LICENSE file in the project root for full license text.
+ */
+package fr.lirmm.fca4j.core.natif;
+
+import fr.lirmm.fca4j.algo.AOC_poset_Ares;
+import fr.lirmm.fca4j.algo.AbstractAlgo;
+import fr.lirmm.fca4j.core.IBinaryContext;
+import fr.lirmm.fca4j.core.natif.impl.NativeAOCPosetAres;
+
+/**
+ * Point d'entrée public pour l'AOC-poset Ares.
+ *
+ * <ul>
+ *   <li><b>Natif disponible</b> → {@link NativeAOCPosetAres} : calcul complet
+ *       en C, sans clarification préalable.</li>
+ *   <li><b>Repli</b> → {@link AOC_poset_Ares} standard Java.</li>
+ * </ul>
+ */
+public final class FastAOCPosetAres {
+
+    static {
+        NativeBridge.isAvailable();
+    }
+
+    private FastAOCPosetAres() {
+    }
+
+    /**
+     * Crée une instance optimisée d'Ares.
+     *
+     * @param context contexte binaire d'entrée
+     * @return instance prête à exécuter (appeler {@code run()} puis {@code getResult()})
+     */
+    public static AbstractAlgo create(IBinaryContext context) {
+        if (NativeBridge.isAvailable()) {
+            return new NativeAOCPosetAres(context);
+        } else {
+            return new AOC_poset_Ares(context, null, null, true, true);
+        }
+    }
+
+    /**
+     * Indique quel backend est actif.
+     */
+    public static String activeBackend() {
+        return NativeBridge.isAvailable()
+                ? "native (C)"
+                : "java (AOC_poset_Ares standard)";
+    }
+}

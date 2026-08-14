@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\ares_test.dir/objects.a
+C:\dev_tools\mingw64\bin\ar.exe qc CMakeFiles\ares_test.dir/objects.a @CMakeFiles\ares_test.dir\objects1.rsp
+C:\dev_tools\mingw64\bin\cc.exe -O3 -DNDEBUG -Wl,--whole-archive CMakeFiles\ares_test.dir/objects.a -Wl,--no-whole-archive -o ares_test.exe -Wl,--out-implib,libares_test.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\ares_test.dir\linkLibs.rsp

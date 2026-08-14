@@ -1,0 +1,68 @@
+août 14, 2026 10:33:40 AM fr.lirmm.fca4j.core.natif.NativeBridge tryLoad
+INFO: fca4j-core-natif : lib native chargée (/native/windows-x86_64/fca4j_dbasis.dll).
+
+=== profil Hermes natif ====================================
+contexte 2103 x 72, 2167 concepts, execution 47.5 ms
+
+-- temps exclusif par site ---------------------------------
+  clarification, 1re passe               1.4 ms    2.9%   (inclusif       1.4, 1 appels)
+  clarification, 2e passe                2.7 ms    5.7%   (inclusif       2.7, 1 appels)
+  relation de domination                 1.5 ms    3.1%   (inclusif       1.5, 1 appels)
+  fusion domSets / objSets               2.2 ms    4.6%   (inclusif       2.2, 1 appels)
+  tri de l'extension lineaire            0.3 ms    0.7%   (inclusif       0.3, 1 appels)
+  diagramme de Hasse                    14.4 ms   30.2%   (inclusif      34.8, 1 appels)
+    dont descendance                    20.4 ms   42.9%   (inclusif      20.4, 32747 appels)
+  serialisation                          0.3 ms    0.7%   (inclusif       0.3, 1 appels)
+  non attribue                           4.4 ms    9.3%
+
+-- operations comptees -------------------------------------
+  comparaisons de clarification                     0
+    dont tests d'egalite                            0
+  inclusions (domination)                        5112
+  tests d'egalite (fusion)                     136659
+  paires examinees                            2346861
+    dont marquees, donc ignorees                34898
+    dont roaring_bitmap_is_subset             2214176
+    dont acces matrice                          97787
+  aretes posees                                 32747
+  noeuds visites (descendance)                 131350
+  somme des |values| des concepts               65608
+
+-- ratios --------------------------------------------------
+  paires examinees / N(N-1)/2 : 1.000
+  |values| moyen par concept  : 30.3  (sur 72 attributs)
+  cout par paire              : 6.1 ns
+============================================================
+
+=== profil Hermes natif ====================================
+contexte 2103 x 72, 2167 concepts, execution 50.5 ms
+
+-- temps exclusif par site ---------------------------------
+  clarification, 1re passe               1.8 ms    3.6%   (inclusif       1.8, 1 appels)
+  clarification, 2e passe                3.8 ms    7.6%   (inclusif       3.8, 1 appels)
+  relation de domination                 2.0 ms    4.0%   (inclusif       2.0, 1 appels)
+  fusion domSets / objSets               3.1 ms    6.2%   (inclusif       3.1, 1 appels)
+  tri de l'extension lineaire            0.3 ms    0.6%   (inclusif       0.3, 1 appels)
+  diagramme de Hasse                    14.4 ms   28.4%   (inclusif      34.7, 1 appels)
+    dont descendance                    20.3 ms   40.3%   (inclusif      20.3, 32747 appels)
+  serialisation                          0.3 ms    0.7%   (inclusif       0.3, 1 appels)
+  non attribue                           4.4 ms    8.6%
+
+-- operations comptees -------------------------------------
+  comparaisons de clarification                     0
+    dont tests d'egalite                            0
+  inclusions (domination)                        5112
+  tests d'egalite (fusion)                     136659
+  paires examinees                            2346861
+    dont marquees, donc ignorees                34898
+    dont roaring_bitmap_is_subset             2214176
+    dont acces matrice                          97787
+  aretes posees                                 32747
+  noeuds visites (descendance)                 131350
+  somme des |values| des concepts               65608
+
+-- ratios --------------------------------------------------
+  paires examinees / N(N-1)/2 : 1.000
+  |values| moyen par concept  : 30.3  (sur 72 attributs)
+  cout par paire              : 6.1 ns
+============================================================

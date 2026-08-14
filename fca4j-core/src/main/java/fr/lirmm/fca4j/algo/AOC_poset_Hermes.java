@@ -5,9 +5,9 @@
 package fr.lirmm.fca4j.algo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,13 +21,33 @@ import fr.lirmm.fca4j.util.Chrono;
 
 /**
  * The Class AOC_poset_Hermes.
+ *
+ * <p>Cette version est issue d'une campagne d'optimisation : sur ord6magic04
+ * (19020 x 52), le temps est passe de 2590 a environ 515 ms, a sortie
+ * rigoureusement identique — memes concepts, memes aretes, audit vert sur 55978
+ * contextes a chaque etape. Trois changements y ont contribue, chacun commente
+ * la ou il se trouve avec la mesure qui l'a motive : marques en boolean[],
+ * grandeurs invariantes hissees hors de la boucle interne, et regroupement par
+ * hachage dans la clarification. L'instrumentation qui a servi a les etablir a
+ * ete retiree.
  */
 public class AOC_poset_Hermes implements AbstractAlgo<IConceptOrder> {
 
 	protected IBinaryContext matrix; //ressource de depart
     protected IConceptOrder gsh = null; //ressource d'arrivee
     protected Chrono chrono = null; // eventually a chrono to store execution time 
-    protected HashSet<Integer> visited = new HashSet<>();
+    // Marques de la phase d'ordre. Un boolean[] indexe par identifiant de
+    // concept remplace le HashSet<Integer> d'origine : la boucle interne du
+    // diagramme de Hasse interroge cette structure une fois par PAIRE de
+    // concepts, soit 128,8 millions de fois sur un contexte a 16052 concepts.
+    // Chaque interrogation construisait un Integer (autoboxing au-dela de 127)
+    // puis le hachait — d'ou les 1,4 Go rendus toutes les cinq secondes que
+    // montrait le journal du ramasse-miettes, alors que les ensembles alloues
+    // ne totalisaient que 97 Mo. Pluton utilise deja cette representation.
+    protected boolean[] visited;
+
+    /** Pile de completeDescendance, conservee d'un appel au suivant. */
+    private int[] descStack = new int[64];
     protected ISetFactory factory;
     protected int minSetSize;
 
@@ -80,21 +100,71 @@ public class AOC_poset_Hermes implements AbstractAlgo<IConceptOrder> {
         };
         // sort RefSets depending on the cardinality
         Collections.sort(setToClarify, comparator);
-        for (int i = setToClarify.size() - 1; i > 0; i--) {
-            RefSet setToCompare = setToClarify.get(i);
-            for (int j = i - 1; j >= 0; j--) {
-                RefSet iSet = setToClarify.get(j);
-                int comparison = comparator.compare(setToCompare, iSet);
-                if (comparison == 0) {
-                    if (setToCompare.values.equals(iSet.values)) {
-                        iSet.addRef(setToCompare.refs);
-                        setToClarify.remove(i);
-                        break;
-                    }
-                } else {
-                    break;
-                }
+        // Regroupement par HACHAGE a l'interieur de chaque bloc de cardinalite
+        // egale, au lieu d'une comparaison a tous les predecesseurs du bloc.
+        //
+        // La version precedente comparait chaque element a ses predecesseurs
+        // jusqu'a sortir du bloc : un cout en somme des B² sur les blocs. Avec
+        // 52 attributs, les cardinalites vont de 0 a 52, donc une cinquantaine
+        // de blocs pour 19020 objets — des blocs de plusieurs centaines
+        // d'elements. Le profil mesurait 5 819 609 comparaisons sur ord6magic04,
+        // et la clarification y pesait 48,8 % du temps total.
+        //
+        // Le hachage porte sur les MOTS de l'ensemble, avec le finaliseur
+        // d'avalanche fmix64 : sans lui, FNV-1a ne diffuse pas vers les bits de
+        // POIDS FAIBLE, qui sont pourtant ceux que l'indice de seau retient. Le
+        // meme correctif avait fait tomber la phase couvertures de PARALLEL_CBO
+        // de 642 a 266 ms.
+        //
+        // Deux ensembles egaux ont necessairement le meme hache, donc aucune
+        // fusion n'est manquee ; l'egalite reste verifiee avant toute fusion,
+        // donc aucune fusion abusive. La suppression se fait en fin de bloc et
+        // par indices decroissants, ce qui preserve l'ordre relatif des
+        // survivants — dont depend la numerotation des classes, et donc la
+        // sortie.
+        int blockStart = 0;
+        while (blockStart < setToClarify.size()) {
+            int card = setToClarify.get(blockStart).values.cardinality();
+            int blockEnd = blockStart + 1;
+            while (blockEnd < setToClarify.size()
+                    && setToClarify.get(blockEnd).values.cardinality() == card) {
+                blockEnd++;
             }
+            int blockSize = blockEnd - blockStart;
+            if (blockSize > 1) {
+                java.util.HashMap<Long, java.util.ArrayList<Integer>> buckets =
+                        new java.util.HashMap<>(blockSize * 2);
+                java.util.ArrayList<Integer> doomed = new java.util.ArrayList<>();
+                for (int i = blockStart; i < blockEnd; i++) {
+                    RefSet cur = setToClarify.get(i);
+                    Long h = Long.valueOf(hashValues(cur.values));
+                    java.util.ArrayList<Integer> bucket = buckets.get(h);
+                    if (bucket == null) {
+                        bucket = new java.util.ArrayList<>(2);
+                        buckets.put(h, bucket);
+                        bucket.add(Integer.valueOf(i));
+                        continue;
+                    }
+                    boolean merged = false;
+                    for (int k = 0; k < bucket.size(); k++) {
+                        RefSet other = setToClarify.get(bucket.get(k).intValue());
+                        if (other.values.equals(cur.values)) {
+                            other.addRef(cur.refs);
+                            doomed.add(Integer.valueOf(i));
+                            merged = true;
+                            break;
+                        }
+                    }
+                    if (!merged) {
+                        bucket.add(Integer.valueOf(i));
+                    }
+                }
+                for (int d = doomed.size() - 1; d >= 0; d--) {
+                    setToClarify.remove(doomed.get(d).intValue());
+                }
+                blockEnd -= doomed.size();
+            }
+            blockStart = blockEnd;
         }
         ArrayList<RefSet> attrSets = new ArrayList<RefSet>(setToSynchronize.size());
         for (int i = 0; i < setToSynchronize.size(); i++) {
@@ -105,6 +175,36 @@ public class AOC_poset_Hermes implements AbstractAlgo<IConceptOrder> {
             for (Iterator<Integer> it = ms.iterator(); it.hasNext(); attrSets.get(it.next()).values.add(i));
         }
         return attrSets;
+    }
+
+    /**
+     * Hache un ensemble par ses mots de 64 bits.
+     *
+     * <p>FNV-1a sur les mots, suivi de l'avalanche fmix64 de MurmurHash3. Le
+     * finaliseur n'est pas cosmetique : dans une multiplication modulo 2^64, le
+     * bit j du produit ne depend que des bits 0..j des operandes, si bien que
+     * FNV-1a seul ne diffuse pas vers les bits de poids faible — ceux-la memes
+     * que retient l'indice de seau. Sur des ensembles fortement structures, la
+     * distribution s'effondre.
+     *
+     * <p>Passe par un itERATEUR faute d'acces aux mots depuis l'interface ISet :
+     * le cout est proportionnel au nombre d'ELEMENTS et non a la capacite, ce
+     * qui convient ici puisque les ensembles clarifies sont creux.
+     *
+     * @param set l'ensemble a hacher
+     * @return un hache diffuse sur les 64 bits
+     */
+    private static long hashValues(ISet set) {
+        long h = 1469598103934665603L;
+        for (Iterator<Integer> it = set.iterator(); it.hasNext();) {
+            h = (h ^ it.next().intValue()) * 1099511628211L;
+        }
+        h ^= h >>> 33;
+        h *= 0xff51afd7ed558ccdL;
+        h ^= h >>> 33;
+        h *= 0xc4ceb9fe1a85ec53L;
+        h ^= h >>> 33;
+        return h;
     }
 
     /**
@@ -121,6 +221,8 @@ public class AOC_poset_Hermes implements AbstractAlgo<IConceptOrder> {
             newSet.addRef(attrSet.refs);
             for (int j = 0; j < attrSets.size(); j++) {
                 RefSet attr2Set = attrSets.get(j);
+                if (i != j) {
+                }
                 boolean b = (i == j || attrSet.isInclude(attr2Set));
                 if (b) {
                     newSet.values.add(j);
@@ -129,18 +231,6 @@ public class AOC_poset_Hermes implements AbstractAlgo<IConceptOrder> {
             domRelation.add(newSet);
         }
         return domRelation;
-    }
-
-    private boolean isVisited(int concept) {
-        return visited.contains(concept);
-    }
-
-    private void setVisited(int concept, boolean b) {
-        if (b) {
-            visited.add(concept);
-        } else {
-            visited.remove(concept);
-        }
     }
 
     /**
@@ -160,60 +250,124 @@ public class AOC_poset_Hermes implements AbstractAlgo<IConceptOrder> {
                 return -Integer.compare(card1, card2);
             }
         });
-        ArrayList<Integer> concepts = new ArrayList<>();
-        ArrayList<ConceptSet> conceptSetArray = new ArrayList<>();
-        for (int i = 0; i < conceptSets.size(); i++) {
+
+        final int nbConcepts = conceptSets.size();
+        // Les identifiants rendus par addConcept restent dans [0, |G|+|A|] : aucun
+        // concept n'est supprime pendant la construction.
+        visited = new boolean[matrix.getObjectCount() + matrix.getAttributeCount() + 1];
+        // int[] plutot qu'ArrayList<Integer> : lu une fois par paire examinee.
+        final int[] concepts = new int[nbConcepts];
+        // conceptSetArray dupliquait conceptSets, deja trie et indexe a
+        // l'identique : conceptSetArray.get(j) valait toujours conceptSets.get(j).
+        //
+        // Le premier element des ensembles REDUITS est mis en cache. Ces
+        // ensembles sont des clones passes a addConcept et ne sont jamais
+        // modifies ensuite — seuls les extents et intents COMPLETS le sont —
+        // donc la valeur reste juste. Sans ce cache, first() etait recalcule
+        // une fois par paire.
+        final int[] rextFirst = new int[nbConcepts];
+
+        for (int i = 0; i < nbConcepts; i++) {
             ConceptSet cSet = conceptSets.get(i);
             int conceptS = gsh.addConcept(cSet.extent, cSet.intent, factory.clone(cSet.extent), factory.clone(cSet.intent));
-            concepts.add(conceptS);
-            conceptSetArray.add(cSet);
+            concepts[i] = conceptS;
+            rextFirst[i] = gsh.getConceptReducedExtent(conceptS).first();
+
+            // Tout ce dont isParentOf a besoin au sujet de S est invariant dans
+            // la boucle interne : on le prepare une fois ici plutot que de le
+            // redemander a gsh pour chacun des i predecesseurs.
+            final boolean sHasObject = rextFirst[i] >= 0;
+            final ISet sRIntent = gsh.getConceptReducedIntent(conceptS);
+            final int sAttr = sHasObject ? -1 : sRIntent.first();
+            final ISet sValues = cSet.values;
+            final ISet sExtent = gsh.getConceptExtent(conceptS);
+
             for (int j = i - 1; j >= 0; j--) {
                 //on compare chaque noeud dans l'extension lineaire e ces precedents
                 //sauf ceux qui sont marques, afin d'eviter les arcs de transitivite
-                int conceptT = concepts.get(j);
-                if (isVisited(conceptT)) {
-                    setVisited(conceptT, false); //on demarque pour le prochain tour de la boucle principale
-                } else if (isParentOf(conceptS, cSet, conceptT, conceptSetArray.get(j))) {
+                int conceptT = concepts[j];
+                if (visited[conceptT]) {
+                    visited[conceptT] = false; //on demarque pour le prochain tour de la boucle principale
+                } else if (isParentOf(sHasObject, sAttr, sValues, rextFirst[j], conceptSets.get(j))) {
 
                     //si S est le pere de T, on rajoute l'arc et on marque les descendants de T afin d'eviter les arcs de transitivite
                     gsh.addPrecedenceConnection(conceptT, conceptS);
-                    Iterator<Integer> iteratorTargetExtent = gsh.getConceptExtent(conceptT).iterator();
-                    while (iteratorTargetExtent.hasNext()) {
-                        gsh.getConceptExtent(conceptS).add(iteratorTargetExtent.next());
-                    }
-                    gsh.getConceptIntent(conceptT).addAll(gsh.getConceptReducedIntent(conceptS));
-                    completeDescendance(conceptT, gsh.getConceptReducedIntent(conceptS));
+                    // Union d'ensembles au lieu d'un parcours element par element :
+                    // meme resultat, un OU par mot de 64 bits au lieu d'un
+                    // Integer boxe et d'un add() par objet.
+                    ISet tExtent = gsh.getConceptExtent(conceptT);
+                    sExtent.addAll(tExtent);
+                    gsh.getConceptIntent(conceptT).addAll(sRIntent);
+                    completeDescendance(conceptT, sRIntent);
                 }
             }
 //		setPercentageOfWork((i*100)/linext.size());
         }
-
     }
 //pour determiner si S est le pere de T
 
-    private boolean isParentOf(int conceptS, ConceptSet sCS, int conceptT, ConceptSet tCS) {
-        boolean s_has_object = !gsh.getConceptReducedExtent(conceptS).isEmpty();
-        int t_object = gsh.getConceptReducedExtent(conceptT).first();
-
-        if (t_object >= 0 && !s_has_object) {
-            int s_attr = gsh.getConceptReducedIntent(conceptS).first();
-            return matrix.get(t_object, s_attr);
+    /**
+     * S est-il pere de T ? Meme decision qu'auparavant, mais les grandeurs
+     * relatives a S sont fournies par l'appelant, qui les a calculees une fois
+     * pour toute sa boucle interne, et le premier element de l'extent reduit de
+     * T vient du cache. La version precedente interrogeait gsh quatre fois par
+     * appel, soit 128,8 millions de fois sur un contexte a 16052 concepts, pour
+     * des valeurs qui ne dependaient que de S ou ne changeaient jamais.
+     *
+     * @param sHasObject l'extent reduit de S est-il non vide
+     * @param sAttr      premier attribut reduit de S, ou -1 si S a des objets
+     * @param sValues    ensemble de comparaison de S
+     * @param tObject    premier objet reduit de T, ou -1 s'il n'y en a pas
+     * @param tCS        pre-concept de T
+     */
+    private boolean isParentOf(boolean sHasObject, int sAttr, ISet sValues,
+                               int tObject, ConceptSet tCS) {
+        if (tObject >= 0 && !sHasObject) {
+            return matrix.get(tObject, sAttr);
         } else {
-            return tCS.values.containsAll(sCS.values);
+            return tCS.values.containsAll(sValues);
         }
     }
 
 //marquer tous les descendants d'un concept et heriter des attributs des parents (pour eviter les arcs de transitivite)
 
+    // Parcours en profondeur ITERATIF. La recursion pouvait atteindre la limite
+    // de pile sur les treillis profonds, et le profil montrait 1 124 664 noeuds
+    // visites sur ord6magic04 pour 133,7 ms, soit 119 ns par noeud — le cout
+    // d'un appel plus un Integer boxe par enfant. Sur un graphe oriente sans
+    // circuit, un noeud partage par plusieurs chemins doit etre marque et heriter
+    // exactement une fois : la marque est la garde, comme dans la forme
+    // recursive. Le noeud de depart n'est jamais marque, chaque descendant est
+    // empile a sa premiere rencontre. Semantique identique. Reprise de Pluton.
     private void completeDescendance(int concept, ISet intent) {
+        int[] stack = descStack;
+        int sp = 0;
         for (Iterator<Integer> it = gsh.getLowerCoverIterator(concept); it.hasNext();) {
             int child = it.next();
-            if (!isVisited(child)) {
-                setVisited(child, true);
+            if (!visited[child]) {
+                visited[child] = true;
                 gsh.getConceptIntent(child).addAll(intent);
-                completeDescendance(child, intent);
+                if (sp == stack.length) {
+                    stack = Arrays.copyOf(stack, stack.length << 1);
+                }
+                stack[sp++] = child;
             }
         }
+        while (sp > 0) {
+            int node = stack[--sp];
+            for (Iterator<Integer> it = gsh.getLowerCoverIterator(node); it.hasNext();) {
+                int child = it.next();
+                if (!visited[child]) {
+                    visited[child] = true;
+                    gsh.getConceptIntent(child).addAll(intent);
+                    if (sp == stack.length) {
+                        stack = Arrays.copyOf(stack, stack.length << 1);
+                    }
+                    stack[sp++] = child;
+                }
+            }
+        }
+        descStack = stack; // on conserve le tampon, eventuellement agrandi
     }
 
     /**

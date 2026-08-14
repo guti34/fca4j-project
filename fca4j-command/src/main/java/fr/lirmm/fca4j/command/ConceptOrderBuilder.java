@@ -77,7 +77,7 @@ public abstract class ConceptOrderBuilder extends Command {
 	 */
 	protected void declareOutputFormat() {
 		// output format
-		options.addOption(Option.builder("o").desc("supported formats are:\n* XML (default)\n* JSON\n").hasArg()
+		options.addOption(Option.builder("o").desc("supported formats are:\n* JSON\n* XML\n").hasArg()
 				.argName("OUTPUT-FORMAT").build());
 
 	}

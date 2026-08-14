@@ -128,6 +128,84 @@ fca4j_dbasis/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/build
 .PHONY : fca4j_dbasis/fast
 
+#=============================================================================
+# Target rules for targets named dynorder_test
+
+# Build rule for target.
+dynorder_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 dynorder_test
+.PHONY : dynorder_test
+
+# fast build rule for target.
+dynorder_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\dynorder_test.dir\build.make CMakeFiles/dynorder_test.dir/build
+.PHONY : dynorder_test/fast
+
+#=============================================================================
+# Target rules for targets named ares_test
+
+# Build rule for target.
+ares_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ares_test
+.PHONY : ares_test
+
+# fast build rule for target.
+ares_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/build
+.PHONY : ares_test/fast
+
+#=============================================================================
+# Target rules for targets named latticecbo_regress
+
+# Build rule for target.
+latticecbo_regress: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 latticecbo_regress
+.PHONY : latticecbo_regress
+
+# fast build rule for target.
+latticecbo_regress/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/build
+.PHONY : latticecbo_regress/fast
+
+#=============================================================================
+# Target rules for targets named ceres_test
+
+# Build rule for target.
+ceres_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ceres_test
+.PHONY : ceres_test
+
+# fast build rule for target.
+ceres_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/build
+.PHONY : ceres_test/fast
+
+#=============================================================================
+# Target rules for targets named aoc_regress
+
+# Build rule for target.
+aoc_regress: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 aoc_regress
+.PHONY : aoc_regress
+
+# fast build rule for target.
+aoc_regress/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/build
+.PHONY : aoc_regress/fast
+
+#=============================================================================
+# Target rules for targets named tests
+
+# Build rule for target.
+tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 tests
+.PHONY : tests
+
+# fast build rule for target.
+tests/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\tests.dir\build.make CMakeFiles/tests.dir/build
+.PHONY : tests/fast
+
 algo/addextent.obj: algo/addextent.c.obj
 .PHONY : algo/addextent.obj
 
@@ -151,6 +229,138 @@ algo/addextent.s: algo/addextent.c.s
 algo/addextent.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/addextent.c.s
 .PHONY : algo/addextent.c.s
+
+algo/aoc_regress.obj: algo/aoc_regress.c.obj
+.PHONY : algo/aoc_regress.obj
+
+# target to build an object file
+algo/aoc_regress.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/aoc_regress.c.obj
+.PHONY : algo/aoc_regress.c.obj
+
+algo/aoc_regress.i: algo/aoc_regress.c.i
+.PHONY : algo/aoc_regress.i
+
+# target to preprocess a source file
+algo/aoc_regress.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/aoc_regress.c.i
+.PHONY : algo/aoc_regress.c.i
+
+algo/aoc_regress.s: algo/aoc_regress.c.s
+.PHONY : algo/aoc_regress.s
+
+# target to generate assembly for a file
+algo/aoc_regress.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/aoc_regress.c.s
+.PHONY : algo/aoc_regress.c.s
+
+algo/ares.obj: algo/ares.c.obj
+.PHONY : algo/ares.obj
+
+# target to build an object file
+algo/ares.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/ares.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/algo/ares.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/ares.c.obj
+.PHONY : algo/ares.c.obj
+
+algo/ares.i: algo/ares.c.i
+.PHONY : algo/ares.i
+
+# target to preprocess a source file
+algo/ares.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/ares.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/algo/ares.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/ares.c.i
+.PHONY : algo/ares.c.i
+
+algo/ares.s: algo/ares.c.s
+.PHONY : algo/ares.s
+
+# target to generate assembly for a file
+algo/ares.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/ares.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/algo/ares.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/ares.c.s
+.PHONY : algo/ares.c.s
+
+algo/ares_test.obj: algo/ares_test.c.obj
+.PHONY : algo/ares_test.obj
+
+# target to build an object file
+algo/ares_test.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/algo/ares_test.c.obj
+.PHONY : algo/ares_test.c.obj
+
+algo/ares_test.i: algo/ares_test.c.i
+.PHONY : algo/ares_test.i
+
+# target to preprocess a source file
+algo/ares_test.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/algo/ares_test.c.i
+.PHONY : algo/ares_test.c.i
+
+algo/ares_test.s: algo/ares_test.c.s
+.PHONY : algo/ares_test.s
+
+# target to generate assembly for a file
+algo/ares_test.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/algo/ares_test.c.s
+.PHONY : algo/ares_test.c.s
+
+algo/ceres.obj: algo/ceres.c.obj
+.PHONY : algo/ceres.obj
+
+# target to build an object file
+algo/ceres.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/ceres.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/algo/ceres.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/ceres.c.obj
+.PHONY : algo/ceres.c.obj
+
+algo/ceres.i: algo/ceres.c.i
+.PHONY : algo/ceres.i
+
+# target to preprocess a source file
+algo/ceres.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/ceres.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/algo/ceres.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/ceres.c.i
+.PHONY : algo/ceres.c.i
+
+algo/ceres.s: algo/ceres.c.s
+.PHONY : algo/ceres.s
+
+# target to generate assembly for a file
+algo/ceres.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/ceres.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/algo/ceres.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/ceres.c.s
+.PHONY : algo/ceres.c.s
+
+algo/ceres_test.obj: algo/ceres_test.c.obj
+.PHONY : algo/ceres_test.obj
+
+# target to build an object file
+algo/ceres_test.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/algo/ceres_test.c.obj
+.PHONY : algo/ceres_test.c.obj
+
+algo/ceres_test.i: algo/ceres_test.c.i
+.PHONY : algo/ceres_test.i
+
+# target to preprocess a source file
+algo/ceres_test.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/algo/ceres_test.c.i
+.PHONY : algo/ceres_test.c.i
+
+algo/ceres_test.s: algo/ceres_test.c.s
+.PHONY : algo/ceres_test.s
+
+# target to generate assembly for a file
+algo/ceres_test.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/algo/ceres_test.c.s
+.PHONY : algo/ceres_test.c.s
 
 algo/dbasis.obj: algo/dbasis.c.obj
 .PHONY : algo/dbasis.obj
@@ -176,12 +386,39 @@ algo/dbasis.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/dbasis.c.s
 .PHONY : algo/dbasis.c.s
 
+algo/dynorder_test.obj: algo/dynorder_test.c.obj
+.PHONY : algo/dynorder_test.obj
+
+# target to build an object file
+algo/dynorder_test.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\dynorder_test.dir\build.make CMakeFiles/dynorder_test.dir/algo/dynorder_test.c.obj
+.PHONY : algo/dynorder_test.c.obj
+
+algo/dynorder_test.i: algo/dynorder_test.c.i
+.PHONY : algo/dynorder_test.i
+
+# target to preprocess a source file
+algo/dynorder_test.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\dynorder_test.dir\build.make CMakeFiles/dynorder_test.dir/algo/dynorder_test.c.i
+.PHONY : algo/dynorder_test.c.i
+
+algo/dynorder_test.s: algo/dynorder_test.c.s
+.PHONY : algo/dynorder_test.s
+
+# target to generate assembly for a file
+algo/dynorder_test.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\dynorder_test.dir\build.make CMakeFiles/dynorder_test.dir/algo/dynorder_test.c.s
+.PHONY : algo/dynorder_test.c.s
+
 algo/hermes.obj: algo/hermes.c.obj
 .PHONY : algo/hermes.obj
 
 # target to build an object file
 algo/hermes.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/hermes.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/algo/hermes.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/algo/hermes.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/hermes.c.obj
 .PHONY : algo/hermes.c.obj
 
 algo/hermes.i: algo/hermes.c.i
@@ -190,6 +427,9 @@ algo/hermes.i: algo/hermes.c.i
 # target to preprocess a source file
 algo/hermes.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/hermes.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/algo/hermes.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/algo/hermes.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/hermes.c.i
 .PHONY : algo/hermes.c.i
 
 algo/hermes.s: algo/hermes.c.s
@@ -198,6 +438,9 @@ algo/hermes.s: algo/hermes.c.s
 # target to generate assembly for a file
 algo/hermes.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/hermes.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/algo/hermes.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/algo/hermes.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/hermes.c.s
 .PHONY : algo/hermes.c.s
 
 algo/latticecbo.obj: algo/latticecbo.c.obj
@@ -206,6 +449,7 @@ algo/latticecbo.obj: algo/latticecbo.c.obj
 # target to build an object file
 algo/latticecbo.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/algo/latticecbo.c.obj
 .PHONY : algo/latticecbo.c.obj
 
 algo/latticecbo.i: algo/latticecbo.c.i
@@ -214,6 +458,7 @@ algo/latticecbo.i: algo/latticecbo.c.i
 # target to preprocess a source file
 algo/latticecbo.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/algo/latticecbo.c.i
 .PHONY : algo/latticecbo.c.i
 
 algo/latticecbo.s: algo/latticecbo.c.s
@@ -222,7 +467,32 @@ algo/latticecbo.s: algo/latticecbo.c.s
 # target to generate assembly for a file
 algo/latticecbo.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/algo/latticecbo.c.s
 .PHONY : algo/latticecbo.c.s
+
+algo/latticecbo_regress.obj: algo/latticecbo_regress.c.obj
+.PHONY : algo/latticecbo_regress.obj
+
+# target to build an object file
+algo/latticecbo_regress.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/algo/latticecbo_regress.c.obj
+.PHONY : algo/latticecbo_regress.c.obj
+
+algo/latticecbo_regress.i: algo/latticecbo_regress.c.i
+.PHONY : algo/latticecbo_regress.i
+
+# target to preprocess a source file
+algo/latticecbo_regress.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/algo/latticecbo_regress.c.i
+.PHONY : algo/latticecbo_regress.c.i
+
+algo/latticecbo_regress.s: algo/latticecbo_regress.c.s
+.PHONY : algo/latticecbo_regress.s
+
+# target to generate assembly for a file
+algo/latticecbo_regress.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/algo/latticecbo_regress.c.s
+.PHONY : algo/latticecbo_regress.c.s
 
 algo/lincbo.obj: algo/lincbo.c.obj
 .PHONY : algo/lincbo.obj
@@ -254,6 +524,7 @@ algo/pluton.obj: algo/pluton.c.obj
 # target to build an object file
 algo/pluton.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/pluton.c.obj
 .PHONY : algo/pluton.c.obj
 
 algo/pluton.i: algo/pluton.c.i
@@ -262,6 +533,7 @@ algo/pluton.i: algo/pluton.c.i
 # target to preprocess a source file
 algo/pluton.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/pluton.c.i
 .PHONY : algo/pluton.c.i
 
 algo/pluton.s: algo/pluton.c.s
@@ -270,6 +542,7 @@ algo/pluton.s: algo/pluton.c.s
 # target to generate assembly for a file
 algo/pluton.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/algo/pluton.c.s
 .PHONY : algo/pluton.c.s
 
 core/clarification.obj: core/clarification.c.obj
@@ -278,6 +551,10 @@ core/clarification.obj: core/clarification.c.obj
 # target to build an object file
 core/clarification.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/clarification.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/clarification.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/clarification.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/clarification.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/clarification.c.obj
 .PHONY : core/clarification.c.obj
 
 core/clarification.i: core/clarification.c.i
@@ -286,6 +563,10 @@ core/clarification.i: core/clarification.c.i
 # target to preprocess a source file
 core/clarification.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/clarification.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/clarification.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/clarification.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/clarification.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/clarification.c.i
 .PHONY : core/clarification.c.i
 
 core/clarification.s: core/clarification.c.s
@@ -294,6 +575,10 @@ core/clarification.s: core/clarification.c.s
 # target to generate assembly for a file
 core/clarification.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/clarification.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/clarification.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/clarification.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/clarification.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/clarification.c.s
 .PHONY : core/clarification.c.s
 
 core/closure.obj: core/closure.c.obj
@@ -302,6 +587,10 @@ core/closure.obj: core/closure.c.obj
 # target to build an object file
 core/closure.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/closure.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/closure.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/closure.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/closure.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/closure.c.obj
 .PHONY : core/closure.c.obj
 
 core/closure.i: core/closure.c.i
@@ -310,6 +599,10 @@ core/closure.i: core/closure.c.i
 # target to preprocess a source file
 core/closure.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/closure.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/closure.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/closure.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/closure.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/closure.c.i
 .PHONY : core/closure.c.i
 
 core/closure.s: core/closure.c.s
@@ -318,6 +611,10 @@ core/closure.s: core/closure.c.s
 # target to generate assembly for a file
 core/closure.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/closure.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/closure.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/closure.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/closure.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/closure.c.s
 .PHONY : core/closure.c.s
 
 core/conceptorder.obj: core/conceptorder.c.obj
@@ -326,6 +623,10 @@ core/conceptorder.obj: core/conceptorder.c.obj
 # target to build an object file
 core/conceptorder.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/conceptorder.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/conceptorder.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/conceptorder.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/conceptorder.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/conceptorder.c.obj
 .PHONY : core/conceptorder.c.obj
 
 core/conceptorder.i: core/conceptorder.c.i
@@ -334,6 +635,10 @@ core/conceptorder.i: core/conceptorder.c.i
 # target to preprocess a source file
 core/conceptorder.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/conceptorder.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/conceptorder.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/conceptorder.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/conceptorder.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/conceptorder.c.i
 .PHONY : core/conceptorder.c.i
 
 core/conceptorder.s: core/conceptorder.c.s
@@ -342,6 +647,10 @@ core/conceptorder.s: core/conceptorder.c.s
 # target to generate assembly for a file
 core/conceptorder.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/conceptorder.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/conceptorder.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/conceptorder.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/conceptorder.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/conceptorder.c.s
 .PHONY : core/conceptorder.c.s
 
 core/context.obj: core/context.c.obj
@@ -350,6 +659,10 @@ core/context.obj: core/context.c.obj
 # target to build an object file
 core/context.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/context.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/context.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/context.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/context.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/context.c.obj
 .PHONY : core/context.c.obj
 
 core/context.i: core/context.c.i
@@ -358,6 +671,10 @@ core/context.i: core/context.c.i
 # target to preprocess a source file
 core/context.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/context.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/context.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/context.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/context.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/context.c.i
 .PHONY : core/context.c.i
 
 core/context.s: core/context.c.s
@@ -366,7 +683,47 @@ core/context.s: core/context.c.s
 # target to generate assembly for a file
 core/context.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/context.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/context.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/context.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/context.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/context.c.s
 .PHONY : core/context.c.s
+
+core/dynorder.obj: core/dynorder.c.obj
+.PHONY : core/dynorder.obj
+
+# target to build an object file
+core/dynorder.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/dynorder.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\dynorder_test.dir\build.make CMakeFiles/dynorder_test.dir/core/dynorder.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/dynorder.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/dynorder.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/dynorder.c.obj
+.PHONY : core/dynorder.c.obj
+
+core/dynorder.i: core/dynorder.c.i
+.PHONY : core/dynorder.i
+
+# target to preprocess a source file
+core/dynorder.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/dynorder.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\dynorder_test.dir\build.make CMakeFiles/dynorder_test.dir/core/dynorder.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/dynorder.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/dynorder.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/dynorder.c.i
+.PHONY : core/dynorder.c.i
+
+core/dynorder.s: core/dynorder.c.s
+.PHONY : core/dynorder.s
+
+# target to generate assembly for a file
+core/dynorder.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/dynorder.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\dynorder_test.dir\build.make CMakeFiles/dynorder_test.dir/core/dynorder.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/dynorder.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/dynorder.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/dynorder.c.s
+.PHONY : core/dynorder.c.s
 
 core/graph.obj: core/graph.c.obj
 .PHONY : core/graph.obj
@@ -374,6 +731,10 @@ core/graph.obj: core/graph.c.obj
 # target to build an object file
 core/graph.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/graph.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/graph.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/graph.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/graph.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/graph.c.obj
 .PHONY : core/graph.c.obj
 
 core/graph.i: core/graph.c.i
@@ -382,6 +743,10 @@ core/graph.i: core/graph.c.i
 # target to preprocess a source file
 core/graph.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/graph.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/graph.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/graph.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/graph.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/graph.c.i
 .PHONY : core/graph.c.i
 
 core/graph.s: core/graph.c.s
@@ -390,6 +755,10 @@ core/graph.s: core/graph.c.s
 # target to generate assembly for a file
 core/graph.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/graph.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/graph.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/graph.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/graph.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/graph.c.s
 .PHONY : core/graph.c.s
 
 core/implication.obj: core/implication.c.obj
@@ -398,6 +767,10 @@ core/implication.obj: core/implication.c.obj
 # target to build an object file
 core/implication.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/implication.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/implication.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/implication.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/implication.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/implication.c.obj
 .PHONY : core/implication.c.obj
 
 core/implication.i: core/implication.c.i
@@ -406,6 +779,10 @@ core/implication.i: core/implication.c.i
 # target to preprocess a source file
 core/implication.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/implication.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/implication.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/implication.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/implication.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/implication.c.i
 .PHONY : core/implication.c.i
 
 core/implication.s: core/implication.c.s
@@ -414,6 +791,10 @@ core/implication.s: core/implication.c.s
 # target to generate assembly for a file
 core/implication.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/implication.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/implication.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/implication.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/implication.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/implication.c.s
 .PHONY : core/implication.c.s
 
 core/strbuf.obj: core/strbuf.c.obj
@@ -422,6 +803,10 @@ core/strbuf.obj: core/strbuf.c.obj
 # target to build an object file
 core/strbuf.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/strbuf.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/strbuf.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/strbuf.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/strbuf.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/strbuf.c.obj
 .PHONY : core/strbuf.c.obj
 
 core/strbuf.i: core/strbuf.c.i
@@ -430,6 +815,10 @@ core/strbuf.i: core/strbuf.c.i
 # target to preprocess a source file
 core/strbuf.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/strbuf.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/strbuf.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/strbuf.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/strbuf.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/strbuf.c.i
 .PHONY : core/strbuf.c.i
 
 core/strbuf.s: core/strbuf.c.s
@@ -438,6 +827,10 @@ core/strbuf.s: core/strbuf.c.s
 # target to generate assembly for a file
 core/strbuf.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/strbuf.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/strbuf.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/strbuf.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/strbuf.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/strbuf.c.s
 .PHONY : core/strbuf.c.s
 
 core/tarjan.obj: core/tarjan.c.obj
@@ -446,6 +839,10 @@ core/tarjan.obj: core/tarjan.c.obj
 # target to build an object file
 core/tarjan.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/tarjan.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/tarjan.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/tarjan.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/tarjan.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/tarjan.c.obj
 .PHONY : core/tarjan.c.obj
 
 core/tarjan.i: core/tarjan.c.i
@@ -454,6 +851,10 @@ core/tarjan.i: core/tarjan.c.i
 # target to preprocess a source file
 core/tarjan.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/tarjan.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/tarjan.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/tarjan.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/tarjan.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/tarjan.c.i
 .PHONY : core/tarjan.c.i
 
 core/tarjan.s: core/tarjan.c.s
@@ -462,6 +863,10 @@ core/tarjan.s: core/tarjan.c.s
 # target to generate assembly for a file
 core/tarjan.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/core/tarjan.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/core/tarjan.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/tarjan.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/tarjan.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/tarjan.c.s
 .PHONY : core/tarjan.c.s
 
 croaring/roaring.obj: croaring/roaring.c.obj
@@ -470,6 +875,10 @@ croaring/roaring.obj: croaring/roaring.c.obj
 # target to build an object file
 croaring/roaring.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/croaring/roaring.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/croaring/roaring.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/croaring/roaring.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/croaring/roaring.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/croaring/roaring.c.obj
 .PHONY : croaring/roaring.c.obj
 
 croaring/roaring.i: croaring/roaring.c.i
@@ -478,6 +887,10 @@ croaring/roaring.i: croaring/roaring.c.i
 # target to preprocess a source file
 croaring/roaring.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/croaring/roaring.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/croaring/roaring.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/croaring/roaring.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/croaring/roaring.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/croaring/roaring.c.i
 .PHONY : croaring/roaring.c.i
 
 croaring/roaring.s: croaring/roaring.c.s
@@ -486,6 +899,10 @@ croaring/roaring.s: croaring/roaring.c.s
 # target to generate assembly for a file
 croaring/roaring.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/croaring/roaring.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/croaring/roaring.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/croaring/roaring.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/croaring/roaring.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/croaring/roaring.c.s
 .PHONY : croaring/roaring.c.s
 
 fca4j_jni.obj: fca4j_jni.c.obj
@@ -520,19 +937,46 @@ help:
 	@echo ... depend
 	@echo ... edit_cache
 	@echo ... rebuild_cache
+	@echo ... tests
+	@echo ... aoc_regress
+	@echo ... ares_test
+	@echo ... ceres_test
+	@echo ... dynorder_test
 	@echo ... fca4j_dbasis
+	@echo ... latticecbo_regress
 	@echo ... algo/addextent.obj
 	@echo ... algo/addextent.i
 	@echo ... algo/addextent.s
+	@echo ... algo/aoc_regress.obj
+	@echo ... algo/aoc_regress.i
+	@echo ... algo/aoc_regress.s
+	@echo ... algo/ares.obj
+	@echo ... algo/ares.i
+	@echo ... algo/ares.s
+	@echo ... algo/ares_test.obj
+	@echo ... algo/ares_test.i
+	@echo ... algo/ares_test.s
+	@echo ... algo/ceres.obj
+	@echo ... algo/ceres.i
+	@echo ... algo/ceres.s
+	@echo ... algo/ceres_test.obj
+	@echo ... algo/ceres_test.i
+	@echo ... algo/ceres_test.s
 	@echo ... algo/dbasis.obj
 	@echo ... algo/dbasis.i
 	@echo ... algo/dbasis.s
+	@echo ... algo/dynorder_test.obj
+	@echo ... algo/dynorder_test.i
+	@echo ... algo/dynorder_test.s
 	@echo ... algo/hermes.obj
 	@echo ... algo/hermes.i
 	@echo ... algo/hermes.s
 	@echo ... algo/latticecbo.obj
 	@echo ... algo/latticecbo.i
 	@echo ... algo/latticecbo.s
+	@echo ... algo/latticecbo_regress.obj
+	@echo ... algo/latticecbo_regress.i
+	@echo ... algo/latticecbo_regress.s
 	@echo ... algo/lincbo.obj
 	@echo ... algo/lincbo.i
 	@echo ... algo/lincbo.s
@@ -551,6 +995,9 @@ help:
 	@echo ... core/context.obj
 	@echo ... core/context.i
 	@echo ... core/context.s
+	@echo ... core/dynorder.obj
+	@echo ... core/dynorder.i
+	@echo ... core/dynorder.s
 	@echo ... core/graph.obj
 	@echo ... core/graph.i
 	@echo ... core/graph.s

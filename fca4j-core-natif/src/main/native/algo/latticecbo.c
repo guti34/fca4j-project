@@ -56,6 +56,8 @@
 #include "../core/conceptorder.h"
 #include "../core/closure.h"
 #include "../core/fca4j_common.h"
+#include "../core/bitset.h"
+#include "../core/bitset_roaring.h"
 #ifndef _WIN32
   #include <unistd.h>   /* sysconf(_SC_NPROCESSORS_ONLN), clock_gettime */
 #endif
@@ -141,13 +143,6 @@ static void prof_log(const char *fmt, ...) {
 #define PH_END(v, label)   prof_log("  %-24s %9.2f ms\n", (label), _ms_now() - (v))
 
 
-/* count-trailing-zeros 64 bits portable */
-#if defined(_MSC_VER)
-  #include <intrin.h>
-  static inline int ctz64(uint64_t x){ unsigned long i; _BitScanForward64(&i, x); return (int)i; }
-#else
-  #define ctz64(x) __builtin_ctzll(x)
-#endif
 
 /* ── Table de hachage extent (mots packés) -> id de concept ──────────────────
  * Clé = W mots empruntés (vivent dans all_words, possédé par build_lattice_cbo).
@@ -169,34 +164,6 @@ typedef struct {
     int     pool_used;
 } WMap;
 
-/* Finaliseur d'avalanche (fmix64 de MurmurHash3).
- *
- * MOTIF — FNV-1a appliqué à des MOTS de 64 bits (et non à des octets) ne diffuse
- * pas vers les bits de POIDS FAIBLE : dans une multiplication modulo 2^64, le
- * bit j du produit ne dépend que des bits 0..j des opérandes. Or l'index de
- * bucket est h & (nbuckets-1), donc précisément les bits faibles. Sur des
- * extents de treillis — fortement structurés et emboîtés — la distribution
- * s'effondre : occupation des buckets ~5 %, chaînes de plusieurs milliers
- * d'entrées, et wmap_get (appelé une fois par couverture retenue) devient le
- * poste dominant de la phase covers.
- *
- * fmix64 rabat les bits de poids fort sur les bits de poids faible en 3 shifts
- * et 2 multiplications, une seule fois par hash — négligeable devant la boucle
- * sur W mots. Le résultat du treillis est inchangé bit à bit : seule la
- * répartition dans les buckets change.
- *
- * Mesuré : sur inter3magic04, phase couvertures 642 -> 266 ms et chaîne
- * maximale 11454 -> 15. Jamais perdant sur les contextes testés. */
-static inline uint64_t fmix64(uint64_t k) {
-    k ^= k >> 33; k *= 0xff51afd7ed558ccdULL;
-    k ^= k >> 33; k *= 0xc4ceb9fe1a85ec53ULL;
-    k ^= k >> 33; return k;
-}
-static uint64_t fnv_words(const uint64_t *w, int W) {
-    uint64_t h = 1469598103934665603ULL;
-    for (int i = 0; i < W; i++) h = (h ^ w[i]) * 1099511628211ULL;
-    return fmix64(h);
-}
 
 /* expected = nb de concepts (taille exacte du pool). Facteur de charge ~0.5. */
 static WMap *wmap_create(int expected, int W) {
@@ -210,7 +177,7 @@ static WMap *wmap_create(int expected, int W) {
 }
 
 static void wmap_put(WMap *m, const uint64_t *key, int id) {
-    uint64_t h = fnv_words(key, m->W);
+    uint64_t h = bs_hash(key, m->W);
     int b = (int)(h & (uint64_t)(m->nbuckets - 1));
     WNode *n = &m->pool[m->pool_used++];
     n->key = key; n->hash = h; n->id = id; n->next = m->buckets[b];
@@ -229,7 +196,7 @@ static void wmap_put_h(WMap *m, const uint64_t *key, int id, uint64_t h) {
 
 static int wmap_get(WMap *m, const uint64_t *key) {
     int W = m->W;
-    uint64_t h = fnv_words(key, W);
+    uint64_t h = bs_hash(key, W);
     int b = (int)(h & (uint64_t)(m->nbuckets - 1));
     for (WNode *n = m->buckets[b]; n; n = n->next) {
         if (n->hash != h) continue;
@@ -295,75 +262,6 @@ static int *compute_irreducibles(BinaryContext *ctx, int *out_n) {
  * Univers d'objets fixe → W = ⌈nObj/64⌉ mots. Aucun bit de padding au-delà de
  * nObj n'est jamais positionné, donc AND/inclusion ne nécessitent pas de masque.
  * ─────────────────────────────────────────────────────────────────────────── */
-static inline void words_and(uint64_t *dst, const uint64_t *a, const uint64_t *b, int W) {
-    for (int w = 0; w < W; w++) dst[w] = a[w] & b[w];
-}
-/* re ← re \ x  (retire de re les bits présents dans x) */
-static inline void words_andnot(uint64_t *re, const uint64_t *x, int W) {
-    for (int w = 0; w < W; w++) re[w] &= ~x[w];
-}
-/* X ⊆ Y  ⟺  aucun bit de X hors de Y  ⟺  (X & ~Y) == 0 partout. */
-static inline int words_subset(const uint64_t *x, const uint64_t *y, int W) {
-    for (int w = 0; w < W; w++) if (x[w] & ~y[w]) return 0;
-    return 1;
-}
-#if defined(_MSC_VER)
-  #include <intrin.h>
-  static inline int popcnt64(uint64_t x){ return (int)__popcnt64(x); }
-#else
-  #define popcnt64(x) __builtin_popcountll(x)
-#endif
-static inline int words_popcount(const uint64_t *x, int W) {
-    int c = 0; for (int w = 0; w < W; w++) c += popcnt64(x[w]); return c;
-}
-/* test d'appartenance dans un intent packé (Wa mots) */
-static inline int bit_test(const uint64_t *v, int i) {
-    return (int)((v[i >> 6] >> (i & 63)) & 1ULL);
-}
-static inline int words_equal(const uint64_t *a, const uint64_t *b, int W) {
-    for (int w = 0; w < W; w++) if (a[w] != b[w]) return 0;
-    return 1;
-}
-static void words_from_roaring_into(roaring_bitmap_t *bm, uint64_t *dst, int W) {
-    memset(dst, 0, (size_t)W * sizeof(uint64_t));
-    roaring_uint32_iterator_t it;
-    roaring_iterator_init(bm, &it);
-    while (it.has_value) {
-        uint32_t o = it.current_value;
-        dst[o >> 6] |= (1ULL << (o & 63));
-        roaring_uint32_iterator_advance(&it);
-    }
-}
-static uint64_t *words_from_roaring(roaring_bitmap_t *bm, int W) {
-    uint64_t *w = (uint64_t*)calloc((size_t)W, sizeof(uint64_t));
-    words_from_roaring_into(bm, w, W);
-    return w;
-}
-/* Matérialisation roaring (une fois par concept canonique). */
-/* Ajoute les bits positionnés de w[] dans un roaring existant (réutilise le
- * placeholder vide créé par co_add_concept : pas de create/free). */
-static void add_words_to_roaring(const uint64_t *w, roaring_bitmap_t *bm, int W) {
-    for (int wi = 0; wi < W; wi++) {
-        uint64_t x = w[wi];
-        while (x) {
-            int b = ctz64(x);
-            roaring_bitmap_add(bm, (uint32_t)(((uint32_t)wi << 6) + (uint32_t)b));
-            x &= x - 1;
-        }
-    }
-}
-static roaring_bitmap_t *roaring_from_words(const uint64_t *w, int W) {
-    roaring_bitmap_t *bm = roaring_bitmap_create();
-    for (int wi = 0; wi < W; wi++) {
-        uint64_t x = w[wi];
-        while (x) {
-            int b = ctz64(x);
-            roaring_bitmap_add(bm, (uint32_t)(((uint32_t)wi << 6) + (uint32_t)b));
-            x &= x - 1;
-        }
-    }
-    return bm;
-}
 static roaring_bitmap_t *roaring_from_bools(const uint8_t *inB, int m) {
     roaring_bitmap_t *bm = roaring_bitmap_create();
     for (int k = 0; k < m; k++) if (inB[k]) roaring_bitmap_add(bm, (uint32_t)k);
@@ -374,7 +272,7 @@ static roaring_bitmap_t *roaring_from_bools(const uint8_t *inB, int m) {
  * attempts     : candidats i évalués (une intersection E ∩ col_i chacun)
  * failures     : rejets de canonicité
  * canon_iters  : itérations de la boucle de canonicité qui appellent réellement
- *                words_subset (k < i, k hors intent)
+ *                bs_subset (k < i, k hors intent)
  * intent_iters : idem pour le recalcul d'intent (k > i, k hors intent hérité)
  * (canon_iters + intent_iters) × W = volume d'opérations « mot » du test de
  * canonicité et du recalcul d'intent : c'est le chiffre qui arbitre le passage
@@ -407,13 +305,13 @@ static void cbo_enum_local(int m, int W, uint64_t **cw,
     uint64_t *Ei = (uint64_t*)malloc((size_t)W * sizeof(uint64_t));
     for (int i = y + 1; i < m; i++) {
         if (inB[i]) continue;                       /* i déjà dans l'intent */
-        words_and(Ei, E, cw[i], W);                 /* extent fermé, ⊊ E */
+        bs_and_to(Ei, E, cw[i], W);                 /* extent fermé, ⊊ E */
 
         /* canonicité : aucun k<i hors intent(E) tel que Ei ⊆ col_k */
         int canonical = 1;
         for (int k = 0; k < i; k++) {
             if (inB[k]) continue;
-            if (words_subset(Ei, cw[k], W)) { canonical = 0; break; }
+            if (bs_subset(Ei, cw[k], W)) { canonical = 0; break; }
         }
         if (!canonical) continue;
 
@@ -422,9 +320,9 @@ static void cbo_enum_local(int m, int W, uint64_t **cw,
         memcpy(inBi, inB, (size_t)i);
         inBi[i] = 1;
         for (int k = i + 1; k < m; k++)
-            inBi[k] = inB[k] ? 1 : (words_subset(Ei, cw[k], W) ? 1 : 0);
+            inBi[k] = inB[k] ? 1 : (bs_subset(Ei, cw[k], W) ? 1 : 0);
 
-        BitmapVec_push(exts, roaring_from_words(Ei, W));
+        BitmapVec_push(exts, bs_to_roaring(Ei, W));
         BitmapVec_push(ints, roaring_from_bools(inBi, m));
 
         uint64_t *Eic = (uint64_t*)malloc((size_t)W * sizeof(uint64_t));
@@ -458,11 +356,11 @@ static void *enum_thread(void *arg) {
         if (i >= m) break;
         if (t->inB0[i]) continue;
 
-        words_and(Ei, t->E0, cw[i], W);
+        bs_and_to(Ei, t->E0, cw[i], W);
         int canonical = 1;
         for (int k = 0; k < i; k++) {
             if (t->inB0[k]) continue;
-            if (words_subset(Ei, cw[k], W)) { canonical = 0; break; }
+            if (bs_subset(Ei, cw[k], W)) { canonical = 0; break; }
         }
         if (!canonical) continue;
 
@@ -470,9 +368,9 @@ static void *enum_thread(void *arg) {
         memcpy(inBi, t->inB0, (size_t)i);
         inBi[i] = 1;
         for (int k = i + 1; k < m; k++)
-            inBi[k] = t->inB0[k] ? 1 : (words_subset(Ei, cw[k], W) ? 1 : 0);
+            inBi[k] = t->inB0[k] ? 1 : (bs_subset(Ei, cw[k], W) ? 1 : 0);
 
-        BitmapVec_push(&t->exts, roaring_from_words(Ei, W));
+        BitmapVec_push(&t->exts, bs_to_roaring(Ei, W));
         BitmapVec_push(&t->ints, roaring_from_bools(inBi, m));
 
         uint64_t *Eic = (uint64_t*)malloc((size_t)W * sizeof(uint64_t));
@@ -538,8 +436,8 @@ static void *conv_thread(void *arg) {
     ConvTask *t = (ConvTask*)arg;
     for (int c = t->c_start; c < t->c_end; c++) {
         uint64_t *dst = t->all_words + (size_t)c * t->W;
-        words_from_roaring_into(t->co->extents[c], dst, t->W);
-        t->all_card[c] = words_popcount(dst, t->W);
+        bs_from_roaring_into(t->co->extents[c], dst, t->W);
+        t->all_card[c] = bs_card(dst, t->W);
     }
     return NULL;
 }
@@ -621,10 +519,10 @@ static void *cover_thread(void *arg) {
         const uint64_t *Bc = (use_intents) ? all_intents + (size_t)c * Wa : NULL;
         int kc = 0;
         for (int s = 0; s < nIrr; s++) {
-            if (Bc && bit_test(Bc, irr[s])) { s_skipped++; continue; }
+            if (Bc && bs_test(Bc, irr[s])) { s_skipped++; continue; }
             uint64_t *dst = cw + (size_t)kc * W;
-            words_and(dst, A, irw[s], W);
-            int card = words_popcount(dst, W);
+            bs_and_to(dst, A, irw[s], W);
+            int card = bs_card(dst, W);
             s_built++;
             if (card == cardA) continue;
             cand_card[kc] = card;
@@ -658,9 +556,9 @@ static void *cover_thread(void *arg) {
                 const uint64_t *ccj = cw + (size_t)cj * W;
                 s_dom++;
                 if (cand_card[cj] == cand_card[xi]) {
-                    if (words_equal(ccj, cxi, W)) { dominated = 1; break; }   /* doublon */
+                    if (bs_equal(ccj, cxi, W)) { dominated = 1; break; }   /* doublon */
                 } else { /* cand_card[cj] > cand_card[xi] */
-                    if (words_subset(cxi, ccj, W)) { dominated = 1; break; }
+                    if (bs_subset(cxi, ccj, W)) { dominated = 1; break; }
                 }
             }
             if (!dominated) {
@@ -714,10 +612,10 @@ static void *rex_thread(void *arg) {
             roaring_iterator_init(co->graph->children[c], &it);
             while (it.has_value) {
                 int child = (int)it.current_value;
-                words_andnot(re, all_words + (size_t)child * W, W);
+                bs_andnot(re, all_words + (size_t)child * W, W);
                 roaring_uint32_iterator_advance(&it);
             }
-            add_words_to_roaring(re, co->rextents[c], W);
+            bs_add_to_roaring(re, co->rextents[c], W);
         }
     }
     free(re);
@@ -747,7 +645,7 @@ static ConceptOrder *build_lattice_cbo(BinaryContext *ctx) {
     int W = (ctx->nb_objects + 63) >> 6; if (W < 1) W = 1;
 
     uint64_t **cw = (uint64_t**)malloc((size_t)(m > 0 ? m : 1) * sizeof(uint64_t*));
-    for (int a = 0; a < m; a++) cw[a] = words_from_roaring(ctx->cols[a], W);
+    for (int a = 0; a < m; a++) cw[a] = bs_from_roaring(ctx->cols[a], W);
 
     uint64_t *E0 = (uint64_t*)calloc((size_t)W, sizeof(uint64_t));
     int full = ctx->nb_objects >> 6;
@@ -756,7 +654,7 @@ static ConceptOrder *build_lattice_cbo(BinaryContext *ctx) {
     if (rem) E0[full] = (1ULL << rem) - 1ULL;
 
     uint8_t *inB0 = (uint8_t*)malloc((size_t)(m > 0 ? m : 1));
-    for (int a = 0; a < m; a++) inB0[a] = words_subset(E0, cw[a], W) ? 1 : 0;
+    for (int a = 0; a < m; a++) inB0[a] = bs_subset(E0, cw[a], W) ? 1 : 0;
 
     /* 1) Énumération CbO — parallèle (sous-arbres de premier niveau, dynamique) */
     PH(_ph);
@@ -843,7 +741,7 @@ static ConceptOrder *build_lattice_cbo(BinaryContext *ctx) {
     {
         uint64_t *scratch = (uint64_t*)malloc((size_t)W * sizeof(uint64_t));
         for (int a = 0; a < ctx->nb_attributes; a++) {
-            words_from_roaring_into(ctx->cols[a], scratch, W);
+            bs_from_roaring_into(ctx->cols[a], scratch, W);
             int id = wmap_get(wmap, scratch);
             if (id >= 0) roaring_bitmap_add(co->rintents[id], (uint32_t)a);
         }
@@ -862,7 +760,7 @@ static ConceptOrder *build_lattice_cbo(BinaryContext *ctx) {
     /* colonnes packées des irréductibles (lecture seule, partagées entre threads) */
     uint64_t **irr_words = (uint64_t**)malloc((size_t)(nIrr > 0 ? nIrr : 1) * sizeof(uint64_t*));
     for (int s = 0; s < nIrr; s++)
-        irr_words[s] = words_from_roaring(ctx->cols[irr[s]], W);
+        irr_words[s] = bs_from_roaring(ctx->cols[irr[s]], W);
 
     int nthreads = detect_nthreads();
     if (nthreads < 1) nthreads = 1;
@@ -934,7 +832,7 @@ static ConceptOrder *build_lattice_cbo(BinaryContext *ctx) {
  *
  * Même énumération et même phase covers que build_lattice_cbo, mais l'ordre
  * n'est JAMAIS matérialisé en roaring : on supprime l'aller-retour
- * packé→roaring→packé par concept (roaring_from_words + conv_thread) ET les
+ * packé→roaring→packé par concept (bs_to_roaring + conv_thread) ET les
  * intents complets (roaring_from_bools) qui ne sont jamais lus dans le chemin
  * flat. Les extents restent packés (all_words), l'adjacence et les sets réduits
  * sortent directement au format plat de co_to_flat_array.
@@ -1095,12 +993,12 @@ static void cbo_enum_job(const EnumCtx *ec, PackVec *out, PackVec *outB,
     for (int i = y + 1; i < m; i++) {
         if (inB[i]) continue;
         att++;
-        words_and(Ei, E, cw[i], W);
+        bs_and_to(Ei, E, cw[i], W);
         int canonical = 1;
         for (int k = 0; k < i; k++) {
             if (inB[k]) continue;
             ci++;
-            if (words_subset(Ei, cw[k], W)) { canonical = 0; break; }
+            if (bs_subset(Ei, cw[k], W)) { canonical = 0; break; }
         }
         if (!canonical) { fail++; continue; }
 
@@ -1110,7 +1008,7 @@ static void cbo_enum_job(const EnumCtx *ec, PackVec *out, PackVec *outB,
         for (int k = i + 1; k < m; k++) {
             if (inB[k]) { inBi[k] = 1; continue; }
             ii++;
-            inBi[k] = words_subset(Ei, cw[k], W) ? 1 : 0;
+            inBi[k] = bs_subset(Ei, cw[k], W) ? 1 : 0;
         }
         memset(Bi, 0, (size_t)Wa * sizeof(uint64_t));
         for (int k = 0; k < m; k++)
@@ -1201,12 +1099,12 @@ static void *rex_csr_thread(void *arg) {
         for (int c = start; c < stop; c++) {
             memcpy(re, t->all_words + (size_t)c * W, (size_t)W * sizeof(uint64_t));
             for (int k = t->childrenPtr[c]; k < t->childrenPtr[c+1]; k++)
-                words_andnot(re, t->all_words + (size_t)t->childrenAdj[k] * W, W);
+                bs_andnot(re, t->all_words + (size_t)t->childrenAdj[k] * W, W);
             int card = 0;
             for (int wi = 0; wi < W; wi++) {
                 uint64_t x = re[wi];
                 while (x) {
-                    int b = ctz64(x);
+                    int b = AW_CTZ(x);
                     IntVec_push(&t->pair_c, c);
                     IntVec_push(&t->pair_o, (wi << 6) + b);
                     card++;
@@ -1259,8 +1157,8 @@ static void *digest_thread(void *arg) {
         int stop = start + COVER_BATCH; if (stop > t->N) stop = t->N;
         for (int c = start; c < stop; c++) {
             const uint64_t *p = t->all_words + (size_t)c * W;
-            t->all_card[c] = words_popcount(p, W);
-            t->hashes[c]   = fnv_words(p, W);
+            t->all_card[c] = bs_card(p, W);
+            t->hashes[c]   = bs_hash(p, W);
         }
     }
     return NULL;
@@ -1370,7 +1268,7 @@ static void report_enum(EnumCsrTask *et, int nt, int N, int W, int m,
     prof_log("  candidats testes : %lld   rejets canonicite : %lld  (taux = %.3f)\n",
              tot.attempts, tot.failures,
              tot.attempts ? (double)tot.failures / (double)tot.attempts : 0.0);
-    prof_log("  words_subset     : canonicite=%lld  intent=%lld  total=%lld\n",
+    prof_log("  bs_subset     : canonicite=%lld  intent=%lld  total=%lld\n",
              tot.canon_iters, tot.intent_iters, tot.canon_iters + tot.intent_iters);
     prof_log("  volume mots 64b  : %.3f G operations  (W=%d, m=%d)\n",
              (double)(tot.canon_iters + tot.intent_iters) * (double)W / 1e9, W, m);
@@ -1439,13 +1337,13 @@ static CsrLattice *build_lattice_cbo_csr(BinaryContext *ctx) {
     /* 0) colonnes packées + top packé (lecture seule) */
     PH(_ph);
     uint64_t **cw = (uint64_t**)malloc((size_t)(m>0?m:1)*sizeof(uint64_t*));
-    for (int a = 0; a < m; a++) cw[a] = words_from_roaring(ctx->cols[a], W);
+    for (int a = 0; a < m; a++) cw[a] = bs_from_roaring(ctx->cols[a], W);
     uint64_t *E0 = (uint64_t*)calloc((size_t)W, sizeof(uint64_t));
     int full = ctx->nb_objects >> 6, rem = ctx->nb_objects & 63;
     for (int w = 0; w < full; w++) E0[w] = ~0ULL;
     if (rem) E0[full] = (1ULL << rem) - 1ULL;
     uint8_t *inB0 = (uint8_t*)malloc((size_t)(m>0?m:1));
-    for (int a = 0; a < m; a++) inB0[a] = words_subset(E0, cw[a], W) ? 1 : 0;
+    for (int a = 0; a < m; a++) inB0[a] = bs_subset(E0, cw[a], W) ? 1 : 0;
     PH_END(_ph, "0. colonnes packees");
 
     /* 1) énumération parallèle : file de tâches partagée, publication adaptative */
@@ -1570,7 +1468,7 @@ static CsrLattice *build_lattice_cbo_csr(BinaryContext *ctx) {
     {
         uint64_t *scratch = (uint64_t*)malloc((size_t)W*sizeof(uint64_t));
         for (int a = 0; a < m; a++) {
-            words_from_roaring_into(ctx->cols[a], scratch, W);
+            bs_from_roaring_into(ctx->cols[a], scratch, W);
             int ida = wmap_get(wmap, scratch);
             attr_concept[a] = ida;
             if (ida >= 0) rintPtr[ida+1]++;
@@ -1595,7 +1493,7 @@ static CsrLattice *build_lattice_cbo_csr(BinaryContext *ctx) {
     int nIrr = 0;
     int *irr = compute_irreducibles(ctx, &nIrr);
     uint64_t **irr_words = (uint64_t**)malloc((size_t)(nIrr>0?nIrr:1)*sizeof(uint64_t*));
-    for (int s = 0; s < nIrr; s++) irr_words[s] = words_from_roaring(ctx->cols[irr[s]], W);
+    for (int s = 0; s < nIrr; s++) irr_words[s] = bs_from_roaring(ctx->cols[irr[s]], W);
     PH_END(_ph, "6. irreductibles");
     prof_log("     (%d irreductibles / %d attributs)\n", nIrr, m);
 

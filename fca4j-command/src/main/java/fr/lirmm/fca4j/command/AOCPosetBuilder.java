@@ -25,9 +25,10 @@ import fr.lirmm.fca4j.cli.io.ConceptOrderXMLWriter;
 import fr.lirmm.fca4j.cli.io.SLFReader;
 import fr.lirmm.fca4j.core.IBinaryContext;
 import fr.lirmm.fca4j.core.IConceptOrder;
+import fr.lirmm.fca4j.core.natif.FastAOCPosetAres;
+import fr.lirmm.fca4j.core.natif.FastAOCPosetCeres;
 import fr.lirmm.fca4j.core.natif.FastAOCPosetHermes;
 import fr.lirmm.fca4j.core.natif.FastAOCPosetPluton;
-import fr.lirmm.fca4j.core.natif.impl.NativeAOCPosetHermes;
 import fr.lirmm.fca4j.iset.ISetContext;
 import fr.lirmm.fca4j.util.Chrono;
 import fr.lirmm.fca4j.util.GraphVizDotWriter;
@@ -52,7 +53,8 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 	/** The algo. */
 	protected AlgoAOCPoset algo;
 
-	/** use native code when available (HERMES, PLUTON), false by default */
+	/** use native code when available, false by default.
+	 *  Les quatre algorithmes d'AOC-poset ont desormais un portage C. */
 	protected boolean useNativeCode = false;
 
 	/**
@@ -106,9 +108,10 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 //		declareImplicationsOptions();
 		// implementation
 		declareImplementation(false);
-		// native code (HERMES only)
+		// native code (HERME,PLUTON,ARESS only)
 		options.addOption(Option.builder("native")
-				.desc("enable native code (CRoaring/JNI) for HERMES, use C implementation instead")
+				.desc("enable native code (JNI) for all AOC-poset algorithms,"
+						+ " use C implementation instead")
 				.build());
 		// concept descriptors
 		declareConceptDescriptorOptions();
@@ -204,15 +207,24 @@ public class AOCPosetBuilder extends ConceptOrderBuilder {
 			}			
 			break;
 		case ARES:
-			aoc_algo = new AOC_poset_Ares(ctx, chrono, null, true, true);
+			if (useNativeCode) {
+				aoc_algo = FastAOCPosetAres.create(ctx);
+			} else {
+				aoc_algo = new AOC_poset_Ares(ctx, chrono, null, true, true);
+			}
 			break;
 		case CERES:
-			aoc_algo = new AOC_poset_Ceres(ctx, chrono);
+			if (useNativeCode) {
+				aoc_algo = FastAOCPosetCeres.create(ctx);
+			} else {
+				aoc_algo = new AOC_poset_Ceres(ctx, chrono);
+			}
 			break;
 		default:
 			throw new Exception("unknown algorithm");
 		}
-		String engine = (aoc_algo instanceof NativeAOCPosetHermes) ? "native C" : "java";
+		String engine = aoc_algo.getClass().getName().startsWith("fr.lirmm.fca4j.core.natif")
+				? "native C" : "java";
 		System.out.println("running " + algo + " (" + impl + ", " + engine + ") data: " + inputFile.getName() + " ( " + ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
 		chrono.start(aoc_algo.getDescription());
 		aoc_algo.run();

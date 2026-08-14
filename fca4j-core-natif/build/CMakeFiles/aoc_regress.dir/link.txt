@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\aoc_regress.dir/objects.a
+C:\dev_tools\mingw64\bin\ar.exe qc CMakeFiles\aoc_regress.dir/objects.a @CMakeFiles\aoc_regress.dir\objects1.rsp
+C:\dev_tools\mingw64\bin\cc.exe -O3 -DNDEBUG -Wl,--whole-archive CMakeFiles\aoc_regress.dir/objects.a -Wl,--no-whole-archive -o aoc_regress.exe -Wl,--out-implib,libaoc_regress.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\aoc_regress.dir\linkLibs.rsp

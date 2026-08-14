@@ -1,3 +1,9 @@
 C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/fca4j_dbasis.dir
+C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/dynorder_test.dir
+C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/ares_test.dir
+C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/latticecbo_regress.dir
+C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/ceres_test.dir
+C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/aoc_regress.dir
+C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/tests.dir
 C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/edit_cache.dir
 C:/platform/fca4j-project/fca4j-core-natif/build/CMakeFiles/rebuild_cache.dir

@@ -154,6 +154,41 @@ public final class NativeBridge {
     public static native int[] runPlutonFlat(
             int nObjects, int nAttributes,
             byte[] matrix);
+    /**
+     * AOC-poset Ares en C — variante rapide.
+     *
+     * <p>Renvoie un tableau d'entiers plat auto-descriptif (mêmes conventions
+     * que {@link #runHermesFlat}) : aucun nom, indices uniquement, consommé
+     * directement par {@code ConceptOrder.populate}. Contrairement à Hermes et
+     * Pluton, Ares ne clarifie pas : les indices sont ceux du contexte
+     * d'entrée, sans substitution.
+     *
+     * @param nObjects    nombre d'objets
+     * @param nAttributes nombre d'attributs
+     * @param matrix      matrice binaire aplatie row-major
+     * @return            tableau plat (cf. format runAddExtentFlat)
+     */
+    public static native int[] runAresFlat(
+            int nObjects, int nAttributes,
+            byte[] matrix);
+
+    /**
+     * AOC-poset Ceres en C.
+     *
+     * <p>Renvoie un tableau d'entiers plat auto-descriptif (mêmes conventions
+     * que {@link #runHermesFlat}) : aucun nom, indices uniquement, consommé
+     * directement par {@code ConceptOrder.populate}. Comme Ares, Ceres ne
+     * clarifie pas : les indices sont ceux du contexte d'entrée, sans
+     * substitution.
+     *
+     * @param nObjects    nombre d'objets
+     * @param nAttributes nombre d'attributs
+     * @param matrix      matrice binaire aplatie row-major
+     * @return            tableau plat (cf. format runAddExtentFlat)
+     */
+    public static native int[] runCeresFlat(
+            int nObjects, int nAttributes,
+            byte[] matrix);
 
     /**
      * LinCbO en C.

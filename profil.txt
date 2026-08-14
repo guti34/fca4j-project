@@ -1,0 +1,74 @@
+août 14, 2026 10:54:09 AM fr.lirmm.fca4j.core.natif.NativeBridge tryLoad
+INFO: fca4j-core-natif : lib native chargée (/native/windows-x86_64/fca4j_dbasis.dll).
+
+=== profil Hermes natif ====================================
+contexte 19020 x 52, 4513 concepts, execution 149.6 ms
+
+-- temps exclusif par site ---------------------------------
+  clarification, 1re passe              12.6 ms    8.4%   (inclusif      12.6, 1 appels)
+  clarification, 2e passe                8.0 ms    5.4%   (inclusif       8.0, 1 appels)
+  relation de domination                 1.3 ms    0.9%   (inclusif       1.3, 1 appels)
+  fusion domSets / objSets               4.2 ms    2.8%   (inclusif       4.2, 1 appels)
+  tri de l'extension lineaire            0.8 ms    0.5%   (inclusif       0.8, 1 appels)
+  diagramme de Hasse                    48.8 ms   32.6%   (inclusif     104.0, 1 appels)
+    dont pose d'arete                    9.2 ms    6.1%   (inclusif      55.3, 22611 appels)
+      dont unions d'ensembles           21.7 ms   14.5%   (inclusif      21.7, 22611 appels)
+    dont descendance                    24.4 ms   16.3%   (inclusif      24.4, 22611 appels)
+  serialisation                          0.7 ms    0.5%   (inclusif       0.7, 1 appels)
+  non attribue                          17.9 ms   12.0%
+
+-- operations comptees -------------------------------------
+  comparaisons de clarification                 14559
+    dont tests d'egalite                        14559
+  inclusions (domination)                        2652
+  tests d'egalite (fusion)                     233298
+  paires examinees                           10181328
+    dont marquees, donc ignorees               352054
+    dont roaring_bitmap_is_subset             9743421
+    dont acces matrice                          85853
+  aretes posees                                 22611
+  noeuds visites (descendance)                1124664
+  somme des |values| des concepts              150979
+
+-- ratios --------------------------------------------------
+  paires examinees / N(N-1)/2 : 1.000
+  |values| moyen par concept  : 33.5  (sur 52 attributs)
+  cout par paire              : 4.8 ns
+============================================================
+[jni] hermes    19020 x 52    cellules     0.99 M | ctx    24.72 ms  algo   150.33 ms  reste   3.24 ms  total   178.29 ms
+
+=== profil Hermes natif ====================================
+contexte 19020 x 52, 4513 concepts, execution 155.1 ms
+
+-- temps exclusif par site ---------------------------------
+  clarification, 1re passe              15.8 ms   10.2%   (inclusif      15.8, 1 appels)
+  clarification, 2e passe                7.1 ms    4.5%   (inclusif       7.1, 1 appels)
+  relation de domination                 1.3 ms    0.8%   (inclusif       1.3, 1 appels)
+  fusion domSets / objSets               4.3 ms    2.8%   (inclusif       4.3, 1 appels)
+  tri de l'extension lineaire            0.8 ms    0.5%   (inclusif       0.8, 1 appels)
+  diagramme de Hasse                    49.1 ms   31.7%   (inclusif     105.6, 1 appels)
+    dont pose d'arete                    9.3 ms    6.0%   (inclusif      56.4, 22611 appels)
+      dont unions d'ensembles           22.6 ms   14.6%   (inclusif      22.6, 22611 appels)
+    dont descendance                    24.6 ms   15.8%   (inclusif      24.6, 22611 appels)
+  serialisation                          0.9 ms    0.6%   (inclusif       0.9, 1 appels)
+  non attribue                          19.4 ms   12.5%
+
+-- operations comptees -------------------------------------
+  comparaisons de clarification                 14559
+    dont tests d'egalite                        14559
+  inclusions (domination)                        2652
+  tests d'egalite (fusion)                     233298
+  paires examinees                           10181328
+    dont marquees, donc ignorees               352054
+    dont roaring_bitmap_is_subset             9743421
+    dont acces matrice                          85853
+  aretes posees                                 22611
+  noeuds visites (descendance)                1124664
+  somme des |values| des concepts              150979
+
+-- ratios --------------------------------------------------
+  paires examinees / N(N-1)/2 : 1.000
+  |values| moyen par concept  : 33.5  (sur 52 attributs)
+  cout par paire              : 4.8 ns
+============================================================
+[jni] hermes    19020 x 52    cellules     0.99 M | ctx    25.07 ms  algo   155.27 ms  reste   3.65 ms  total   183.98 ms
