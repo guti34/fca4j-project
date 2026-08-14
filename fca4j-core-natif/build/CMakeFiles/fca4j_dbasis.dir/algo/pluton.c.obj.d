@@ -157,4 +157,7 @@ CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj: \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/assert.h \
  C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/conceptorder.h \
  C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/context.h \
- C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/fca4j_common.h
+ C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/fca4j_common.h \
+ C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/bitset.h \
+ C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/bitset_roaring.h \
+ C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/bitset.h
