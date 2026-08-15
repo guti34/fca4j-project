@@ -653,7 +653,55 @@ static IntVec pluton_compute_linext(ConceptOrder *gsh, BinaryContext *ctx) {
  *     immédiate, où gsh->graph->children[T] était déjà à jour (T est
  *     toujours traité à une itération extérieure strictement antérieure à
  *     celle de S). Le miroir local offre la même garantie, par construction :
- *     childArr[T] est intégralement rempli avant que S ne le relise. */
+ *     childArr[T] est intégralement rempli avant que S ne le relise.
+ *
+ * ── ce que la mesure du 2026-08-14 sur connect-4_binarized (67557x129,
+ *    d=0.33) a etabli en plus ──────────────────────────────────────────
+ *
+ * Sur ce jeu, la clarification ne reduit presque rien (peu de lignes
+ * dupliquees dans des donnees de parties reelles), ce qui pousse K (nombre de
+ * concepts) pres de son maximum theorique nO+nA — ici ~67686, tres loin des
+ * quelques centaines vues sur les jeux precedents. Deux pistes naturelles se
+ * sont revelees fausses a la mesure — consignees ici pour ne pas les
+ * reessayer sans nouvelle donnee :
+ *
+ *  - maxmod_partition_oa/ao et tom_thumb, encore en roaring pur, semblaient
+ *    les coupables logiques. PLUTON_PROFILE (banc synthetique de meme forme)
+ *    leur attribue 282 ms sur 14,8 s : jamais le goulot ici.
+ *
+ *  - un comptage par branche de pluton_is_parent_t_dense a ensuite montre
+ *    qu'un des quatre cas (S de type objet, T de type attribut) n'est pas
+ *    O(1) en mots comme les trois autres : il parcourt les attributs de la
+ *    ligne complete de l'objet representant de S et fait un bs_subset par
+ *    attribut. Un premier correctif l'a rendu O(1) amorti (fermeture FCA
+ *    precalculee une fois par S). Resultat mesure : PLUS LENT (18,4 s au lieu
+ *    de 13,7 s). Le comptage explique pourquoi : ce cas n'est appele que
+ *    ~133 000 fois sur les deux bancs testes (aleatoire ET correle en
+ *    cellules connect-4), contre 2,28 MILLIARDS d'appels pour le cas obj-obj
+ *    — jamais le goulot non plus, et le correctif payait une fermeture
+ *    complete la ou la boucle d'origine sortait tot par courtcircuit sur la
+ *    plupart des paires.
+ *
+ * Le vrai goulot, une fois compte : le cas obj-obj (bs_subset(fs,
+ * dense_rows[t->obj_idx], wa)) a lui seul totalise ces 2,28 milliards
+ * d'appels — K etant pres de son maximum et l'anti-transitivite n'elaguant
+ * presque rien sur un ordre aussi large/plat, la boucle O(K^2) fait
+ * reellement pres de K^2/2 comparaisons. Rien a optimiser dans la complexite
+ * de ce cas — bs_subset sur wa=AW_N(nA) mots est deja le minimum possible.
+ * Ce qui restait a corriger, c'est le COUT PAR APPEL : dense_rows/dense_cols
+ * etaient des tableaux de POINTEURS (aword**), donc une indirection
+ * memoire supplementaire a chaque acces (charger le pointeur, puis le
+ * dereferencer) — repetee 2 fois par paire sur 2,28 milliards de paires.
+ * hermes_compute_hasse (ci-dessus dans ce fichier) n'a jamais ce cout : son
+ * test inline accede a `dvals + idx*wv`, un tableau PLAT, pure arithmetique
+ * de pointeur sans charge memoire intermediaire. Passer dense_rows/dense_cols
+ * en tableaux plats (rowbuf/colbuf + idx*w, ci-dessous) et faire disparaitre
+ * l'indirection : mesure sur le banc connect-4 correle, 13,7 -> 7,1 s (Hermes :
+ * 4,7 s sur le meme K). Reste ~1,5x plus lent que Hermes sur ce jeu (K
+ * identique, meme structure O(K^2)) — ecart non explique plus avant faute de
+ * temps ; piste probable : le test a quatre cas de pluton_is_parent_t_dense
+ * contre les deux de Hermes, et deux champs d'invariant (obj_idx/attr_idx)
+ * par concept contre une seule valeur dense chez Hermes. */
 
 /* Invariants par concept, relevés une fois pour tous les concepts avant la
  * boucle O(K^2) : la valeur qui caractérise le concept — un objet si son
@@ -665,30 +713,34 @@ typedef struct { int obj_idx; int attr_idx; } PlutonConceptInv;
 /* Test de parenté T→S, entièrement dense. Reprend exactement les quatre cas
  * de l'ancienne pluton_is_parent_t, mais lit les invariants précalculés
  * plutôt que de relire rextents/rintents et recalculer les minimums à chaque
- * appel. */
+ * appel.
+ *
+ * rowbuf/colbuf : tableaux PLATS (rowbuf + idx*wa, colbuf + idx*wo), pas des
+ * tableaux de pointeurs — voir le commentaire de tête de cette section pour
+ * la raison (indirection supplémentaire, mesurée coûteuse sur connect-4). */
 static bool pluton_is_parent_t_dense(const PlutonConceptInv *inv,
-                                     aword **dense_rows, int wa,
-                                     aword **dense_cols, int wo,
+                                     const aword *rowbuf, int wa,
+                                     const aword *colbuf, int wo,
                                      int conceptS, int conceptT) {
     const PlutonConceptInv *s = &inv[conceptS];
     const PlutonConceptInv *t = &inv[conceptT];
     if (s->obj_idx >= 0) {
-        const aword *fs = dense_rows[s->obj_idx];
+        const aword *fs = rowbuf + (size_t)s->obj_idx * wa;
         if (t->obj_idx >= 0) {
-            return bs_subset(fs, dense_rows[t->obj_idx], wa);   /* ft.containsAll(fs) */
+            return bs_subset(fs, rowbuf + (size_t)t->obj_idx * wa, wa);   /* ft.containsAll(fs) */
         } else {
-            const aword *ft = dense_cols[t->attr_idx];
+            const aword *ft = colbuf + (size_t)t->attr_idx * wo;
             for (BS_FOREACH(a, fs, wa)) {
-                if (!bs_subset(ft, dense_cols[a], wo)) return false;
+                if (!bs_subset(ft, colbuf + (size_t)a * wo, wo)) return false;
             }
             return true;
         }
     } else {
-        const aword *gs = dense_cols[s->attr_idx];
+        const aword *gs = colbuf + (size_t)s->attr_idx * wo;
         if (t->attr_idx >= 0) {
-            return bs_subset(dense_cols[t->attr_idx], gs, wo);  /* gs.containsAll(gt) */
+            return bs_subset(colbuf + (size_t)t->attr_idx * wo, gs, wo);  /* gs.containsAll(gt) */
         } else {
-            return bs_test(dense_rows[t->obj_idx], s->attr_idx);
+            return bs_test(rowbuf + (size_t)t->obj_idx * wa, s->attr_idx);
         }
     }
 }
@@ -710,21 +762,19 @@ static void pluton_compute_order(ConceptOrder *gsh, BinaryContext *ctx, IntVec *
                         : (int)roaring_bitmap_minimum(gsh->rintents[c]);
     }
 
-    /* contexte clarifié en dense, une seule fois */
+    /* contexte clarifié en dense, une seule fois. Tableaux PLATS
+     * (rowbuf + o*wa, colbuf + a*wo) : pas de tableau de pointeurs
+     * intermédiaire — voir le commentaire de tête de cette section. */
     int nO = ctx->nb_objects, nA = ctx->nb_attributes;
     int wa = AW_N(nA > 0 ? nA : 1);
     int wo = AW_N(nO > 0 ? nO : 1);
     aword *rowbuf = (aword*)calloc((size_t)(nO > 0 ? nO : 1) * (size_t)wa, sizeof(aword));
     aword *colbuf = (aword*)calloc((size_t)(nA > 0 ? nA : 1) * (size_t)wo, sizeof(aword));
-    aword **dense_rows = (aword**)malloc((size_t)(nO > 0 ? nO : 1) * sizeof(aword*));
-    aword **dense_cols = (aword**)malloc((size_t)(nA > 0 ? nA : 1) * sizeof(aword*));
     for (int o = 0; o < nO; o++) {
-        dense_rows[o] = rowbuf + (size_t)o * wa;
-        bs_from_roaring_into(ctx->rows[o], dense_rows[o], wa);
+        bs_from_roaring_into(ctx->rows[o], rowbuf + (size_t)o * wa, wa);
     }
     for (int a = 0; a < nA; a++) {
-        dense_cols[a] = colbuf + (size_t)a * wo;
-        bs_from_roaring_into(ctx->cols[a], dense_cols[a], wo);
+        bs_from_roaring_into(ctx->cols[a], colbuf + (size_t)a * wo, wo);
     }
 
     /* visited plat : accès O(1), au lieu d'un roaring_bitmap martelé O(K^2) fois
@@ -746,7 +796,7 @@ static void pluton_compute_order(ConceptOrder *gsh, BinaryContext *ctx, IntVec *
             int conceptT = linext->data[j];
             if (visited[conceptT]) {
                 visited[conceptT] = 0;
-            } else if (pluton_is_parent_t_dense(inv, dense_rows, wa, dense_cols, wo, conceptS, conceptT)) {
+            } else if (pluton_is_parent_t_dense(inv, rowbuf, wa, colbuf, wo, conceptS, conceptT)) {
                 /* L'arête n'est pas posée dans le graphe ici : seulement
                  * enregistrée dans le miroir local (voir commentaire de tête).
                  * Le calcul de l'ordre ne lit que rextents/rintents ; les
@@ -822,7 +872,7 @@ static void pluton_compute_order(ConceptOrder *gsh, BinaryContext *ctx, IntVec *
     free(childArr); free(childLen); free(childCap);
     IntVec_free(&stack);
     free(visited);
-    free(dense_rows); free(dense_cols); free(rowbuf); free(colbuf);
+    free(rowbuf); free(colbuf);
     free(inv);
 }
 
