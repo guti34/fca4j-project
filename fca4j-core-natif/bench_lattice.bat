@@ -34,7 +34,7 @@ REM  call set X=percent-percent VAR percent-percent dans un corps de for.
 REM ===================================================================
 setlocal enabledelayedexpansion
 
-set JAR=C:\platform\fca4j-project\fca4j-app-light\target\fca4j-app-light-0.4.7-jar-with-dependencies.jar
+set JAR=C:\platform\fca4j-project\fca4j-app-light\target\fca4j-app-light-0.5.0-jar-with-dependencies.jar
 set LOGDIR=%TEMP%\fca4j-bench
 
 set REPS=3
