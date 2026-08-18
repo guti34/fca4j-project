@@ -28,7 +28,6 @@ import fr.lirmm.fca4j.algo.AOC_poset_Pluton;
 import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.ExploRCA;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
-import fr.lirmm.fca4j.algo.Lattice_AddIntent;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
 import fr.lirmm.fca4j.algo.Lattice_ParallelCbO;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
@@ -161,8 +160,6 @@ public class RCACommand extends Command {
 		PARALLEL_CBO,
 		/** The add extent algorithm. */
 		ADD_EXTENT,
-		/** The add intent algorithm. */
-		ADD_INTENT,
 		/** The iceberg algorithm. */
 		ICEBERG
 	};
@@ -430,8 +427,6 @@ public class RCACommand extends Command {
 					} else {
 						return new Lattice_AddExtent(context, chrono);
 					}
-				case ADD_INTENT:
-					return new Lattice_AddIntent(context,chrono);
 				case PARALLEL_CBO:
 					if (useNativeCode) {
 						// RCA identifie les concepts par leur extension complète

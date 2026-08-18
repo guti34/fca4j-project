@@ -16,7 +16,6 @@ import org.apache.commons.cli.Option;
 
 import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.Lattice_AddExtent;
-import fr.lirmm.fca4j.algo.Lattice_AddIntent;
 import fr.lirmm.fca4j.algo.Lattice_Iceberg;
 import fr.lirmm.fca4j.algo.Lattice_ParallelCbO;
 import fr.lirmm.fca4j.cli.io.ConceptOrderJSONWriter;
@@ -63,9 +62,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 		/**The lattice parallel Cbo algo */
 		PARALLEL_CBO,
 		/** The add extent algo. */
-		ADD_EXTENT, 
-		/** The LYAB algo */
-		ADD_INTENT,
+		ADD_EXTENT,
 		 /** The iceberg algo. */
 		 ICEBERG
 	};
@@ -77,7 +74,7 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 	 */
 	public LatticeBuilder(ISetContext setContext) {
 		super("lattice",
-				"builds a concept lattice. PARALLEL_CBO, ADD_EXTENT and ADD_INTENT algorithms build the complete concept lattice. ICEBERG builds a lattice with only the top-most concepts of the concept lattice. A bottom concept is added that groups remaining attributes (not introduced by a frequent concept extent) and transforms the semi-lattice into a lattice. Euclidian division is used in FCA4J: e.g. In Iceberg50,  the concepts have an extent whose cardinality is >= total object count * 50 /100, where / is Euclidian division",setContext);
+				"builds a concept lattice. PARALLEL_CBO and ADD_EXTENT algorithms build the complete concept lattice. ICEBERG builds a lattice with only the top-most concepts of the concept lattice. A bottom concept is added that groups remaining attributes (not introduced by a frequent concept extent) and transforms the semi-lattice into a lattice. Euclidian division is used in FCA4J: e.g. In Iceberg50,  the concepts have an extent whose cardinality is >= total object count * 50 /100, where / is Euclidian division",setContext);
 	}
 
 	/**
@@ -222,8 +219,6 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 				jAddExt.setNeedFullSets(needFullSets);
 				lat_algo = jAddExt;
 			}
-			break;		case ADD_INTENT:
-			lat_algo = new Lattice_AddIntent(ctx,chrono);
 			break;
 		case PARALLEL_CBO:
 			if (useNativeCode) {
@@ -234,7 +229,9 @@ public class LatticeBuilder extends ConceptOrderBuilder {
 				lat_algo = jAlgo;
 			}
 			break;		case ICEBERG:
-			lat_algo = new Lattice_Iceberg(ctx, percent, chrono);
+			Lattice_Iceberg jIceberg = new Lattice_Iceberg(ctx, percent, chrono);
+			jIceberg.setNeedFullSets(needFullSets);
+			lat_algo = jIceberg;
 			break;
 
 		default:
