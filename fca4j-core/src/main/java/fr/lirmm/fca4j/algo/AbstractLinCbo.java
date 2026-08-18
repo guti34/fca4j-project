@@ -35,7 +35,14 @@ public abstract class AbstractLinCbo implements AbstractAlgo<List<Implication>> 
 	
 	protected ISet defaultConclusion;
 	
-	protected List<List> list;
+	/**
+	 * Pour chaque attribut, la liste des indices d'implications dont la
+	 * prémisse contient cet attribut. {@code IntBuf} (tableau primitif) plutôt
+	 * que {@code List<Integer>} : évite l'autoboxing/l'allocation d'objets
+	 * {@code Integer} lors du parcours dans la boucle interne, chaude, de
+	 * {@code _LinClosureRC} (voir {@link IntBuf}).
+	 */
+	protected List<IntBuf> list;
 	
 	protected ClosureStrategy computeIntExt;
 	

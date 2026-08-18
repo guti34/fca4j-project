@@ -38,6 +38,7 @@ set(ALGO_SOURCES
     algo/dbasis.c
     algo/hermes.c
     algo/lincbo.c
+    algo/lincbo_pruning.c
     algo/addextent.c
     algo/latticecbo.c
     algo/pluton.c
@@ -156,6 +157,56 @@ if(NOT WIN32 OR MINGW)
     target_link_libraries(aoc_regress m)
 endif()
 
-# Cible groupée, pour n'avoir qu'un nom à retenir.
+# LinCbO avec élagage (lincbo_pruning.c) : trois harnais qui partagent tous
+# le même socle de sources (lincbo.c comme oracle, lincbo_pruning.c comme
+# moteur testé/mesuré, plus le strict nécessaire de core/).
+set(LINCBO_PRUNING_SOURCES
+    algo/lincbo.c algo/lincbo_pruning.c
+    core/context.c core/strbuf.c core/implication.c core/closure.c
+    ${CROARING_DIR}/roaring.c)
+
+# Correction : les 3 modes de lincbo_pruning.c (NONE/LIFO/LCM) contre
+# lincbo.c, sur 8 cas nommés + 20 fuzz. Échoue (exit 1) si une base diverge
+# de l'oracle. À lancer sous ASan/UBSan avant tout changement dans
+# lincbo_pruning.c (voir le commentaire en tête du fichier) :
+#   cmake --build build --target lincbo_pruning_test --config Debug
+add_executable(lincbo_pruning_test EXCLUDE_FROM_ALL
+    algo/lincbo_pruning_test.c ${LINCBO_PRUNING_SOURCES})
+target_include_directories(lincbo_pruning_test PRIVATE ${CROARING_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(lincbo_pruning_test PRIVATE -O1 -g)
+if(NOT WIN32 OR MINGW)
+    target_link_libraries(lincbo_pruning_test m)
+endif()
+
+# Sanity perf (pas un vrai benchmark) : cohérence des 3 modes sur contexte
+# aléatoire + contexte "grille" structuré, et cas limites (0 attribut, 1x1,
+# colonne toujours vraie).
+add_executable(lincbo_pruning_perf EXCLUDE_FROM_ALL
+    algo/lincbo_pruning_perf.c ${LINCBO_PRUNING_SOURCES})
+target_include_directories(lincbo_pruning_perf PRIVATE ${CROARING_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(lincbo_pruning_perf PRIVATE -O2)
+if(NOT WIN32 OR MINGW)
+    target_link_libraries(lincbo_pruning_perf m)
+endif()
+
+# Bench à un seul facteur : bitset.h dense (lincbo_pruning.c, mode NONE)
+# contre roaring_bitmap_t (lincbo.c) pour le domaine ATTRIBUTS, à algorithme
+# identique — sert à décider s'il faut exposer un choix de backend dans
+# RULEBASIS. Voir les commentaires en tête de lincbo_pruning_bench_sets.c
+# pour les résultats déjà obtenus et leur interprétation. Plusieurs minutes
+# à l'exécution (balaie jusqu'à 10 000 attributs) : pas dans la cible
+# groupée `tests` ci-dessous, à lancer explicitement.
+add_executable(lincbo_pruning_bench_sets EXCLUDE_FROM_ALL
+    algo/lincbo_pruning_bench_sets.c ${LINCBO_PRUNING_SOURCES})
+target_include_directories(lincbo_pruning_bench_sets PRIVATE ${CROARING_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(lincbo_pruning_bench_sets PRIVATE -O2)
+if(NOT WIN32 OR MINGW)
+    target_link_libraries(lincbo_pruning_bench_sets m)
+endif()
+
+# Cible groupée, pour n'avoir qu'un nom à retenir. lincbo_pruning_perf et
+# lincbo_pruning_bench_sets restent hors groupe (bench, pas correction ;
+# le second est lent) — se construisent/lancent explicitement par leur nom.
 add_custom_target(tests DEPENDS dynorder_test ares_test ceres_test
-                              aoc_regress latticecbo_regress)
+                              aoc_regress latticecbo_regress
+                              lincbo_pruning_test)

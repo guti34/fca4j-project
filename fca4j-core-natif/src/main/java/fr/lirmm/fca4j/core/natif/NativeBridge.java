@@ -205,6 +205,25 @@ public final class NativeBridge {
             String[] attrNames);
 
     /**
+     * Base de Duquenne-Guigues via le moteur unifié LinCbO avec élagage
+     * (lincbo_pruning.c) — variante rapide, tableau d'entiers plat (même
+     * format auto-descriptif que {@link #runDbasisFlat}, indices uniquement,
+     * aucun nom, aucune allocation de String côté C).
+     *
+     * @param nObjects    nombre d'objets
+     * @param nAttributes nombre d'attributs
+     * @param matrix      matrice binaire aplatie row-major
+     * @param mode        0 = sans élagage (LinCbO), 1 = élagage LIFO
+     *                    (LinCbOWithPruning / cboMemPruning.cpp), 2 = élagage
+     *                    LCM (cboMemLCMPruning.cpp)
+     * @return            tableau plat (cf. format runDbasisFlat)
+     */
+    public static native int[] runLincboPruningFlat(
+            int nObjects, int nAttributes,
+            byte[] matrix,
+            int mode);
+
+    /**
      * Treillis complet AddExtent en C.
      *
      * @param nObjects    nombre d'objets

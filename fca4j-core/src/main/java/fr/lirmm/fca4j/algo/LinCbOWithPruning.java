@@ -23,7 +23,7 @@ import fr.lirmm.fca4j.util.Chrono;
 public class LinCbOWithPruning extends AbstractLinCbo {
 
 	int rules[];
-	List<Integer> counts;
+	IntBuf counts;
 	Stack<Integer> pruningStack;
 
 	/**
@@ -54,7 +54,7 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 	@Override
 	protected void init() {
 		implications = new ArrayList<>();
-		counts = new ArrayList<>();
+		counts = new IntBuf(16);
 		defaultConclusion = null;
 		rules = new int[matrix.getAttributeCount()];
 		list = new ArrayList<>(matrix.getAttributeCount());
@@ -68,7 +68,7 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 	 */
 	protected void _LinCbO() throws InterruptedException {
 		for (int attr = 0; attr < matrix.getAttributeCount(); attr++) {
-			list.add(new ArrayList(matrix.getObjectCount()));
+			list.add(new IntBuf(matrix.getObjectCount()));
 			rules[attr] = -1;
 		}
 		_LinCbOStep(factory.createSet(matrix.getAttributeCount()), -1, factory.createSet(matrix.getAttributeCount()),
@@ -87,14 +87,14 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 	 * @return the int
 	 * @throws InterruptedException the interrupted exception
 	 */
-	protected int _LinCbOStep(ISet B, int y, ISet Z, List<Integer> prevCount, ISet lastAttrSet,ISet lastExtent)
+	protected int _LinCbOStep(ISet B, int y, ISet Z, IntBuf prevCount, ISet lastAttrSet,ISet lastExtent)
 			throws InterruptedException {
 		if (Thread.interrupted())
 			throw new InterruptedException("interrupted by user");
 		int stackSize = pruningStack.size();
 		// the linclosure
-		Triple<List<Integer>, ISet, Integer> retClosureRC = _LinClosureRC(B, y, Z, prevCount);
-		List<Integer> count = retClosureRC.a;
+		Triple<IntBuf, ISet, Integer> retClosureRC = _LinClosureRC(B, y, Z, prevCount);
+		IntBuf count = retClosureRC.a;
 		ISet Bo = retClosureRC.b;
 		int fail;
 		if (Bo == null) {
@@ -150,7 +150,7 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 	 * @param prevCount the prev count
 	 * @return the triple
 	 */
-	protected Triple<List<Integer>, ISet, Integer> _LinClosureRC(ISet B, int y, ISet Z, List<Integer> prevCount) {
+	protected Triple<IntBuf, ISet, Integer> _LinClosureRC(ISet B, int y, ISet Z, IntBuf prevCount) {
 		ISet D = factory.clone(B);
 		if (defaultConclusion != null) {
 			D.addAll(defaultConclusion);
@@ -159,12 +159,13 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 			Implication implication = implications.get(num_implication);
 			prevCount.add(implication.getPremise().newDifference(B).cardinality());
 		}
-		List<Integer> count = new ArrayList<>(prevCount);
+		IntBuf count = new IntBuf(prevCount);
 		int m;
 		while ((m = min(Z)) < matrix.getAttributeCount()) {
 			Z.remove(m);
-			for (Iterator<Integer> it = list.get(m).iterator(); it.hasNext();) {
-				int num_implication = it.next();
+			IntBuf implIds = list.get(m);
+			for (int idx = 0, n = implIds.size(); idx < n; idx++) {
+				int num_implication = implIds.get(idx);
 				Implication implication = implications.get(num_implication);
 				int nb = count.get(num_implication);
 				count.set(num_implication, nb - 1);
@@ -179,7 +180,7 @@ public class LinCbOWithPruning extends AbstractLinCbo {
 				}
 			}
 			if (D.cardinality() == matrix.getAttributeCount()) {
-				return new Triple(new ArrayList<Integer>(), D, -1);
+				return new Triple(new IntBuf(0), D, -1);
 			}
 		}
 		return new Triple(count, D, -1);

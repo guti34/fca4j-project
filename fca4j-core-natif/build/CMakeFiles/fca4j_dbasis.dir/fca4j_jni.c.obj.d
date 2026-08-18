@@ -162,6 +162,7 @@ CMakeFiles/fca4j_dbasis.dir/fca4j_jni.c.obj: \
  C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/fca4j_common.h \
  C:\platform\fca4j-project\fca4j-core-natif\src\main\native\algo/hermes.h \
  C:\platform\fca4j-project\fca4j-core-natif\src\main\native\algo/lincbo.h \
+ C:\platform\fca4j-project\fca4j-core-natif\src\main\native\algo/lincbo_pruning.h \
  C:\platform\fca4j-project\fca4j-core-natif\src\main\native\algo/addextent.h \
  C:\platform\fca4j-project\fca4j-core-natif\src\main\native\algo/latticecbo.h \
  C:/dev_tools/mingw64/x86_64-w64-mingw32/include/pthread.h \

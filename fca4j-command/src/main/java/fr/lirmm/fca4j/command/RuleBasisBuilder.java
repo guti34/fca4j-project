@@ -23,12 +23,13 @@ import org.apache.commons.cli.Option;
 import au.com.bytecode.opencsv.CSVWriter;
 import fr.lirmm.fca4j.algo.AbstractAlgo;
 import fr.lirmm.fca4j.algo.ClosureDirect;
-import fr.lirmm.fca4j.algo.ClosureDirectWithForkJoinPool;
 import fr.lirmm.fca4j.algo.ClosureStrategy;
 import fr.lirmm.fca4j.algo.ClosureWithHistory;
 import fr.lirmm.fca4j.algo.DBaseV24;
 import fr.lirmm.fca4j.algo.LinCbO;
 import fr.lirmm.fca4j.algo.LinCbOWithPruning;
+import fr.lirmm.fca4j.core.natif.FastLinCbo;
+import fr.lirmm.fca4j.core.natif.impl.NativeLinCbo;
 import fr.lirmm.fca4j.cli.io.RuleBasisReader;
 import fr.lirmm.fca4j.cli.io.RuleExporter;
 import fr.lirmm.fca4j.cli.io.RuleExporters;
@@ -45,9 +46,6 @@ import fr.lirmm.fca4j.util.RuleUtilities;
  * The Class RuleBasisBuilder.
  */
 public class RuleBasisBuilder extends Command {
-
-	/** The Constant DEFAULT_THRESHOLD. */
-	public final static int DEFAULT_THRESHOLD = 50;
 
 	/** The output file. */
 	protected File outputFile;
@@ -70,9 +68,6 @@ public class RuleBasisBuilder extends Command {
 	/** The closure type. */
 	protected ClosureType closureType;
 
-	/** The pool mode. */
-	protected PoolMode poolMode;
-
 	/** The algorithm. */
 	protected AlgoRuleBasis algo;
 
@@ -84,12 +79,12 @@ public class RuleBasisBuilder extends Command {
 
 	/** basis rule export format */
 	protected RuleBasisFormat ruleBasisFormat;
-	
-	/** The threshold. */
-	protected int threshold = DEFAULT_THRESHOLD;
 
 	/** with clarification. */
 	protected boolean withClarification = false;
+
+	/** use native code (C, lincbo_pruning) when available, true by default */
+	protected boolean useNativeCode = true;
 
 	/**
 	 * The Enum ClosureType.
@@ -100,18 +95,6 @@ public class RuleBasisBuilder extends Command {
 		BASIC,
 		/** The closure using history. */
 		WITH_HISTORY
-	};
-
-	/**
-	 * The Enum PoolMode.
-	 */
-	public enum PoolMode {
-
-		/** The mono thred mode. */
-		MONO,
-		/** The forkjoinpool mode. */
-		FORKJOINPOOL
-		// , EXECUTOR_SERVICE
 	};
 
 	/**
@@ -154,12 +137,6 @@ public class RuleBasisBuilder extends Command {
 		options.addOption(Option.builder("c")// .longOpt("closure")
 				.desc("two methods to perform the closure operation are available\n* BASIC (default)\n* WITH_HISTORY")
 				.hasArg().argName("CLOSURE").build());
-		// multithreading
-		options.addOption(Option.builder("t")// .longOpt("multithreading"
-				.desc("multithreading options are:\n* MONO (default)\n* FORKJOINPOOL").hasArg().argName("POOL-MODE")
-				.build());
-		options.addOption(Option.builder("h").desc("multithreading limit size of work for a task default=50 ").hasArg()
-				.argName("THRESHOLD").build());
 		options.addOption(Option.builder("b").desc("sort implications by ascending support").build());
 		// output report
 		options.addOption(Option.builder("r").desc("generate report about algorithm execution").hasArg()
@@ -174,6 +151,10 @@ public class RuleBasisBuilder extends Command {
 
 		// implementation
 		declareImplementation(true);
+		// native code
+		options.addOption(Option.builder("native")
+				.desc("enable native code (C, lincbo_pruning), use C implementation instead")
+				.build());
 		// common options
 		declareCommon();
 	}
@@ -238,30 +219,6 @@ public class RuleBasisBuilder extends Command {
 				throw new Exception("not recognized closure method: " + line.getOptionValue("c"));
 		} else
 			closureType = ClosureType.BASIC;
-		// thread mode
-		if (line.hasOption("t")) {
-			try {
-				poolMode = PoolMode.valueOf(line.getOptionValue("t").toUpperCase());
-			} catch (IllegalArgumentException e) {
-			}
-			if (poolMode == null)
-				throw new Exception("not recognized thread pool mode: " + line.getOptionValue("t"));
-		} else
-			poolMode = PoolMode.MONO;
-		if (poolMode != PoolMode.MONO && closureType == ClosureType.WITH_HISTORY) {
-			throw new Exception("closure with history is not compatible with thread pool mode: " + poolMode);
-		}
-		if (line.hasOption("h")) {
-			String thresholdString = line.getOptionValue("h");
-			try {
-				threshold = Integer.parseInt(thresholdString);
-				if (threshold < 1)
-					throw new Exception();
-			} catch (Exception e) {
-				throw new Exception("invalid threshold value for multithreading: " + thresholdString);
-			}
-
-		}
 		if (line.hasOption("a")) {
 			try {
 				algo = AlgoRuleBasis.valueOf(line.getOptionValue("a"));
@@ -285,6 +242,8 @@ public class RuleBasisBuilder extends Command {
 			reportFile = null;
 		// output format
 		ruleBasisFormat=checkRuleBasisFormat(line, outputFileName,"o");
+		// native code
+		useNativeCode = line.hasOption("native");
 
 		// separator
 		checkSeparator(line);
@@ -304,15 +263,8 @@ public class RuleBasisBuilder extends Command {
 		case WITH_HISTORY:
 			return new ClosureWithHistory(ctx);
 		case BASIC:
-		default: {
-			switch (poolMode) {
-			case FORKJOINPOOL:
-				return new ClosureDirectWithForkJoinPool(ctx, threshold);
-			case MONO:
-			default:
-				return new ClosureDirect(ctx);
-			}
-		}
+		default:
+			return new ClosureDirect(ctx);
 		}
 	}
 
@@ -424,8 +376,8 @@ public class RuleBasisBuilder extends Command {
 		values.add("" + Runtime.getRuntime().availableProcessors());
 		keys.add("algo");
 		values.add(algo.toString());
-		keys.add("pool_mode");
-		values.add("" + poolMode);
+		keys.add("native_backend");
+		values.add(FastLinCbo.activeBackend());
 		keys.add("closure_type");
 		values.add("" + closureType);
 		keys.add("set_impl");
@@ -482,15 +434,27 @@ public class RuleBasisBuilder extends Command {
 		ClosureStrategy closureStrategy = selectClosureStrategy();
 		AbstractAlgo<List<Implication>> linCbO;
 		Chrono chrono = new Chrono("lincbo");
-		switch (algo) {
-		case LINCBO:
-			linCbO = new LinCbO(ctx, chrono, closureStrategy, withClarification);
-			break;
-		case LINCBOPRUNING:
-		default:
-			linCbO = new LinCbOWithPruning(ctx, chrono, closureStrategy, withClarification);
+		if (useNativeCode) {
+			// LINCBO -> pas d'elagage ; LINCBOPRUNING -> elagage LIFO (meme
+			// strategie que LinCbOWithPruning/cboMemPruning.cpp). L'elagage
+			// LCM du moteur C (lincbo_pruning.c) n'est pas encore expose par
+			// cette commande : il ne change jamais la base canonique
+			// produite, seulement la performance, donc ce choix de portee
+			// est sans risque et peut etre revu plus tard.
+			int mode = (algo == AlgoRuleBasis.LINCBO) ? NativeLinCbo.MODE_NONE : NativeLinCbo.MODE_LIFO;
+			linCbO = FastLinCbo.create(ctx, chrono, closureStrategy, withClarification, mode);
+		} else {
+			switch (algo) {
+			case LINCBO:
+				linCbO = new LinCbO(ctx, chrono, closureStrategy, withClarification);
+				break;
+			case LINCBOPRUNING:
+			default:
+				linCbO = new LinCbOWithPruning(ctx, chrono, closureStrategy, withClarification);
+			}
 		}
-		System.out.println("running " + algo + " (" + impl + "/" + closureType + "/" + poolMode
+		String engine = useNativeCode ? "native C" : "java";
+		System.out.println("running " + algo + " (" + impl + "/" + closureType + ", " + engine
 				+ (withClarification ? "/CLARIFIED" : "") + ") data: " + inputFile.getName() + " ( "
 				+ ctx.getObjectCount() + " x " + ctx.getAttributeCount() + " )");
 		chrono.start(linCbO.getDescription());

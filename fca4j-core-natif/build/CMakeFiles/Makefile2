@@ -80,6 +80,9 @@ clean: CMakeFiles/ares_test.dir/clean
 clean: CMakeFiles/latticecbo_regress.dir/clean
 clean: CMakeFiles/ceres_test.dir/clean
 clean: CMakeFiles/aoc_regress.dir/clean
+clean: CMakeFiles/lincbo_pruning_test.dir/clean
+clean: CMakeFiles/lincbo_pruning_perf.dir/clean
+clean: CMakeFiles/lincbo_pruning_bench_sets.dir/clean
 clean: CMakeFiles/tests.dir/clean
 .PHONY : clean
 
@@ -90,7 +93,7 @@ clean: CMakeFiles/tests.dir/clean
 CMakeFiles/fca4j_dbasis.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67 "Built target fca4j_dbasis"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63 "Built target fca4j_dbasis"
 .PHONY : CMakeFiles/fca4j_dbasis.dir/all
 
 # Build rule for subdir invocation for target.
@@ -107,7 +110,7 @@ fca4j_dbasis: CMakeFiles/fca4j_dbasis.dir/rule
 # codegen rule for target.
 CMakeFiles/fca4j_dbasis.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67 "Finished codegen for target fca4j_dbasis"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63 "Finished codegen for target fca4j_dbasis"
 .PHONY : CMakeFiles/fca4j_dbasis.dir/codegen
 
 # clean rule for target.
@@ -122,12 +125,12 @@ CMakeFiles/fca4j_dbasis.dir/clean:
 CMakeFiles/dynorder_test.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\dynorder_test.dir\build.make CMakeFiles/dynorder_test.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\dynorder_test.dir\build.make CMakeFiles/dynorder_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=45,46,47 "Built target dynorder_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=42,43 "Built target dynorder_test"
 .PHONY : CMakeFiles/dynorder_test.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/dynorder_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/dynorder_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 0
 .PHONY : CMakeFiles/dynorder_test.dir/rule
@@ -139,7 +142,7 @@ dynorder_test: CMakeFiles/dynorder_test.dir/rule
 # codegen rule for target.
 CMakeFiles/dynorder_test.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\dynorder_test.dir\build.make CMakeFiles/dynorder_test.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=45,46,47 "Finished codegen for target dynorder_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=42,43 "Finished codegen for target dynorder_test"
 .PHONY : CMakeFiles/dynorder_test.dir/codegen
 
 # clean rule for target.
@@ -154,7 +157,7 @@ CMakeFiles/dynorder_test.dir/clean:
 CMakeFiles/ares_test.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=17,18,19,20,21,22,23,24,25,26,27,28,29,30 "Built target ares_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=15,16,17,18,19,20,21,22,23,24,25,26,27,28 "Built target ares_test"
 .PHONY : CMakeFiles/ares_test.dir/all
 
 # Build rule for subdir invocation for target.
@@ -171,7 +174,7 @@ ares_test: CMakeFiles/ares_test.dir/rule
 # codegen rule for target.
 CMakeFiles/ares_test.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ares_test.dir\build.make CMakeFiles/ares_test.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=17,18,19,20,21,22,23,24,25,26,27,28,29,30 "Finished codegen for target ares_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=15,16,17,18,19,20,21,22,23,24,25,26,27,28 "Finished codegen for target ares_test"
 .PHONY : CMakeFiles/ares_test.dir/codegen
 
 # clean rule for target.
@@ -186,12 +189,12 @@ CMakeFiles/ares_test.dir/clean:
 CMakeFiles/latticecbo_regress.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=68,69,70,71,72,73,74,75,76,77,78,79 "Built target latticecbo_regress"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=64,65,66,67,68,69,70,71,72,73,74 "Built target latticecbo_regress"
 .PHONY : CMakeFiles/latticecbo_regress.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/latticecbo_regress.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 12
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 11
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/latticecbo_regress.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 0
 .PHONY : CMakeFiles/latticecbo_regress.dir/rule
@@ -203,7 +206,7 @@ latticecbo_regress: CMakeFiles/latticecbo_regress.dir/rule
 # codegen rule for target.
 CMakeFiles/latticecbo_regress.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=68,69,70,71,72,73,74,75,76,77,78,79 "Finished codegen for target latticecbo_regress"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=64,65,66,67,68,69,70,71,72,73,74 "Finished codegen for target latticecbo_regress"
 .PHONY : CMakeFiles/latticecbo_regress.dir/codegen
 
 # clean rule for target.
@@ -218,12 +221,12 @@ CMakeFiles/latticecbo_regress.dir/clean:
 CMakeFiles/ceres_test.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=31,32,33,34,35,36,37,38,39,40,41,42,43,44 "Built target ceres_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=29,30,31,32,33,34,35,36,37,38,39,40,41 "Built target ceres_test"
 .PHONY : CMakeFiles/ceres_test.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/ceres_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 14
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 13
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/ceres_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 0
 .PHONY : CMakeFiles/ceres_test.dir/rule
@@ -235,7 +238,7 @@ ceres_test: CMakeFiles/ceres_test.dir/rule
 # codegen rule for target.
 CMakeFiles/ceres_test.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=31,32,33,34,35,36,37,38,39,40,41,42,43,44 "Finished codegen for target ceres_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=29,30,31,32,33,34,35,36,37,38,39,40,41 "Finished codegen for target ceres_test"
 .PHONY : CMakeFiles/ceres_test.dir/codegen
 
 # clean rule for target.
@@ -250,12 +253,12 @@ CMakeFiles/ceres_test.dir/clean:
 CMakeFiles/aoc_regress.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 "Built target aoc_regress"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14 "Built target aoc_regress"
 .PHONY : CMakeFiles/aoc_regress.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/aoc_regress.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 16
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 14
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/aoc_regress.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 0
 .PHONY : CMakeFiles/aoc_regress.dir/rule
@@ -267,13 +270,109 @@ aoc_regress: CMakeFiles/aoc_regress.dir/rule
 # codegen rule for target.
 CMakeFiles/aoc_regress.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 "Finished codegen for target aoc_regress"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14 "Finished codegen for target aoc_regress"
 .PHONY : CMakeFiles/aoc_regress.dir/codegen
 
 # clean rule for target.
 CMakeFiles/aoc_regress.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/clean
 .PHONY : CMakeFiles/aoc_regress.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/lincbo_pruning_test.dir
+
+# All Build rule for target.
+CMakeFiles/lincbo_pruning_test.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=92,93,94,95,96,97,98,99,100 "Built target lincbo_pruning_test"
+.PHONY : CMakeFiles/lincbo_pruning_test.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/lincbo_pruning_test.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 9
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/lincbo_pruning_test.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 0
+.PHONY : CMakeFiles/lincbo_pruning_test.dir/rule
+
+# Convenience name for target.
+lincbo_pruning_test: CMakeFiles/lincbo_pruning_test.dir/rule
+.PHONY : lincbo_pruning_test
+
+# codegen rule for target.
+CMakeFiles/lincbo_pruning_test.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=92,93,94,95,96,97,98,99,100 "Finished codegen for target lincbo_pruning_test"
+.PHONY : CMakeFiles/lincbo_pruning_test.dir/codegen
+
+# clean rule for target.
+CMakeFiles/lincbo_pruning_test.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/clean
+.PHONY : CMakeFiles/lincbo_pruning_test.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/lincbo_pruning_perf.dir
+
+# All Build rule for target.
+CMakeFiles/lincbo_pruning_perf.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=84,85,86,87,88,89,90,91 "Built target lincbo_pruning_perf"
+.PHONY : CMakeFiles/lincbo_pruning_perf.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/lincbo_pruning_perf.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 8
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/lincbo_pruning_perf.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 0
+.PHONY : CMakeFiles/lincbo_pruning_perf.dir/rule
+
+# Convenience name for target.
+lincbo_pruning_perf: CMakeFiles/lincbo_pruning_perf.dir/rule
+.PHONY : lincbo_pruning_perf
+
+# codegen rule for target.
+CMakeFiles/lincbo_pruning_perf.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=84,85,86,87,88,89,90,91 "Finished codegen for target lincbo_pruning_perf"
+.PHONY : CMakeFiles/lincbo_pruning_perf.dir/codegen
+
+# clean rule for target.
+CMakeFiles/lincbo_pruning_perf.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/clean
+.PHONY : CMakeFiles/lincbo_pruning_perf.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/lincbo_pruning_bench_sets.dir
+
+# All Build rule for target.
+CMakeFiles/lincbo_pruning_bench_sets.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=75,76,77,78,79,80,81,82,83 "Built target lincbo_pruning_bench_sets"
+.PHONY : CMakeFiles/lincbo_pruning_bench_sets.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/lincbo_pruning_bench_sets.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 9
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/lincbo_pruning_bench_sets.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 0
+.PHONY : CMakeFiles/lincbo_pruning_bench_sets.dir/rule
+
+# Convenience name for target.
+lincbo_pruning_bench_sets: CMakeFiles/lincbo_pruning_bench_sets.dir/rule
+.PHONY : lincbo_pruning_bench_sets
+
+# codegen rule for target.
+CMakeFiles/lincbo_pruning_bench_sets.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num=75,76,77,78,79,80,81,82,83 "Finished codegen for target lincbo_pruning_bench_sets"
+.PHONY : CMakeFiles/lincbo_pruning_bench_sets.dir/codegen
+
+# clean rule for target.
+CMakeFiles/lincbo_pruning_bench_sets.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/clean
+.PHONY : CMakeFiles/lincbo_pruning_bench_sets.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/tests.dir
@@ -284,6 +383,7 @@ CMakeFiles/tests.dir/all: CMakeFiles/ares_test.dir/all
 CMakeFiles/tests.dir/all: CMakeFiles/latticecbo_regress.dir/all
 CMakeFiles/tests.dir/all: CMakeFiles/ceres_test.dir/all
 CMakeFiles/tests.dir/all: CMakeFiles/aoc_regress.dir/all
+CMakeFiles/tests.dir/all: CMakeFiles/lincbo_pruning_test.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\tests.dir\build.make CMakeFiles/tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\tests.dir\build.make CMakeFiles/tests.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num= "Built target tests"
@@ -291,7 +391,7 @@ CMakeFiles/tests.dir/all: CMakeFiles/aoc_regress.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 59
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 63
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles 0
 .PHONY : CMakeFiles/tests.dir/rule
@@ -306,6 +406,7 @@ CMakeFiles/tests.dir/codegen: CMakeFiles/ares_test.dir/all
 CMakeFiles/tests.dir/codegen: CMakeFiles/latticecbo_regress.dir/all
 CMakeFiles/tests.dir/codegen: CMakeFiles/ceres_test.dir/all
 CMakeFiles/tests.dir/codegen: CMakeFiles/aoc_regress.dir/all
+CMakeFiles/tests.dir/codegen: CMakeFiles/lincbo_pruning_test.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\tests.dir\build.make CMakeFiles/tests.dir/codegen
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\platform\fca4j-project\fca4j-core-natif\build\CMakeFiles --progress-num= "Finished codegen for target tests"
 .PHONY : CMakeFiles/tests.dir/codegen

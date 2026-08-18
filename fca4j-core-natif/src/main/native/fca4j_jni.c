@@ -17,6 +17,7 @@
 #include "algo/dbasis.h"
 #include "algo/hermes.h"
 #include "algo/lincbo.h"
+#include "algo/lincbo_pruning.h"
 #include "algo/addextent.h"
 #include "algo/latticecbo.h"
 #include "algo/pluton.h"
@@ -289,6 +290,36 @@ Java_fr_lirmm_fca4j_core_natif_NativeBridge_runLincbo(
 
     jstring result = (*env)->NewStringUTF(env, json);
     free(json);
+    return result;
+}
+
+/*
+ * runLincboPruningFlat — moteur unifié LinCbO avec élagage (lincbo_pruning.c),
+ * variante rapide renvoyant un int[] plat (indices, aucun nom), même format
+ * que runDbasisFlat. mode : 0=NONE, 1=LIFO (LinCbOWithPruning), 2=LCM.
+ */
+JNIEXPORT jintArray JNICALL
+Java_fr_lirmm_fca4j_core_natif_NativeBridge_runLincboPruningFlat(
+        JNIEnv *env, jclass clazz,
+        jint nObjects, jint nAttributes,
+        jbyteArray jmatrix,
+        jint mode) {
+
+    BinaryContext *ctx = ctx_from_jni(env, nObjects, nAttributes, jmatrix, NULL);
+
+    int len = 0;
+    int *flat = run_lincbo_pruning_flat(ctx, (LinCboPruneMode)mode, &len);
+    ctx_free(ctx);
+
+    if (flat == NULL || len == 0) {
+        if (flat) free(flat);
+        return (*env)->NewIntArray(env, 0);
+    }
+
+    jintArray result = (*env)->NewIntArray(env, len);
+    if (result != NULL)
+        (*env)->SetIntArrayRegion(env, result, 0, len, (jint*)flat);
+    free(flat);
     return result;
 }
 

@@ -15,6 +15,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/hermes.c" "CMakeFiles/fca4j_dbasis.dir/algo/hermes.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/hermes.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/latticecbo.c" "CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/lincbo.c" "CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.obj.d"
+  "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/lincbo_pruning.c" "CMakeFiles/fca4j_dbasis.dir/algo/lincbo_pruning.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/lincbo_pruning.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/algo/pluton.c" "CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/clarification.c" "CMakeFiles/fca4j_dbasis.dir/core/clarification.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/core/clarification.c.obj.d"
   "C:/platform/fca4j-project/fca4j-core-natif/src/main/native/core/closure.c" "CMakeFiles/fca4j_dbasis.dir/core/closure.c.obj" "gcc" "CMakeFiles/fca4j_dbasis.dir/core/closure.c.obj.d"

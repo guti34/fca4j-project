@@ -19,3 +19,11 @@ local.properties
 *.launch
 
 fca4j-core-natif/src/main/native/build/
+
+# Logs/rapports de profiling générés à la racine pendant les sessions de
+# benchmark natif/Java (build-native.bat, bench_*.bat, etc.)
+/build_log.txt
+/pluton_profile.log
+/profil.txt
+/profil_java.txt
+/profil_natif*.txt

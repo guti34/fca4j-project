@@ -70,6 +70,7 @@ CMakeFiles/tests: ares_test.exe
 CMakeFiles/tests: ceres_test.exe
 CMakeFiles/tests: aoc_regress.exe
 CMakeFiles/tests: latticecbo_regress.exe
+CMakeFiles/tests: lincbo_pruning_test.exe
 
 CMakeFiles/tests.dir/codegen:
 .PHONY : CMakeFiles/tests.dir/codegen

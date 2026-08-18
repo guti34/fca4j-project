@@ -194,6 +194,45 @@ aoc_regress/fast:
 .PHONY : aoc_regress/fast
 
 #=============================================================================
+# Target rules for targets named lincbo_pruning_test
+
+# Build rule for target.
+lincbo_pruning_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 lincbo_pruning_test
+.PHONY : lincbo_pruning_test
+
+# fast build rule for target.
+lincbo_pruning_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/build
+.PHONY : lincbo_pruning_test/fast
+
+#=============================================================================
+# Target rules for targets named lincbo_pruning_perf
+
+# Build rule for target.
+lincbo_pruning_perf: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 lincbo_pruning_perf
+.PHONY : lincbo_pruning_perf
+
+# fast build rule for target.
+lincbo_pruning_perf/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/build
+.PHONY : lincbo_pruning_perf/fast
+
+#=============================================================================
+# Target rules for targets named lincbo_pruning_bench_sets
+
+# Build rule for target.
+lincbo_pruning_bench_sets: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 lincbo_pruning_bench_sets
+.PHONY : lincbo_pruning_bench_sets
+
+# fast build rule for target.
+lincbo_pruning_bench_sets/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/build
+.PHONY : lincbo_pruning_bench_sets/fast
+
+#=============================================================================
 # Target rules for targets named tests
 
 # Build rule for target.
@@ -500,6 +539,9 @@ algo/lincbo.obj: algo/lincbo.c.obj
 # target to build an object file
 algo/lincbo.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/algo/lincbo.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/algo/lincbo.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/algo/lincbo.c.obj
 .PHONY : algo/lincbo.c.obj
 
 algo/lincbo.i: algo/lincbo.c.i
@@ -508,6 +550,9 @@ algo/lincbo.i: algo/lincbo.c.i
 # target to preprocess a source file
 algo/lincbo.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/algo/lincbo.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/algo/lincbo.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/algo/lincbo.c.i
 .PHONY : algo/lincbo.c.i
 
 algo/lincbo.s: algo/lincbo.c.s
@@ -516,7 +561,115 @@ algo/lincbo.s: algo/lincbo.c.s
 # target to generate assembly for a file
 algo/lincbo.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/algo/lincbo.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/algo/lincbo.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/algo/lincbo.c.s
 .PHONY : algo/lincbo.c.s
+
+algo/lincbo_pruning.obj: algo/lincbo_pruning.c.obj
+.PHONY : algo/lincbo_pruning.obj
+
+# target to build an object file
+algo/lincbo_pruning.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/lincbo_pruning.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/algo/lincbo_pruning.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/algo/lincbo_pruning.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/algo/lincbo_pruning.c.obj
+.PHONY : algo/lincbo_pruning.c.obj
+
+algo/lincbo_pruning.i: algo/lincbo_pruning.c.i
+.PHONY : algo/lincbo_pruning.i
+
+# target to preprocess a source file
+algo/lincbo_pruning.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/lincbo_pruning.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/algo/lincbo_pruning.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/algo/lincbo_pruning.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/algo/lincbo_pruning.c.i
+.PHONY : algo/lincbo_pruning.c.i
+
+algo/lincbo_pruning.s: algo/lincbo_pruning.c.s
+.PHONY : algo/lincbo_pruning.s
+
+# target to generate assembly for a file
+algo/lincbo_pruning.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\fca4j_dbasis.dir\build.make CMakeFiles/fca4j_dbasis.dir/algo/lincbo_pruning.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/algo/lincbo_pruning.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/algo/lincbo_pruning.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/algo/lincbo_pruning.c.s
+.PHONY : algo/lincbo_pruning.c.s
+
+algo/lincbo_pruning_bench_sets.obj: algo/lincbo_pruning_bench_sets.c.obj
+.PHONY : algo/lincbo_pruning_bench_sets.obj
+
+# target to build an object file
+algo/lincbo_pruning_bench_sets.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/algo/lincbo_pruning_bench_sets.c.obj
+.PHONY : algo/lincbo_pruning_bench_sets.c.obj
+
+algo/lincbo_pruning_bench_sets.i: algo/lincbo_pruning_bench_sets.c.i
+.PHONY : algo/lincbo_pruning_bench_sets.i
+
+# target to preprocess a source file
+algo/lincbo_pruning_bench_sets.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/algo/lincbo_pruning_bench_sets.c.i
+.PHONY : algo/lincbo_pruning_bench_sets.c.i
+
+algo/lincbo_pruning_bench_sets.s: algo/lincbo_pruning_bench_sets.c.s
+.PHONY : algo/lincbo_pruning_bench_sets.s
+
+# target to generate assembly for a file
+algo/lincbo_pruning_bench_sets.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/algo/lincbo_pruning_bench_sets.c.s
+.PHONY : algo/lincbo_pruning_bench_sets.c.s
+
+algo/lincbo_pruning_perf.obj: algo/lincbo_pruning_perf.c.obj
+.PHONY : algo/lincbo_pruning_perf.obj
+
+# target to build an object file
+algo/lincbo_pruning_perf.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/algo/lincbo_pruning_perf.c.obj
+.PHONY : algo/lincbo_pruning_perf.c.obj
+
+algo/lincbo_pruning_perf.i: algo/lincbo_pruning_perf.c.i
+.PHONY : algo/lincbo_pruning_perf.i
+
+# target to preprocess a source file
+algo/lincbo_pruning_perf.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/algo/lincbo_pruning_perf.c.i
+.PHONY : algo/lincbo_pruning_perf.c.i
+
+algo/lincbo_pruning_perf.s: algo/lincbo_pruning_perf.c.s
+.PHONY : algo/lincbo_pruning_perf.s
+
+# target to generate assembly for a file
+algo/lincbo_pruning_perf.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/algo/lincbo_pruning_perf.c.s
+.PHONY : algo/lincbo_pruning_perf.c.s
+
+algo/lincbo_pruning_test.obj: algo/lincbo_pruning_test.c.obj
+.PHONY : algo/lincbo_pruning_test.obj
+
+# target to build an object file
+algo/lincbo_pruning_test.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/algo/lincbo_pruning_test.c.obj
+.PHONY : algo/lincbo_pruning_test.c.obj
+
+algo/lincbo_pruning_test.i: algo/lincbo_pruning_test.c.i
+.PHONY : algo/lincbo_pruning_test.i
+
+# target to preprocess a source file
+algo/lincbo_pruning_test.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/algo/lincbo_pruning_test.c.i
+.PHONY : algo/lincbo_pruning_test.c.i
+
+algo/lincbo_pruning_test.s: algo/lincbo_pruning_test.c.s
+.PHONY : algo/lincbo_pruning_test.s
+
+# target to generate assembly for a file
+algo/lincbo_pruning_test.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/algo/lincbo_pruning_test.c.s
+.PHONY : algo/lincbo_pruning_test.c.s
 
 algo/pluton.obj: algo/pluton.c.obj
 .PHONY : algo/pluton.obj
@@ -591,6 +744,9 @@ core/closure.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/closure.c.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/closure.c.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/closure.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/closure.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/closure.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/closure.c.obj
 .PHONY : core/closure.c.obj
 
 core/closure.i: core/closure.c.i
@@ -603,6 +759,9 @@ core/closure.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/closure.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/closure.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/closure.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/closure.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/closure.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/closure.c.i
 .PHONY : core/closure.c.i
 
 core/closure.s: core/closure.c.s
@@ -615,6 +774,9 @@ core/closure.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/closure.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/closure.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/closure.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/closure.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/closure.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/closure.c.s
 .PHONY : core/closure.c.s
 
 core/conceptorder.obj: core/conceptorder.c.obj
@@ -663,6 +825,9 @@ core/context.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/context.c.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/context.c.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/context.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/context.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/context.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/context.c.obj
 .PHONY : core/context.c.obj
 
 core/context.i: core/context.c.i
@@ -675,6 +840,9 @@ core/context.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/context.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/context.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/context.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/context.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/context.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/context.c.i
 .PHONY : core/context.c.i
 
 core/context.s: core/context.c.s
@@ -687,6 +855,9 @@ core/context.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/context.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/context.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/context.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/context.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/context.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/context.c.s
 .PHONY : core/context.c.s
 
 core/dynorder.obj: core/dynorder.c.obj
@@ -771,6 +942,9 @@ core/implication.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/implication.c.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/implication.c.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/implication.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/implication.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/implication.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/implication.c.obj
 .PHONY : core/implication.c.obj
 
 core/implication.i: core/implication.c.i
@@ -783,6 +957,9 @@ core/implication.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/implication.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/implication.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/implication.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/implication.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/implication.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/implication.c.i
 .PHONY : core/implication.c.i
 
 core/implication.s: core/implication.c.s
@@ -795,6 +972,9 @@ core/implication.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/implication.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/implication.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/implication.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/implication.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/implication.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/implication.c.s
 .PHONY : core/implication.c.s
 
 core/strbuf.obj: core/strbuf.c.obj
@@ -807,6 +987,9 @@ core/strbuf.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/strbuf.c.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/strbuf.c.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/strbuf.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/strbuf.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/strbuf.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/strbuf.c.obj
 .PHONY : core/strbuf.c.obj
 
 core/strbuf.i: core/strbuf.c.i
@@ -819,6 +1002,9 @@ core/strbuf.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/strbuf.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/strbuf.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/strbuf.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/strbuf.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/strbuf.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/strbuf.c.i
 .PHONY : core/strbuf.c.i
 
 core/strbuf.s: core/strbuf.c.s
@@ -831,6 +1017,9 @@ core/strbuf.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/core/strbuf.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/core/strbuf.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/core/strbuf.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/core/strbuf.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/core/strbuf.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/core/strbuf.c.s
 .PHONY : core/strbuf.c.s
 
 core/tarjan.obj: core/tarjan.c.obj
@@ -879,6 +1068,9 @@ croaring/roaring.c.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/croaring/roaring.c.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/croaring/roaring.c.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/croaring/roaring.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/croaring/roaring.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/croaring/roaring.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/croaring/roaring.c.obj
 .PHONY : croaring/roaring.c.obj
 
 croaring/roaring.i: croaring/roaring.c.i
@@ -891,6 +1083,9 @@ croaring/roaring.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/croaring/roaring.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/croaring/roaring.c.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/croaring/roaring.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/croaring/roaring.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/croaring/roaring.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/croaring/roaring.c.i
 .PHONY : croaring/roaring.c.i
 
 croaring/roaring.s: croaring/roaring.c.s
@@ -903,6 +1098,9 @@ croaring/roaring.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\latticecbo_regress.dir\build.make CMakeFiles/latticecbo_regress.dir/croaring/roaring.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\ceres_test.dir\build.make CMakeFiles/ceres_test.dir/croaring/roaring.c.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\aoc_regress.dir\build.make CMakeFiles/aoc_regress.dir/croaring/roaring.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_test.dir\build.make CMakeFiles/lincbo_pruning_test.dir/croaring/roaring.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_perf.dir\build.make CMakeFiles/lincbo_pruning_perf.dir/croaring/roaring.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\lincbo_pruning_bench_sets.dir\build.make CMakeFiles/lincbo_pruning_bench_sets.dir/croaring/roaring.c.s
 .PHONY : croaring/roaring.c.s
 
 fca4j_jni.obj: fca4j_jni.c.obj
@@ -944,6 +1142,9 @@ help:
 	@echo ... dynorder_test
 	@echo ... fca4j_dbasis
 	@echo ... latticecbo_regress
+	@echo ... lincbo_pruning_bench_sets
+	@echo ... lincbo_pruning_perf
+	@echo ... lincbo_pruning_test
 	@echo ... algo/addextent.obj
 	@echo ... algo/addextent.i
 	@echo ... algo/addextent.s
@@ -980,6 +1181,18 @@ help:
 	@echo ... algo/lincbo.obj
 	@echo ... algo/lincbo.i
 	@echo ... algo/lincbo.s
+	@echo ... algo/lincbo_pruning.obj
+	@echo ... algo/lincbo_pruning.i
+	@echo ... algo/lincbo_pruning.s
+	@echo ... algo/lincbo_pruning_bench_sets.obj
+	@echo ... algo/lincbo_pruning_bench_sets.i
+	@echo ... algo/lincbo_pruning_bench_sets.s
+	@echo ... algo/lincbo_pruning_perf.obj
+	@echo ... algo/lincbo_pruning_perf.i
+	@echo ... algo/lincbo_pruning_perf.s
+	@echo ... algo/lincbo_pruning_test.obj
+	@echo ... algo/lincbo_pruning_test.i
+	@echo ... algo/lincbo_pruning_test.s
 	@echo ... algo/pluton.obj
 	@echo ... algo/pluton.i
 	@echo ... algo/pluton.s

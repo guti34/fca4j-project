@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\lincbo_pruning_bench_sets.dir/objects.a
+C:\dev_tools\mingw64\bin\ar.exe qc CMakeFiles\lincbo_pruning_bench_sets.dir/objects.a @CMakeFiles\lincbo_pruning_bench_sets.dir\objects1.rsp
+C:\dev_tools\mingw64\bin\cc.exe -O3 -DNDEBUG -Wl,--whole-archive CMakeFiles\lincbo_pruning_bench_sets.dir/objects.a -Wl,--no-whole-archive -o lincbo_pruning_bench_sets.exe -Wl,--out-implib,liblincbo_pruning_bench_sets.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\lincbo_pruning_bench_sets.dir\linkLibs.rsp

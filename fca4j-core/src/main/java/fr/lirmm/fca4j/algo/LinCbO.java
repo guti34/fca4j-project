@@ -61,9 +61,9 @@ public class LinCbO extends AbstractLinCbo {
      */
     protected void _LinCbO()  throws InterruptedException{
         for (int attr = 0; attr < matrix.getAttributeCount(); attr++) {
-            list.add(new ArrayList(matrix.getObjectCount()));
+            list.add(new IntBuf(matrix.getObjectCount()));
         }
-        List<Integer> count = new ArrayList<>();
+        IntBuf count = new IntBuf(16);
         _LinCbOStep(factory.createSet(matrix.getAttributeCount()), -1, factory.createSet(matrix.getAttributeCount()), count,null,null);
     }
 
@@ -78,14 +78,14 @@ public class LinCbO extends AbstractLinCbo {
      * @param lastExtent the last extent
      * @throws InterruptedException the interrupted exception
      */
-    protected void _LinCbOStep(ISet B, int y, ISet Z, List<Integer> prevCount, ISet lastAttrSet,ISet lastExtent) throws InterruptedException{
+    protected void _LinCbOStep(ISet B, int y, ISet Z, IntBuf prevCount, ISet lastAttrSet,ISet lastExtent) throws InterruptedException{
                 if (Thread.interrupted())  throw new InterruptedException("interrupted by user");
 
-        Pair<List<Integer>,ISet> retClosureRC = _LinClosureRC(B, y, Z, prevCount);
+        Pair<IntBuf,ISet> retClosureRC = _LinClosureRC(B, y, Z, prevCount);
         if (retClosureRC == null) {
             return;
         }
-        List<Integer> count = retClosureRC.left;
+        IntBuf count = retClosureRC.left;
         ISet Bo = retClosureRC.right;
         ISet Bclosure=factory.createSet(matrix.getAttributeCount());
         ISet support= closure(Bclosure,Bo,lastAttrSet,lastExtent);
@@ -121,12 +121,12 @@ public class LinCbO extends AbstractLinCbo {
      * @param prevCount the prev count
      * @return the pair
      */
-    protected Pair<List<Integer>,ISet> _LinClosureRC(ISet B, int y, ISet Z, List<Integer> prevCount) {
+    protected Pair<IntBuf,ISet> _LinClosureRC(ISet B, int y, ISet Z, IntBuf prevCount) {
         ISet D = factory.clone(B);
         if (defaultConclusion != null) {
             D.addAll(defaultConclusion);
         }
-        List<Integer> count = new ArrayList<>(prevCount);
+        IntBuf count = new IntBuf(prevCount);
         for (int num_implication = 0; num_implication < implications.size(); num_implication++) {
             if (count.size() == num_implication) {
                 Implication implication = implications.get(num_implication);
@@ -136,8 +136,9 @@ public class LinCbO extends AbstractLinCbo {
         while (!Z.isEmpty()) {
             int m = min(Z);
             Z.remove(m);
-            for (Iterator<Integer> it = list.get(m).iterator(); it.hasNext();) {
-                int num_implication = it.next();
+            IntBuf implIds = list.get(m);
+            for (int idx = 0, n = implIds.size(); idx < n; idx++) {
+                int num_implication = implIds.get(idx);
                 Implication implication = implications.get(num_implication);
                 count.set(num_implication, count.get(num_implication) - 1);
                 if (count.get(num_implication) == 0) {

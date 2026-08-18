@@ -13,6 +13,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/fca4j_dbasis.dir/algo/latticecbo.c.obj.d"
   "CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.obj"
   "CMakeFiles/fca4j_dbasis.dir/algo/lincbo.c.obj.d"
+  "CMakeFiles/fca4j_dbasis.dir/algo/lincbo_pruning.c.obj"
+  "CMakeFiles/fca4j_dbasis.dir/algo/lincbo_pruning.c.obj.d"
   "CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj"
   "CMakeFiles/fca4j_dbasis.dir/algo/pluton.c.obj.d"
   "CMakeFiles/fca4j_dbasis.dir/core/clarification.c.obj"
