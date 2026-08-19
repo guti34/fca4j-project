@@ -129,7 +129,7 @@ static void generate_covers(GenState *gs) {
     free(stack);
 }
 
-/* ── Générateurs minimaux ────────────────────────────────────────────── */
+/* ── Générateurs minimaux ───────────────────────────────────────────── */
 
 static BitmapVec compute_minimal_generators(BinaryContext *ctx, int target,
                                              roaring_bitmap_t *binary_premises,
@@ -269,8 +269,8 @@ static BitmapVec compute_minimal_covers(BitmapVec *covers, roaring_bitmap_t **cl
         if (g_union) roaring_bitmap_free(g_union);
     }
     BitmapVec result = BitmapVec_new();
-    for (int i = 0; i < n; i++)
-        if (!removed[i]) BitmapVec_push(&result, roaring_bitmap_copy(covers->data[i]));
+    for (int j = 0; j < n; j++)
+        if (!removed[j]) BitmapVec_push(&result, roaring_bitmap_copy(covers->data[j]));
     free(removed);
     return result;
 }
