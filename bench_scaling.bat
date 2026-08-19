@@ -26,7 +26,7 @@ REM ===================================================================
 setlocal enabledelayedexpansion
 
 set PROJECT_ROOT=C:\platform\fca4j-project
-set JAR=%PROJECT_ROOT%\fca4j-app-light\target\fca4j-app-light-0.5.0-jar-with-dependencies.jar
+set JAR=%PROJECT_ROOT%\fca4j-app-light\target\fca4j-app-light-0.5.1-jar-with-dependencies.jar
 set OUTDIR=C:\ClaudeData
 set CTXDIR=%OUTDIR%\scaling
 
