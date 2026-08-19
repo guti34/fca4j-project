@@ -114,7 +114,7 @@ public class RuleBasisBuilder extends Command {
 	 * @param setContext the set context
 	 */
 	public RuleBasisBuilder(ISetContext setContext) {
-		super("rulebasis", "compute the canonical basis of implications (Duquenne-Guigues)", setContext);
+		super("dg_basis", "compute the canonical basis of implications (Duquenne-Guigues)", setContext);
 	}
 
 	/**
@@ -168,9 +168,13 @@ public class RuleBasisBuilder extends Command {
 	public void checkOptions(CommandLine line) throws Exception {
 		withClarification = line.hasOption("clarify");
 		List<String> args = line.getArgList();
-		// System.out.println(args);
 		for (String arg : args) {
 			if (name().equalsIgnoreCase(arg)) {
+				args.remove(arg);
+				break;
+			}
+			// for compatibility with old command name
+			if("RULEBASIS".equalsIgnoreCase(arg)) {
 				args.remove(arg);
 				break;
 			}

@@ -11,7 +11,7 @@
  * plusieurs différences.
  *
  * But : trancher s'il faut exposer un choix de backend dans la commande
- * RULEBASIS, ou si l'un des deux domine assez largement sur la plage de
+ * DG_BASIS, ou si l'un des deux domine assez largement sur la plage de
  * tailles réaliste (attributs = dizaines à quelques milliers) pour ne
  * garder qu'un seul chemin de code.
  *

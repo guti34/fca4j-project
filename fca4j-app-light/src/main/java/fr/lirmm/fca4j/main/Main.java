@@ -66,18 +66,8 @@ public class Main {
 				if ("help".equalsIgnoreCase(arg))
 					help = true;
 				else {
-					for (Command cmd : commands) {
-						if (cmd.name().equalsIgnoreCase(arg)) {
-							if (command != null) {
-								printHelp(command, true);
-								return;
-							} else {
-								command = cmd;
-							}
-
-						}
-
-					}
+					Command cmd=getCommand(arg);
+					if(cmd!=null) command=cmd;
 				}
 			}
 		}
@@ -142,9 +132,13 @@ public class Main {
 	 * @return the command
 	 */
 	private static Command getCommand(String pcmd) {
-		for (Command cmd : commands)
+		for (Command cmd : commands) {
 			if (pcmd.equalsIgnoreCase(cmd.name()))
 				return cmd;
+			// for compatibility with old command name
+			if(pcmd.equalsIgnoreCase("RULEBASIS") && cmd.name().equalsIgnoreCase("DG_BASIS"))
+				return cmd;
+		}
 		return null;
 	}
 

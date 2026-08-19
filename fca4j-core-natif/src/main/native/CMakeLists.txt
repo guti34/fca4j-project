@@ -192,7 +192,7 @@ endif()
 # Bench à un seul facteur : bitset.h dense (lincbo_pruning.c, mode NONE)
 # contre roaring_bitmap_t (lincbo.c) pour le domaine ATTRIBUTS, à algorithme
 # identique — sert à décider s'il faut exposer un choix de backend dans
-# RULEBASIS. Voir les commentaires en tête de lincbo_pruning_bench_sets.c
+# DG_BASIS. Voir les commentaires en tête de lincbo_pruning_bench_sets.c
 # pour les résultats déjà obtenus et leur interprétation. Plusieurs minutes
 # à l'exécution (balaie jusqu'à 10 000 attributs) : pas dans la cible
 # groupée `tests` ci-dessous, à lancer explicitement.
