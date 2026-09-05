@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.jgrapht.alg.TransitiveReduction;
 import org.jgrapht.graph.DefaultEdge;
@@ -94,6 +95,51 @@ public class DBaseV24 implements AbstractAlgo<List<Implication>> {
     /** Resulting implicational basis */
     protected List<Implication> implications;
 
+    // ---- TEMPORARY PROFILING INSTRUMENTATION -----------------------------
+    // Measures, per non-binary-basis phase, how much wall/CPU time goes into
+    // computeMinimalGenerators() (hypergraph dualization) vs. computeMinimalCovers()
+    // (minimality filtering), summed across all worker threads.
+    // Since computeNonBinaryBasis() runs concurrently (one call per attribute,
+    // dispatched across nbThreads workers in ParallelBasisBuilder), these are
+    // AGGREGATE CPU-time-like sums, not wall-clock time: with maxThreads > 1
+    // their sum will exceed the wall-clock duration of the
+    // "compute non binary basis" chrono series, but the RELATIVE split
+    // between the two calls remains a valid answer to "which one dominates".
+    // Remove this block (and its call sites) once the hypothesis is settled.
+    protected final AtomicLong profMinGenNanos = new AtomicLong();
+    protected final AtomicLong profMinCoverNanos = new AtomicLong();
+    protected final AtomicLong profAttrCount = new AtomicLong();
+    protected final AtomicLong profMinGenCount = new AtomicLong();
+    protected final AtomicLong profCoverCount = new AtomicLong();
+
+    /**
+     * Prints the accumulated split between computeMinimalGenerators and
+     * computeMinimalCovers. Call once after the non-binary basis phase
+     * has completed (all attributes processed).
+     */
+    protected void reportMinGenVsCoverProfile() {
+        long genNanos = profMinGenNanos.get();
+        long coverNanos = profMinCoverNanos.get();
+        long total = genNanos + coverNanos;
+        long attrs = profAttrCount.get();
+        if (attrs == 0) {
+            return;
+        }
+        double genPct = total == 0 ? 0.0 : 100.0 * genNanos / total;
+        double coverPct = total == 0 ? 0.0 : 100.0 * coverNanos / total;
+        System.out.println(String.format(
+                "[DBase profile] attrs=%d | computeMinimalGenerators: %.3fs (%.1f%%, %d gens found, avg %.2f/attr) "
+                        + "| computeMinimalCovers: %.3fs (%.1f%%, %d covers kept, avg %.2f/attr) "
+                        + "| sum(gen+cover)=%.3fs [aggregate over %d thread(s), not wall time]",
+                attrs,
+                genNanos / 1e9, genPct, profMinGenCount.get(),
+                profMinGenCount.get() / (double) attrs,
+                coverNanos / 1e9, coverPct, profCoverCount.get(),
+                profCoverCount.get() / (double) attrs,
+                total / 1e9, maxThreads < 1 ? Runtime.getRuntime().availableProcessors() : maxThreads));
+    }
+    // ---- END TEMPORARY PROFILING INSTRUMENTATION --------------------------
+
 	public DBaseV24(IBinaryContext context, int minSupport, int maxThreads) {
 		this.minSupport = minSupport;
 		this.context = context;
@@ -159,6 +205,7 @@ public class DBaseV24 implements AbstractAlgo<List<Implication>> {
 			return null;
 		}
 		chrono.stop("compute non binary basis");
+		reportMinGenVsCoverProfile();
 		// rewrite results
 		chrono.start("rewrite results");
 		closureEngine.setContext(context);
@@ -247,8 +294,18 @@ public class DBaseV24 implements AbstractAlgo<List<Implication>> {
 	protected List<Implication> computeNonBinaryBasis(int target, ISet[] closures) {
 		List<Implication> basis = new ArrayList<>();
 
+		long t0 = System.nanoTime();
 		Set<ISet> minGens = computeMinimalGenerators(target);
+		long t1 = System.nanoTime();
 		Set<ISet> covers = computeMinimalCovers(minGens, closures);
+		long t2 = System.nanoTime();
+
+		profMinGenNanos.addAndGet(t1 - t0);
+		profMinCoverNanos.addAndGet(t2 - t1);
+		profAttrCount.incrementAndGet();
+		profMinGenCount.addAndGet(minGens.size());
+		profCoverCount.addAndGet(covers.size());
+
 		for (ISet premise : covers) {
 			if (premise.cardinality() > 1) {
 				ISet conclusion = createEmptySet();
@@ -594,7 +651,7 @@ public class DBaseV24 implements AbstractAlgo<List<Implication>> {
 				int cores = Runtime.getRuntime().availableProcessors();
 				this.nbThreads = Math.min(cores, context.getAttributeCount());
 			} else
-				this.nbThreads = 1; // mono
+				this.nbThreads = maxThreads; // mono
 		}
 
 		public List<Implication> run() throws InterruptedException {
