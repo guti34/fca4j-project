@@ -6,6 +6,8 @@ package fr.lirmm.fca4j.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.Iterator;
 import java.util.regex.Pattern;
@@ -58,7 +60,7 @@ public class DlgpUtils {
 	        // encoder les caractères spéciaux pour l’IRI
 	        String encoded=normalized;
 			try {
-				encoded = URLEncoder.encode(normalized, "UTF_8")
+				encoded = URLEncoder.encode(normalized, StandardCharsets.UTF_8.name())
 				        .replaceAll("\\+", "%20");
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
